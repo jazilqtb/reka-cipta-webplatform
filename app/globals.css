@@ -1,0 +1,665 @@
+/**
+ * globals.css
+ * ═══════════════════════════════════════════════════════════════
+ * CV Reka Cipta Indonesia — Platform Digital
+ * Design System v2.0 · Teal-First Palette
+ *
+ * Task:    E1-UX-01 — Design token & brand color system
+ * Source:  DESIGN_SYSTEM_RekaCirciptaIndonesia_v2.md (§37, §8, §35)
+ * Output:  CSS custom properties + utility classes siap pakai
+ *
+ * Struktur file:
+ *   1. Font import
+ *   2. Tailwind directives
+ *   3. CSS Design Tokens (:root + .dark)
+ *   4. Base resets
+ *   5. Focus system
+ *   6. Scrollbar
+ *   7. Skeleton loaders
+ *   8. Typography utilities
+ *   9. Reveal/scroll animations
+ *  10. Navigation utilities
+ *  11. Accordion
+ *  12. Page transitions
+ *  13. Link effects
+ *  14. Gradient & decorative backgrounds
+ *  15. Salt particle system
+ *  16. Reading progress bar
+ *  17. Dot grid pattern
+ *  18. Image hover effects
+ *  19. Prose/artikel overrides
+ *  20. Reduced motion (a11y)
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+
+/* ═══════════════════════════════════════════════════════════════
+   1. FONT IMPORT
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+
+/* ═══════════════════════════════════════════════════════════════
+   2. TAILWIND DIRECTIVES
+   ═══════════════════════════════════════════════════════════════ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ═══════════════════════════════════════════════════════════════
+   3. CSS DESIGN TOKENS
+   Single source of truth untuk semua custom properties.
+   Dark mode variables disiapkan untuk admin panel (§35).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── PRIMARY — Brand Teal ─────────────────────── */
+  --color-primary:         #0B7D6E;  /* brand-teal-600 */
+  --color-primary-hover:   #0F9E8B;  /* brand-teal-500 */
+  --color-primary-active:  #085E52;  /* brand-teal-700 */
+  --color-primary-dark:    #085E52;  /* brand-teal-700 */
+  --color-primary-light:   #E6FAF8;  /* brand-teal-50  */
+
+  /* ── DARK — Deep Ink ──────────────────────────── */
+  --color-dark:            #173F3A;  /* ink-700 — heading */
+  --color-dark-surface:    #0A1E1C;  /* ink-900 — sidebar, footer */
+  --color-dark-deep:       #050F0E;  /* ink-950 */
+
+  /* ── ACCENT — Warm Sand ───────────────────────── */
+  --color-accent:          #8A6535;  /* sand-600 */
+  --color-accent-hover:    #A88048;  /* sand-500 */
+  --color-accent-light:    #FAF6EF;  /* sand-50  */
+  --color-accent-muted:    #F6EFE1;  /* sand-100 */
+
+  /* ── SEMANTIC ─────────────────────────────────── */
+  --color-success:         #16A34A;
+  --color-success-light:   #F0FDF4;
+  --color-warning:         #D97706;
+  --color-warning-light:   #FFFBEB;
+  --color-danger:          #DC2626;
+  --color-danger-light:    #FEF2F2;
+  --color-info:            #3B82F6;
+  --color-info-light:      #EFF6FF;
+
+  /* ── SURFACE ──────────────────────────────────── */
+  --bg-page:               #F9FAFB;  /* neutral-50 */
+  --bg-surface:            #FFFFFF;  /* white */
+  --bg-subtle:             #F3F4F6;  /* neutral-100 */
+  --bg-teal-tint:          #E6FAF8;  /* brand-teal-50 */
+  --bg-sand-tint:          #FAF6EF;  /* sand-50 */
+
+  /* ── TEXT ──────────────────────────────────────── */
+  --text-primary:          #111827;  /* neutral-900 */
+  --text-secondary:        #4B5563;  /* neutral-600 */
+  --text-muted:            #9CA3AF;  /* neutral-400 */
+  --text-heading:          #173F3A;  /* ink-700 */
+  --text-brand:            #0B7D6E;  /* brand-teal-600 */
+  --text-on-dark:          #F0FDFA;  /* teal-tinted white */
+
+  /* ── BORDER ───────────────────────────────────── */
+  --border-default:        #E5E7EB;  /* neutral-200 */
+  --border-subtle:         #F3F4F6;  /* neutral-100 */
+  --border-medium:         #D1D5DB;  /* neutral-300 */
+  --border-brand:          #0B7D6E;  /* brand-teal-600 */
+  --border-brand-light:    #C7F2EE;  /* brand-teal-100 */
+  --border-error:          #DC2626;  /* danger-600 */
+  --border-sand:           #C8A06A;  /* sand-400 */
+
+  /* ── FOCUS RINGS ──────────────────────────────── */
+  --ring-focus:            0 0 0 2px #FFFFFF, 0 0 0 4px #0B7D6E;
+  --ring-focus-dark:       0 0 0 2px rgba(0,0,0,0.2), 0 0 0 4px #52D6C4;
+  --ring-focus-error:      0 0 0 2px #FFFFFF, 0 0 0 4px #DC2626;
+
+  /* ── CRM LEAD STATUS (§2.7) ───────────────────── */
+  --status-new-bg:         #E6FAF8;
+  --status-new-border:     #93E7DC;
+  --status-new-text:       #085E52;
+  --status-contacted-bg:   #FFF7ED;
+  --status-contacted-border:#FED7AA;
+  --status-contacted-text: #9A3412;
+  --status-sample-bg:      #EFF6FF;
+  --status-sample-border:  #BAE6FD;
+  --status-sample-text:    #1E40AF;
+  --status-nego-bg:        #FDF4FF;
+  --status-nego-border:    #E9D5FF;
+  --status-nego-text:      #6B21A8;
+  --status-deal-bg:        #F0FDF4;
+  --status-deal-border:    #BBF7D0;
+  --status-deal-text:      #14532D;
+  --status-lost-bg:        #FFF1F2;
+  --status-lost-border:    #FECDD3;
+  --status-lost-text:      #9F1239;
+
+  /* ── MOTION — Duration Tokens (§8.1) ──────────── */
+  --dur-instant:           50ms;
+  --dur-fast:              100ms;
+  --dur-normal:            150ms;
+  --dur-moderate:          200ms;
+  --dur-slow:              300ms;
+  --dur-deliberate:        400ms;
+  --dur-story:             600ms;
+  --dur-cinematic:         800ms;
+  --dur-crawl:             1200ms;
+  --dur-breathe:           3000ms;
+
+  /* ── MOTION — Easing Tokens (§8.2) ────────────── */
+  --ease-linear:           linear;
+  --ease-in:               cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:              cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out:           cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:           cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring-soft:      cubic-bezier(0.25, 1.25, 0.5, 1);
+  --ease-decelerate:       cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-accelerate:       cubic-bezier(0.4, 0.0, 1, 1);
+  --ease-anticipate:       cubic-bezier(0.36, -0.18, 0.64, 1.56);
+  --ease-wave:             cubic-bezier(0.45, 0.05, 0.55, 0.95);
+
+  /* ── LAYOUT ───────────────────────────────────── */
+  --sidebar-width:         240px;
+  --navbar-height:         64px;
+  --content-max-width:     1280px;
+  --content-padding:       24px;
+}
+
+
+/* ── DARK MODE — Admin Panel (§35) ──────────────── */
+/* Disiapkan untuk v2. Diaktifkan dengan class .dark
+   pada <html> atau wrapper admin layout. */
+
+.dark {
+  --bg-page:               #0A1E1C;  /* ink-900 */
+  --bg-surface:            #102E2B;  /* ink-800 */
+  --bg-subtle:             #1F5249;  /* ink-600 */
+  --bg-teal-tint:          #173F3A;  /* ink-700 */
+
+  --text-primary:          #F0FDFA;  /* teal-tinted white */
+  --text-secondary:        #6DB8AD;  /* ink-300 */
+  --text-muted:            #3D8C80;  /* ink-400 */
+  --text-heading:          #F0FDFA;
+  --text-brand:            #1BBFAA;  /* brand-teal-400 */
+  --text-on-dark:          #F0FDFA;
+
+  --border-default:        #1F5249;  /* ink-600 */
+  --border-subtle:         #173F3A;  /* ink-700 */
+  --border-medium:         #296B60;  /* ink-500 */
+  --border-brand:          #1BBFAA;  /* brand-teal-400 */
+  --border-brand-light:    #296B60;  /* ink-500 */
+
+  --color-primary:         #1BBFAA;  /* brand-teal-400 — lebih terang di dark bg */
+  --color-primary-hover:   #52D6C4;  /* brand-teal-300 */
+  --color-primary-active:  #0F9E8B;  /* brand-teal-500 */
+
+  --ring-focus:            0 0 0 2px rgba(0,0,0,0.2), 0 0 0 4px #52D6C4;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   4. BASE RESETS
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg-page);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Heading default colors — ink-700 untuk halaman publik */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-heading);
+  }
+
+  /* Selection highlight — brand teal */
+  ::selection {
+    background: #C7F2EE; /* brand-teal-100 */
+    color: #042B26;      /* brand-teal-900 */
+  }
+
+  /* Smooth image rendering */
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   5. FOCUS SYSTEM
+   Keyboard-first accessibility. Focus ring menggunakan
+   brand-teal-600 untuk konsistensi visual.
+   ═══════════════════════════════════════════════════════════════ */
+
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+  border-radius: 4px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   6. SCROLLBAR
+   Subtle, minimal, tidak mengganggu layout.
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB; /* neutral-300 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF; /* neutral-400 */
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #296B60; /* ink-500 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3D8C80; /* ink-400 */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   7. SKELETON LOADERS
+   Shimmer effect untuk loading states. Dua varian:
+   - .skeleton (neutral gray, default)
+   - .skeleton-teal (brand teal, untuk section teal)
+   ═══════════════════════════════════════════════════════════════ */
+
+.skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 37%, #F3F4F6 63%);
+  background-size: 400px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton-teal {
+  background: linear-gradient(90deg, #C7F2EE 25%, #93E7DC 37%, #C7F2EE 63%);
+  background-size: 400px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   8. TYPOGRAPHY UTILITIES
+   Kelas untuk monospace teknis (nomor sertifikat, lab values).
+   ═══════════════════════════════════════════════════════════════ */
+
+.mono-tech {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.8125rem; /* ~13px */
+  color: #374151; /* neutral-700 */
+}
+
+.dark .mono-tech {
+  color: #A8D8D3; /* ink-200 */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   9. REVEAL / SCROLL ANIMATIONS
+   Untuk IntersectionObserver. Elemen mulai hidden,
+   class .is-visible ditambahkan saat masuk viewport.
+   ═══════════════════════════════════════════════════════════════ */
+
+.reveal-up {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 500ms var(--ease-out),
+    transform 500ms var(--ease-out);
+}
+
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.93);
+  transition:
+    opacity 400ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.reveal-scale.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition:
+    opacity 500ms var(--ease-out),
+    transform 500ms var(--ease-out);
+}
+
+.reveal-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(24px);
+  transition:
+    opacity 500ms var(--ease-out),
+    transform 500ms var(--ease-out);
+}
+
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   10. NAVIGATION UTILITIES
+   Underline animasi untuk navbar links.
+   ═══════════════════════════════════════════════════════════════ */
+
+.nav-underline {
+  position: relative;
+}
+
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms var(--ease-out);
+  border-radius: 2px;
+}
+
+.nav-underline:hover::after,
+.nav-underline.active::after {
+  transform: scaleX(1);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   11. ACCORDION
+   Grid-based expand/collapse — animasi smooth tanpa JS height.
+   ═══════════════════════════════════════════════════════════════ */
+
+.accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms var(--ease-out);
+}
+
+.accordion-body.is-open {
+  grid-template-rows: 1fr;
+}
+
+.accordion-inner {
+  overflow: hidden;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   12. PAGE TRANSITIONS
+   Animasi masuk halaman — slide up dari bawah.
+   ═══════════════════════════════════════════════════════════════ */
+
+.page-transition {
+  animation: slide-up 350ms var(--ease-out);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   13. LINK EFFECTS
+   Animated underline yang muncul dari kanan ke kiri saat hover.
+   ═══════════════════════════════════════════════════════════════ */
+
+.link-animated {
+  position: relative;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.link-animated::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 200ms var(--ease-out);
+}
+
+.link-animated:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   14. GRADIENT & DECORATIVE BACKGROUNDS
+   ═══════════════════════════════════════════════════════════════ */
+
+.bg-brand-animated {
+  background: linear-gradient(135deg, #064038, #0B7D6E, #0F9E8B, #085E52);
+  background-size: 300% 300%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #064038, #0B7D6E, #0F9E8B);
+}
+
+.bg-sand-gradient {
+  background: linear-gradient(135deg, #FAF6EF, #F6EFE1, #EEDFC4);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   15. SALT PARTICLE SYSTEM
+   Partikel dekoratif terinspirasi kristal garam.
+   Butuh JavaScript untuk generate elemen .salt-particle.
+   ═══════════════════════════════════════════════════════════════ */
+
+.salt-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.salt-particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: salt-float var(--salt-dur, 6s) var(--salt-delay, 0s) ease-in-out infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   16. READING PROGRESS BAR
+   Fixed bar di top halaman untuk artikel panjang.
+   Width dicontrol via JavaScript berdasarkan scroll position.
+   ═══════════════════════════════════════════════════════════════ */
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0B7D6E, #1BBFAA);
+  border-radius: 0 3px 3px 0;
+  z-index: 9999;
+  transition: width 50ms linear;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   17. DOT GRID PATTERN
+   Background pattern subtil untuk section hero/feature.
+   ═══════════════════════════════════════════════════════════════ */
+
+.bg-dot-grid {
+  position: relative;
+}
+
+.bg-dot-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(11, 125, 110, 0.1) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+  animation: dot-grid-drift 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes dot-grid-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 24px 24px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   18. IMAGE HOVER EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Zoom on hover */
+.img-zoom {
+  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.img-zoom-container:hover .img-zoom {
+  transform: scale(1.05);
+}
+
+/* Teal overlay on hover */
+.img-teal-overlay {
+  position: absolute;
+  inset: 0;
+  background: #0B7D6E;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+.img-teal-container:hover .img-teal-overlay {
+  opacity: 0.3;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   19. PROSE / ARTIKEL OVERRIDES
+   Override Tailwind Typography plugin untuk match brand.
+   Digunakan pada halaman artikel/edukasi.
+   ═══════════════════════════════════════════════════════════════ */
+
+.prose-brand {
+  --tw-prose-headings: #173F3A;         /* ink-700 */
+  --tw-prose-links: #0B7D6E;            /* brand-teal-600 */
+  --tw-prose-bold: #111827;             /* neutral-900 */
+  --tw-prose-body: #374151;             /* neutral-700 */
+  --tw-prose-quote-borders: #C7F2EE;    /* brand-teal-100 */
+  --tw-prose-code: #085E52;             /* brand-teal-700 */
+  --tw-prose-code-bg: #E6FAF8;          /* brand-teal-50 */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   20. REDUCED MOTION — ACCESSIBILITY (§23)
+   Menghormati prefers-reduced-motion.
+   Semua animasi dihentikan, transisi diminimalkan.
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .skeleton,
+  .skeleton-teal {
+    animation: none !important;
+    background: #F3F4F6 !important;
+  }
+
+  [data-parallax] {
+    transform: none !important;
+  }
+
+  .salt-particles {
+    display: none !important;
+  }
+
+  .blob-container {
+    display: none !important;
+  }
+
+  .bg-brand-animated {
+    animation: none !important;
+  }
+
+  .bg-dot-grid::before {
+    animation: none !important;
+  }
+
+  .reveal-up,
+  .reveal-scale,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
