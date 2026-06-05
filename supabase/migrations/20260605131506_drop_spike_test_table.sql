@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS _spike_test;

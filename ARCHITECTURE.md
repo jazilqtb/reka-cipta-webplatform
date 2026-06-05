@@ -1294,10 +1294,11 @@ Validasi bahwa struktur arsitektur ini menampung semua task Epic 1 v1.1 **tanpa 
 > **Update Protocol:** Setiap keputusan arsitektural baru — perubahan folder, routing, auth flow, data fetching pattern, atau stack — **wajib** didokumentasikan di sini sebelum implementasi, dengan format:
 >
 > ```markdown
-> ## Changelog
-> | Tanggal | Versi | Perubahan | Alasan | Author |
-> |---------|-------|-----------|--------|--------|
-> | 2026-06-01 | 1.0 | Initial — output E1-SPIKE-01 | — | Tim Dev |
+## Changelog
+| Tanggal | Versi | Perubahan | Alasan | Author |
+|---------|-------|-----------|--------|--------|
+| 2026-06-xx | 1.0 | Initial — output E1-SPIKE-01 | — | Jazi |
+| 2026-06-xx | 1.1 | E1-SPIKE-02 validated: @supabase/ssr bekerja benar di Server Component (getUser() returns null, not error for unauth). RLS blocks anon correctly. | Spike hasil test | Jazi |
 > ```
 
 ---
