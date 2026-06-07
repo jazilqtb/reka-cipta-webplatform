@@ -8,7 +8,6 @@ export const metadata = {
 export default function HomePage() {
   return (
     <div className="flex flex-col">
-      {/* Hero placeholder */}
       <section className="relative bg-brand-gradient min-h-[60vh] flex items-center justify-center px-4 overflow-hidden">
         <div className="bg-dot-grid absolute inset-0 opacity-20 pointer-events-none" />
         <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
@@ -45,7 +44,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Placeholder sections */}
       <section className="py-16 px-4 bg-neutral-50 text-center">
         <p className="text-neutral-400 text-sm font-mono">
           [ Konten halaman beranda — akan diimplementasi di Epic 2 ]

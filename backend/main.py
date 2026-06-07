@@ -58,3 +58,5 @@ def health_check():
         "service": "reka-cipta-api",
         "environment": settings.ENVIRONMENT,
     }
+
+
