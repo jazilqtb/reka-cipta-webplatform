@@ -82,7 +82,7 @@ export function Navbar() {
               <span className="text-white text-xs font-bold">RC</span>
             </div>
             <span className="text-sm font-bold text-ink-700 hidden sm:block">
-              Reka Cipta
+              Reka Cipta Indonesia
             </span>
           </Link>
 

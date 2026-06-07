@@ -15,7 +15,7 @@ export function Footer() {
               <div className="h-9 w-9 rounded-lg bg-brand-teal-600 flex items-center justify-center shrink-0">
                 <span className="text-white text-sm font-bold">RC</span>
               </div>
-              <span className="text-base font-bold text-white">Reka Cipta</span>
+              <span className="text-base font-bold text-white">Reka Cipta Indonesia</span>
             </Link>
 
             <p className="text-sm leading-relaxed text-ink-300 max-w-[280px]">
