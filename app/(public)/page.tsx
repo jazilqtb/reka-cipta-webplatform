@@ -12,8 +12,9 @@ import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import type { CompanySettingsMap } from '@/types/api'
 import{ HeroSection } from '@/components/sections/HeroSection'
+import { StatsBar } from '@/components/sections/StatsBar'
+
 import {
-  StatsBarPlaceholder,
   ProductsPreviewPlaceholder,
   HowItWorksPlaceholder,
   IndustriesGridPlaceholder,
@@ -89,7 +90,7 @@ export default async function BerandaPage() {
   return (
     <>
       <HeroSection />
-      <StatsBarPlaceholder settings={settings} />
+      <StatsBar settings={settings} />
       <ProductsPreviewPlaceholder />
       <HowItWorksPlaceholder />
       <IndustriesGridPlaceholder />
