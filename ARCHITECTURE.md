@@ -1194,6 +1194,10 @@ app.add_middleware(
 | `class UserProfile` | `interface UserProfile` |
 | `class AuthResponse` | `interface AuthResponse` |
 | `class ApiError` | `interface ApiError` |
+| `class CompanySettingItem`        | `interface CompanySettingItem`        |
+| `class CompanySettingsResponse`   | `interface CompanySettingsResponse`   |
+| `class CompanySettingUpdate`      | `interface CompanySettingUpdate`      |
+| `class CompanySettingsBulkUpdate` | `interface CompanySettingsBulkUpdate` |
 
 ```typescript
 // types/api.ts — Epic 1 types

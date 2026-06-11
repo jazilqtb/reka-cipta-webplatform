@@ -46,3 +46,32 @@ export interface PaginatedResponse<T> {
 // Epic 4: RFQLead, LeadStatus, LeadStatusUpdate, WaTemplate
 // Epic 5: SupplierRegistration, SupplierStatus
 // Epic 6: Article, ArticleCreate, ArticleUpdate
+
+// === Epic 2: Company Settings (E2-S1-CONT-01) ===
+// Mirror dari backend/schemas/settings.py — jaga sinkron (ARCHITECTURE.md §16)
+
+export interface CompanySettingItem {
+  id: string
+  key: string
+  value: string
+  label: string
+  description: string | null
+  updated_at: string  // ISO 8601
+}
+
+export interface CompanySettingsResponse {
+  data: CompanySettingItem[]
+  count: number
+}
+
+export interface CompanySettingUpdate {
+  value: string
+}
+
+export interface CompanySettingsBulkUpdate {
+  updates: Record<string, string>  // { key: new_value }
+}
+
+// Convenience: settings sebagai key-value map — dipakai page.tsx
+// (hasil Object.fromEntries dari select key,value)
+export type CompanySettingsMap = Record<string, string>
