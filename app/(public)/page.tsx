@@ -1,54 +1,100 @@
-import Link from 'next/link'
-import { ArrowRight, BadgeCheck } from 'lucide-react'
+// app/(public)/page.tsx — Halaman Beranda (/)
+// Epic 2 Slice 1 (E2-S1-FE-01)
+//
+// Rendering : ISR — revalidate 3600s (ARCHITECTURE.md §6.6)
+//             + revalidatePath('/') dari admin save (Slice 3)
+// Data      : company_settings via Supabase anon key, Server
+//             Component (§6.1 — public read TIDAK lewat FastAPI)
+// Metadata  : final dari E2-S1-UX-05 (Fase 0)
+// Section   : placeholder sementara — diganti bertahap Fase 6–8
 
-export const metadata = {
-  title: 'CV Reka Cipta Indonesia — Distributor Garam Industri Bersertifikat SNI',
+import type { Metadata } from 'next'
+import { createPublic } from '@/lib/supabase/public'
+import type { CompanySettingsMap } from '@/types/api'
+import{ HeroSection } from '@/components/sections/HeroSection'
+import {
+  StatsBarPlaceholder,
+  ProductsPreviewPlaceholder,
+  HowItWorksPlaceholder,
+  IndustriesGridPlaceholder,
+  CredibilityPlaceholder,
+  CTAPlaceholder,
+} from './_sections-placeholder'
+
+// ─── ISR: regenerasi maksimal tiap 1 jam ─────────────────────
+export const revalidate = 3600
+
+// ─── Metadata final — E2-S1-UX-05, dikunci Fase 0 ────────────
+export const metadata: Metadata = {
+  title: {
+    absolute: 'CV Reka Cipta Indonesia — Distributor Garam SNI untuk Industri | Surabaya',
+  },
+  description:
+    'Distributor garam industri bersertifikasi SNI di Surabaya. Melayani sektor makanan, pengasinan, water treatment, dan pakan ternak. Minta penawaran sekarang.',
+  alternates: {
+    canonical: 'https://rekaciptaindonesia.com',
+  },
+  openGraph: {
+    title: 'CV Reka Cipta Indonesia — Distributor Garam SNI untuk Industri',
+    description:
+      'Distributor garam industri bersertifikasi SNI di Surabaya. Dokumentasi lab dan legalitas terbuka. Penawaran harga kurang dari 2 menit.',
+    url: 'https://rekaciptaindonesia.com',
+    siteName: 'CV Reka Cipta Indonesia',
+    images: [{ url: '/og-image.svg', width: 1200, height: 630 }], // TODO: ganti /og-image.jpg sebelum production launch (catatan UX-05)
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
-export default function HomePage() {
+// ─── Data fetching ───────────────────────────────────────────
+// Fallback IDENTIK dengan seed Fase 1 (DB-02) — acceptance
+// criteria US-02: fetch gagal → tampil nilai fallback, bukan
+// blank/error. Jangan ubah salah satu tanpa menyamakan yang lain.
+const FALLBACK_SETTINGS: CompanySettingsMap = {
+  partner_count: '6',
+  cities_served: '9',
+  total_distribution_tons: '353',
+  client_list:
+    'PT. Surabaya Mekabox,PT. Sejati Tritunggal Indah,PT. Cakrawala Cemerlang Box,Unit Pengolahan Garam KKP,Perusahaan Pengolah Limbah',
+}
+
+async function getCompanySettings(): Promise<CompanySettingsMap> {
+  try {
+    const supabase = createPublic() // async — Next.js 15 await cookies()
+    const { data, error } = await supabase
+      .from('company_settings')
+      .select('key, value')
+
+    if (error || !data || data.length === 0) {
+      console.error('[Beranda] Gagal fetch company_settings:', error?.message)
+      return FALLBACK_SETTINGS
+    }
+
+    return Object.fromEntries(data.map((row) => [row.key, row.value]))
+  } catch (err) {
+    console.error('[Beranda] Exception saat fetch company_settings:', err)
+    return FALLBACK_SETTINGS
+  }
+}
+
+// ─── Page ────────────────────────────────────────────────────
+// Catatan struktur: <main> sudah disediakan layout (E1-ENG-24)
+// — di sini fragment saja agar tidak nested <main>.
+export default async function BerandaPage() {
+  const settings = await getCompanySettings()
+
   return (
-    <div className="flex flex-col">
-      <section className="relative bg-brand-gradient min-h-[60vh] flex items-center justify-center px-4 overflow-hidden">
-        <div className="bg-dot-grid absolute inset-0 opacity-20 pointer-events-none" />
-        <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-sm text-white/90 font-medium">
-            <BadgeCheck size={16} aria-hidden="true" />
-            Tersertifikasi SNI
-          </span>
-
-          <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold text-white leading-tight">
-            Garam Lokal,{' '}
-            <span className="text-brand-teal-200">Standar Industri</span>
-          </h1>
-
-          <p className="text-lg text-white/80 leading-relaxed max-w-xl mx-auto">
-            Distributor garam bersertifikat SNI untuk kebutuhan industri
-            makanan, perikanan, dan kimia di seluruh Indonesia.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link
-              href="/minta-penawaran"
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-white text-brand-teal-700 text-base font-semibold rounded-md shadow-md hover:bg-brand-teal-50 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus transition-all duration-100"
-            >
-              Minta Penawaran
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-            <Link
-              href="/produk"
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-transparent text-white border border-white/40 text-base font-semibold rounded-md hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none transition-all duration-100"
-            >
-              Lihat Produk
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-4 bg-neutral-50 text-center">
-        <p className="text-neutral-400 text-sm font-mono">
-          [ Konten halaman beranda — akan diimplementasi di Epic 2 ]
-        </p>
-      </section>
-    </div>
+    <>
+      <HeroSection />
+      <StatsBarPlaceholder settings={settings} />
+      <ProductsPreviewPlaceholder />
+      <HowItWorksPlaceholder />
+      <IndustriesGridPlaceholder />
+      <CredibilityPlaceholder settings={settings} />
+      <CTAPlaceholder />
+    </>
   )
 }
