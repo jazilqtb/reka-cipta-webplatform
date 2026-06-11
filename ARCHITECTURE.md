@@ -930,6 +930,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 Dark mode (`darkMode: 'class'` di Tailwind) disiapkan tapi **belum diaktifkan di v1**. Semua CSS variables `.dark` sudah tersedia di `globals.css`. Admin panel akan mengaktifkan di v2 dengan menambahkan class `.dark` ke wrapper admin layout.
 
+### 11.6 Animation Library — framer-motion (Epic 2 Slice 1, E2-S1-LIB-01)
+
+| Package | Versi | Dipakai oleh | Catatan |
+|---|---|---|---|
+| `framer-motion` | ^11.x | HeroSection (stagger), HowItWorks (useScroll), InteractiveDistributionMap (AnimatePresence) | ~50KB gzipped. HowItWorks WAJIB dynamic import (`ssr: false`) agar tidak masuk initial bundle — lihat E2-S1-FE-09. Komponen lain boleh static import karena above-the-fold. |
+
 ---
 
 ## 12. Integration Points
