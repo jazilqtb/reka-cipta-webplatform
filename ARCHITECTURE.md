@@ -696,6 +696,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 | Client Component | `lib/supabase/client.ts` | `createBrowserClient(...)` | Singleton di browser |
 | Middleware | inline di `middleware.ts` | `createServerClient(...)` | Dengan cookie getAll/setAll untuk refresh |
 | FastAPI | `core/supabase.py` | Python Supabase SDK | Service role key untuk admin ops |
+| Server Component — **public read** | `lib/supabase/public.ts` | `createPublic()` (vanilla `@supabase/supabase-js`, stateless) | TIDAK akses cookies — halaman tetap Static + ISR (Beranda §6.6) |
 
 ### 8.2 Implementasi
 
@@ -861,6 +862,8 @@ settings = Settings()  # Validasi saat startup — crash early jika ada yang mis
 ```
 tailwind.config.ts   ← FROZEN — output E1-UX-01
 globals.css          ← FROZEN — output E1-UX-01
+Pengecualian tercatat: .cta-hero-pulse ditambahkan Slice 1 FE-02
+(port spec DS §33.2 ke Tailwind v4). .marquee-track menyusul di FE-07.
 ```
 
 Setiap penambahan token baru wajib didiskusikan, diputuskan tim, dan didokumentasikan di sini dengan alasan.
