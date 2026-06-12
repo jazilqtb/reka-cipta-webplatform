@@ -100,8 +100,7 @@ export function StatsBar({ settings }: StatsBarProps) {
             className="transition-opacity duration-500 [grid-area:1/1]"
             style={{ opacity: slide === 0 ? 1 : 0, pointerEvents: slide === 0 ? 'auto' : 'none' }}
             aria-hidden={slide !== 0}
-            // @ts-expect-error — `inert` valid di React 19, types kadang tertinggal
-            inert={slide !== 0 ? '' : undefined}
+            inert={slide !== 0}
           >
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
               {stats.map((s) => (
@@ -129,8 +128,7 @@ export function StatsBar({ settings }: StatsBarProps) {
             className="transition-opacity duration-500 [grid-area:1/1]"
             style={{ opacity: slide === 1 ? 1 : 0, pointerEvents: slide === 1 ? 'auto' : 'none' }}
             aria-hidden={slide !== 1}
-            // @ts-expect-error — lihat catatan inert di atas
-            inert={slide !== 1 ? '' : undefined}
+            inert={slide !== 1}
           >
             <InteractiveDistributionMap />
           </div>

@@ -7,6 +7,13 @@
 //   atau tab tidak terlihat (visibilitychange).
 // - Foto absen (keputusan Fase 0): onError per slide → layer
 //   bg-brand-teal-900 di belakang selalu jadi fallback.
+//
+// Catatan refactor: CTA Link memakai class `buttonVariants(...)`
+// langsung, bukan `<Button asChild>`. Alasan: proyek pakai Base UI
+// (`@base-ui/react`) yang tidak punya pattern asChild seperti Radix.
+// Menambahkan asChild = melanggar aturan frozen components/ui/.
+// Pattern ini juga idiomatik shadcn untuk anchor (lihat dokumentasi
+// shadcn → "Using as a Link").
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,7 +21,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export interface HeroSlide {
   src: string
@@ -63,7 +71,7 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
     }
   }, [isPaused, prefersReduced, slides.length, autoPlayMs])
 
-  // Klik dot: pindah slide + jeda autoplay 6 detik (wireframe: pause saat dot diklik)
+  // Klik dot: pindah slide + jeda autoplay 6 detik
   const goTo = useCallback((index: number) => {
     setCurrent(index)
     setIsPaused(true)
@@ -85,15 +93,13 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
       aria-label="Hero"
     >
       {/* ── Background layers ─────────────────────────────── */}
-      {/* Fallback permanen — selalu di paling belakang */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-teal-900 via-ink-900 to-brand-teal-800" aria-hidden="true" />
 
-      {/* Slide images — crossfade via opacity */}
       {slides.map((slide, i) =>
         failed.has(i) ? null : (
           <div
             key={slide.src}
-            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
             style={{ opacity: i === current ? 1 : 0 }}
             aria-hidden={i !== current}
           >
@@ -101,7 +107,7 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
               src={slide.src}
               alt={i === current ? slide.alt : ''}
               fill
-              priority={i === 0} // LCP: slide pertama priority (QA-03)
+              priority={i === 0}
               sizes="100vw"
               className="object-cover"
               onError={() => markFailed(i)}
@@ -110,7 +116,6 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
         )
       )}
 
-      {/* Overlay agar teks terbaca — wireframe §1 */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink-900/85 via-ink-900/50 to-ink-900/30" aria-hidden="true" />
 
       {/* ── Konten — stagger fadeInUp ─────────────────────── */}
@@ -120,14 +125,12 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
         initial={prefersReduced ? 'visible' : 'hidden'}
         animate="visible"
       >
-        {/* Badge */}
         <motion.div variants={item}>
           <span className="inline-block rounded-full border border-brand-teal-300/40 bg-brand-teal-50/10 px-4 py-1.5 text-sm font-medium text-brand-teal-200 backdrop-blur-sm">
             Tersertifikasi SNI
           </span>
         </motion.div>
 
-        {/* Headline — satu-satunya <h1> di halaman */}
         <motion.h1
           variants={item}
           className="mt-6 max-w-4xl text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
@@ -135,7 +138,6 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
           Mitra Distribusi Garam SNI Anda: Transparan, Cepat, dan Terverifikasi
         </motion.h1>
 
-        {/* Sub-headline */}
         <motion.p
           variants={item}
           className="mt-6 max-w-2xl text-lg text-neutral-200/90 md:text-xl"
@@ -146,28 +148,30 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
           harga kurang dari 2 menit.
         </motion.p>
 
-        {/* CTA buttons */}
+        {/* CTA — Link dengan class buttonVariants (idiomatik shadcn,
+            tanpa asChild yang tidak didukung Base UI). */}
         <motion.div variants={item} className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
-          <Button
-            asChild
-            size="lg"
-            className="cta-hero-pulse bg-brand-teal-600 text-white hover:bg-brand-teal-500"
+          <Link
+            href="/minta-penawaran"
+            aria-label="Minta penawaran harga sekarang"
+            className={cn(
+              buttonVariants({ size: 'lg' }),
+              'cta-hero-pulse bg-brand-teal-600 text-white hover:bg-brand-teal-500'
+            )}
           >
-            <Link href="/minta-penawaran" aria-label="Minta penawaran harga sekarang">
-              Minta Penawaran Sekarang
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="border-white/60 bg-transparent text-white hover:bg-white/10 hover:text-white"
+            Minta Penawaran Sekarang
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/produk"
+            aria-label="Lihat katalog produk kami"
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'lg' }),
+              'border-white/60 bg-transparent text-white hover:bg-white/10 hover:text-white'
+            )}
           >
-            <Link href="/produk" aria-label="Lihat katalog produk kami">
-              Lihat Produk Kami
-            </Link>
-          </Button>
+            Lihat Produk Kami
+          </Link>
         </motion.div>
       </motion.div>
 
