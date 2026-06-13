@@ -48,3 +48,10 @@ Dikunci pada Fase 0 · Juni 2026
 - Industries icons  : Lucide React fallback (custom SVG TODO) ✅
 - Marquee CSS       : BELUM ADA di globals.css → ditambahkan di FE-07 ✅
 - Klien marquee     : Boleh ditampilkan di website publik ✅
+
+## TODO Next 16 — middleware → proxy (post Slice 1)
+Warning Next.js 16: "middleware file convention is deprecated. Please
+use proxy instead." Tidak fatal sekarang. Saat Slice 1 wrap-up atau
+sebelum upgrade Next selanjutnya, rename middleware.ts → proxy.ts dan
+verifikasi auth flow Epic 1 masih berjalan. Reference:
+https://nextjs.org/docs/messages/middleware-to-proxy

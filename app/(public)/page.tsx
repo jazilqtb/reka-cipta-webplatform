@@ -13,13 +13,13 @@ import { createPublic } from '@/lib/supabase/public'
 import type { CompanySettingsMap } from '@/types/api'
 import{ HeroSection } from '@/components/sections/HeroSection'
 import { StatsBar } from '@/components/sections/StatsBar'
+import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
+import { CTASection } from '@/components/sections/CTASection'
 
 import {
   ProductsPreviewPlaceholder,
   HowItWorksPlaceholder,
-  IndustriesGridPlaceholder,
   CredibilityPlaceholder,
-  CTAPlaceholder,
 } from './_sections-placeholder'
 
 // ─── ISR: regenerasi maksimal tiap 1 jam ─────────────────────
@@ -93,9 +93,9 @@ export default async function BerandaPage() {
       <StatsBar settings={settings} />
       <ProductsPreviewPlaceholder />
       <HowItWorksPlaceholder />
-      <IndustriesGridPlaceholder />
+      <IndustriesGrid />
       <CredibilityPlaceholder settings={settings} />
-      <CTAPlaceholder />
+      <CTASection />
     </>
   )
 }
