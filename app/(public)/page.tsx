@@ -17,10 +17,10 @@ import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
 import { CTASection } from '@/components/sections/CTASection'
 import { ProductsPreview } from '@/components/sections/ProductsPreview'
 import { CredibilitySection } from '@/components/sections/CredibilitySection'
+import HowItWorks from '@/components/sections/HowItWorks'
 
-import {
-  HowItWorksPlaceholder,
-} from './_sections-placeholder'
+// Semua placeholder Fase 6–7 sudah diganti komponen asli.
+// File _sections-placeholder.tsx akan dihapus di Fase 8 (E2-S1-FE-09).
 
 // ─── ISR: regenerasi maksimal tiap 1 jam ─────────────────────
 export const revalidate = 3600
@@ -92,7 +92,7 @@ export default async function BerandaPage() {
       <HeroSection />
       <StatsBar settings={settings} />
       <ProductsPreview />
-      <HowItWorksPlaceholder />
+      <HowItWorks />
       <IndustriesGrid />
       <CredibilitySection />
       <CTASection />
