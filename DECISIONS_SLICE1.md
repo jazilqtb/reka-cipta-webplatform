@@ -55,3 +55,22 @@ use proxy instead." Tidak fatal sekarang. Saat Slice 1 wrap-up atau
 sebelum upgrade Next selanjutnya, rename middleware.ts → proxy.ts dan
 verifikasi auth flow Epic 1 masih berjalan. Reference:
 https://nextjs.org/docs/messages/middleware-to-proxy
+
+## Fase 9 — QA & Sign-off (tanggal: $(date +%Y-%m-%d))
+
+Hasil QA:
+- Lighthouse Desktop: Perf __, A11y __, SEO __, BP __
+- Lighthouse Mobile : Perf __, A11y __, SEO __, BP __
+- Visual review 4 breakpoint: ✅ semua section responsive
+- Keyboard navigation: ✅ no traps, focus ring visible
+- Reduced motion: ✅ semua animasi patuh
+- Content accuracy: ✅ stats, produk, klien sesuai DB & Fondasi Brand
+
+Daftar TODO pre-launch (dikoordinasikan dgn Irwan Sugianto):
+- Foto: 3 hero, 5 produk, 1 how-it-works background
+- Icons SVG industri 6 buah (post-launch acceptable)
+- OG image final JPG 1200×630
+- Domain rekaciptaindonesia.com setup di Vercel
+- DNS records untuk Resend domain verification
+
+Slice 1 Beranda: SIAP DEMO ke klien.
