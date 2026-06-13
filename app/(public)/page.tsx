@@ -15,11 +15,11 @@ import{ HeroSection } from '@/components/sections/HeroSection'
 import { StatsBar } from '@/components/sections/StatsBar'
 import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
 import { CTASection } from '@/components/sections/CTASection'
+import { ProductsPreview } from '@/components/sections/ProductsPreview'
+import { CredibilitySection } from '@/components/sections/CredibilitySection'
 
 import {
-  ProductsPreviewPlaceholder,
   HowItWorksPlaceholder,
-  CredibilityPlaceholder,
 } from './_sections-placeholder'
 
 // ─── ISR: regenerasi maksimal tiap 1 jam ─────────────────────
@@ -91,10 +91,10 @@ export default async function BerandaPage() {
     <>
       <HeroSection />
       <StatsBar settings={settings} />
-      <ProductsPreviewPlaceholder />
+      <ProductsPreview />
       <HowItWorksPlaceholder />
       <IndustriesGrid />
-      <CredibilityPlaceholder settings={settings} />
+      <CredibilitySection />
       <CTASection />
     </>
   )

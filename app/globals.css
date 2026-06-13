@@ -279,3 +279,33 @@
 @media (prefers-reduced-motion: reduce) {
   .cta-hero-pulse { animation: none; }
 }
+
+/* ═══ Tambahan Epic 2 Slice 1 (FE-07) — Wireframe v1.0 §6 ═══
+   Pengecualian frozen-file kedua (sudah pre-dokumentasi di
+   ARCHITECTURE.md §11). Marquee infinite scroll utk
+   CredibilitySection. Reduced motion: animation off. */
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  animation: marquee-scroll 20s linear infinite;
+}
+
+.marquee-track:hover,
+.marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+  }
+}
