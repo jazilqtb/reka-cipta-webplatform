@@ -39,7 +39,7 @@ const INDUSTRIES: Industry[] = [
 export function IndustriesGrid() {
   return (
     <section
-      className="bg-white px-4 py-20 md:py-28"
+      className="bg-white px-4 py-14 md:py-16"
       aria-labelledby="industries-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -52,7 +52,7 @@ export function IndustriesGrid() {
             <h2 id="industries-heading" className="text-3xl font-bold text-ink-700 md:text-4xl">
               Industri yang Kami Layani
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-neutral-600">
+            <p className="mx-auto mt-3 max-w-xl text-neutral-700">
               Garam industri SNI untuk enam sektor utama — dari food-grade hingga
               proses teknis. Hubungi kami untuk spesifikasi lebih detail.
             </p>

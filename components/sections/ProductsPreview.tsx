@@ -57,7 +57,7 @@ const PRODUCTS_PREVIEW: ProductCardData[] = [
 export function ProductsPreview() {
   return (
     <section
-      className="bg-neutral-50 px-4 py-20 md:py-28"
+      className="bg-white px-4 py-10 md:py-14"
       aria-labelledby="products-heading"
     >
       <div className="mx-auto max-w-7xl">

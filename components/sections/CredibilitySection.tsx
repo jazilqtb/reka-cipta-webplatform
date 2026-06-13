@@ -23,7 +23,7 @@ const MARQUEE_ITEMS = [...ACTIVE_CLIENTS, ...ACTIVE_CLIENTS]
 export function CredibilitySection() {
   return (
     <section
-      className="overflow-hidden bg-white py-20 md:py-24"
+      className="overflow-hidden bg-white py-16 md:py-20"
       aria-labelledby="credibility-heading"
     >
       <div className="mx-auto max-w-7xl px-4">
@@ -76,14 +76,14 @@ export function CredibilitySection() {
                 style={{ minWidth: '240px' }}
               >
                 <p className="font-semibold text-ink-700">{client.name}</p>
-                <p className="text-sm text-neutral-500">{client.industry}</p>
+                <p className="text-sm text-neutral-700">{client.industry}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Kalimat penutup */}
-        <p className="mt-10 text-center text-sm text-neutral-500 md:mt-14">
+        <p className="mt-10 text-center text-sm text-neutral-700 md:mt-14">
           Bergabunglah dengan {ACTIVE_CLIENTS.length}+ mitra industri yang
           mempercayakan kebutuhan garam mereka kepada kami.
         </p>
