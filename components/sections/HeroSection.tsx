@@ -6,9 +6,8 @@ const HERO_SLIDES: HeroSlide[] = [
   { src: '/images/hero/hero-1.jpg', alt: 'Produk garam industri CV Reka Cipta Indonesia' },
   { src: '/images/hero/hero-2.jpg', alt: 'Proses distribusi garam ke mitra industri' },
   { src: '/images/hero/hero-3.jpg', alt: 'Gudang penyimpanan garam bersertifikasi SNI' },
-  { src: '/images/hero/hero-4.jpg', alt: 'Kemitraan strategis dengan industri nasional' }, // <--- SLIDE BARU
 ]
 
 export function HeroSection() {
-  return <HeroCarousel slides={HERO_SLIDES} autoPlayMs={3000}/>
+  return <HeroCarousel slides={HERO_SLIDES} />
 }

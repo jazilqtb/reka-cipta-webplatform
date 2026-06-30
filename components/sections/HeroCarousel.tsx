@@ -87,12 +87,12 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
 
   return (
     <section
-      className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-4 py-24"
+      className="relative flex min-h-[75vh] flex-col items-center justify-center overflow-hidden px-4 py-16 md:min-h-[80vh] md:py-20"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Hero"
     >
-      {/* ── Background layers ─────────────────────────────── */}
+      {/* Background gradient base */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-teal-900 via-ink-900 to-brand-teal-800" aria-hidden="true" />
 
       {slides.map((slide, i) =>
@@ -116,31 +116,32 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
         )
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-ink-900/85 via-ink-900/50 to-ink-900/30" aria-hidden="true" />
+      {/* Overlay gelap diperkuat untuk kontras teks */}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink-900/90 via-ink-900/65 to-ink-900/45" aria-hidden="true" />
 
-      {/* ── Konten — stagger fadeInUp ─────────────────────── */}
+      {/* Konten — stagger fadeInUp */}
       <motion.div
-        className="relative z-10 flex max-w-7xl flex-col items-center text-center"
+        className="relative z-10 flex max-w-3xl flex-col items-center text-center"
         variants={container}
         initial={prefersReduced ? 'visible' : 'hidden'}
         animate="visible"
       >
         <motion.div variants={item}>
-          <span className="inline-block rounded-full border border-brand-teal-300/40 bg-brand-teal-50/10 px-4 py-1.5 text-sm font-medium text-brand-teal-200 backdrop-blur-sm">
+          <span className="inline-block rounded-full border border-brand-teal-300/50 bg-brand-teal-50/15 px-4 py-1.5 text-sm font-semibold text-brand-teal-100 backdrop-blur-sm">
             Tersertifikasi SNI
           </span>
         </motion.div>
 
         <motion.h1
           variants={item}
-          className="mt-6 max-w-4xl text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
+          className="mt-6 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
         >
           Mitra Distribusi Garam SNI Anda: Transparan, Cepat, dan Terverifikasi
         </motion.h1>
 
         <motion.p
           variants={item}
-          className="mt-6 max-w-2xl text-lg text-neutral-200/90 md:text-xl"
+          className="mt-5 max-w-2xl text-base text-white/95 md:text-lg"
         >
           Kami menyediakan 5 pilihan garam bersertifikasi untuk kelancaran
           produksi industri Anda. Mulai dari dokumentasi uji laboratorium hingga
@@ -148,9 +149,7 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
           harga kurang dari 2 menit.
         </motion.p>
 
-        {/* CTA — Link dengan class buttonVariants (idiomatik shadcn,
-            tanpa asChild yang tidak didukung Base UI). */}
-        <motion.div variants={item} className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+        <motion.div variants={item} className="mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
           <Link
             href="/minta-penawaran"
             aria-label="Minta penawaran harga sekarang"
@@ -167,7 +166,7 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
             aria-label="Lihat katalog produk kami"
             className={cn(
               buttonVariants({ variant: 'outline', size: 'lg' }),
-              'border-white/60 bg-transparent text-white hover:bg-white/10 hover:text-white'
+              'border-white/70 bg-transparent text-white hover:bg-white/10 hover:text-white'
             )}
           >
             Lihat Produk Kami
@@ -175,9 +174,9 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
         </motion.div>
       </motion.div>
 
-      {/* ── Pagination dots ───────────────────────────────── */}
+      {/* Pagination dots */}
       {slides.length > 1 && (
-        <div className="absolute bottom-8 z-10 flex gap-2" role="tablist" aria-label="Pilih slide hero">
+        <div className="absolute bottom-6 z-10 flex gap-2" role="tablist" aria-label="Pilih slide hero">
           {slides.map((_, i) => (
             <button
               key={i}
