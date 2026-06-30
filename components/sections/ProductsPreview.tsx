@@ -1,19 +1,16 @@
 // components/sections/ProductsPreview.tsx
-// Epic 2 Slice 1 (E2-S1-FE-04) — Wireframe v1.0 §3.
+// Epic 2 Slice 1 (E2-S1-FE-04) — REVISI Bagian 2: Grid 2+3.
 //
-// Server Component. 5 produk hardcoded sementara — akan diganti
-// fetch dari GET /api/v1/products saat Epic 3 selesai.
+// Wireframe baru (sesuai referensi visual klien):
+// - Baris 1: 2 kartu (lebih lebar) — max-w-3xl + grid-cols-2
+// - Baris 2: 3 kartu (normal) — max-w-7xl + grid-cols-3
+// - Mobile: tetap horizontal snap scroll (UX mobile lebih natural)
+// - Hapus "Lihat Semua Produk" CTA (5 produk = total katalog)
 //
-// Layout: grid-cols-5 desktop, horizontal snap scroll di mobile.
-// Setiap card 75vw di mobile agar terlihat "ada lebih" — preview
-// hint mendorong user untuk swipe.
+// Tinggi kartu konsisten via aspect-square di ProductCard.
 
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { ProductCard, type ProductCardData } from '@/components/blocks/ProductCard'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 // TODO(Epic 3): Replace dgn fetch dari GET /api/v1/products
 const PRODUCTS_PREVIEW: ProductCardData[] = [
@@ -54,39 +51,55 @@ const PRODUCTS_PREVIEW: ProductCardData[] = [
   },
 ]
 
+// Split: 2 baris atas + 3 baris bawah
+const TOP_ROW = PRODUCTS_PREVIEW.slice(0, 2)
+const BOTTOM_ROW = PRODUCTS_PREVIEW.slice(2, 5)
+
 export function ProductsPreview() {
   return (
     <section
-      className="bg-white px-4 py-10 md:py-14"
+      className="bg-white px-4 py-16 md:py-20"
       aria-labelledby="products-heading"
     >
       <div className="mx-auto max-w-7xl">
         {/* Heading */}
         <RevealWrapper>
-          <div className="mb-12 text-center md:mb-16">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand-teal-600">
+          <div className="mb-10 text-center md:mb-12">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-brand-teal-600">
               Katalog Produk
             </p>
-            <h2 id="products-heading" className="text-3xl font-bold text-ink-700 md:text-4xl">
+            <h2 id="products-heading" className="text-3xl font-bold text-ink-700 md:text-4xl lg:text-5xl">
               5 Pilihan Garam Bersertifikasi
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-neutral-600">
+            <p className="mx-auto mt-4 max-w-xl text-base text-neutral-700">
               Dari garam halus food-grade beryodium hingga garam kasar industri
               dengan kandungan NaCl tinggi.
             </p>
           </div>
         </RevealWrapper>
 
-        {/* Desktop: grid 5 kolom (hidden di mobile) */}
-        <div className="hidden grid-cols-5 gap-6 md:grid">
-          {PRODUCTS_PREVIEW.map((product, index) => (
-            <RevealWrapper key={product.slug} variant="reveal-up" delay={index * 80}>
-              <ProductCard {...product} className="h-full" />
-            </RevealWrapper>
-          ))}
+        {/* ── DESKTOP: Grid 2+3 ─────────────────────────────── */}
+        <div className="hidden md:block">
+          {/* Baris 1: 2 kartu lebar */}
+          <div className="mx-auto mb-6 grid max-w-3xl grid-cols-2 gap-6">
+            {TOP_ROW.map((product, index) => (
+              <RevealWrapper key={product.slug} variant="reveal-up" delay={index * 80}>
+                <ProductCard {...product} className="h-full" />
+              </RevealWrapper>
+            ))}
+          </div>
+
+          {/* Baris 2: 3 kartu normal */}
+          <div className="mx-auto grid max-w-5xl grid-cols-3 gap-6">
+            {BOTTOM_ROW.map((product, index) => (
+              <RevealWrapper key={product.slug} variant="reveal-up" delay={(index + 2) * 80}>
+                <ProductCard {...product} className="h-full" />
+              </RevealWrapper>
+            ))}
+          </div>
         </div>
 
-        {/* Mobile: horizontal snap scroll */}
+        {/* ── MOBILE: Horizontal snap scroll ────────────────── */}
         <div
           className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-4 md:hidden"
           style={{ scrollbarWidth: 'none' }}
@@ -102,21 +115,6 @@ export function ProductsPreview() {
           ))}
           {/* Spacer kanan agar card terakhir punya margin saat di-snap */}
           <div className="w-2 shrink-0" aria-hidden="true" />
-        </div>
-
-        {/* CTA "Lihat Semua Produk" */}
-        <div className="mt-10 text-center md:mt-14">
-          <Link
-            href="/produk"
-            aria-label="Lihat semua produk garam kami"
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'lg' }),
-              'border-brand-teal-600 text-brand-teal-600 hover:bg-brand-teal-50'
-            )}
-          >
-            Lihat Semua Produk
-            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-          </Link>
         </div>
       </div>
     </section>
