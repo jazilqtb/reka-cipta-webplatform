@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Menu, X, MessageCircle, Mail, ArrowRight, Sprout } from 'lucide-react'
 import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK, COMPANY_INFO } from '@/constants/navigation'
+import { Logo } from '@/components/brand/Logo'
 
 function isNavActive(href: string, pathname: string, exact: boolean): boolean {
   if (exact) return pathname === href
@@ -72,19 +73,7 @@ export function Navbar() {
           aria-label="Navigasi utama"
         >
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 shrink-0 focus-visible:outline-none focus-visible:shadow-focus rounded-md"
-            aria-label="CV Reka Cipta Indonesia — Halaman Utama"
-          >
-            {/* Logo placeholder — ganti dengan <Image> saat aset tersedia */}
-            <div className="h-8 w-8 rounded-lg bg-brand-teal-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">RC</span>
-            </div>
-            <span className="text-sm font-bold text-ink-700 hidden sm:block">
-              Reka Cipta Indonesia
-            </span>
-          </Link>
+          <Logo variant="light" height={36} />
 
           {/* Nav links — desktop */}
           <ul className="hidden lg:flex items-center gap-1" role="list">

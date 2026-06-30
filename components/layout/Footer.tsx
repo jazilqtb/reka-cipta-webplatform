@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { MapPin, MessageCircle, Mail, BadgeCheck, Shield } from 'lucide-react'
 import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK, COMPANY_INFO } from '@/constants/navigation'
+import { Logo } from '@/components/brand/Logo'
 
 export function Footer() {
   return (
@@ -10,13 +11,7 @@ export function Footer() {
 
           {/* ── Kolom 1: Brand ── */}
           <div className="space-y-4">
-            {/* Logo placeholder */}
-            <Link href="/" className="flex items-center gap-2.5 w-fit focus-visible:outline-none rounded-md">
-              <div className="h-9 w-9 rounded-lg bg-brand-teal-600 flex items-center justify-center shrink-0">
-                <span className="text-white text-sm font-bold">RC</span>
-              </div>
-              <span className="text-base font-bold text-white">Reka Cipta Indonesia</span>
-            </Link>
+            <Logo variant="dark" height={48} asLink={false} />
 
             <p className="text-sm leading-relaxed text-ink-300 max-w-[280px]">
               {COMPANY_INFO.description}
