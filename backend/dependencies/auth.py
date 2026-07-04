@@ -33,7 +33,11 @@ def get_current_user(
         return payload
 
     except InvalidTokenError as e:
-        logger.error(f"jwt_verify_failed: {e!r}")
+        try:
+            unverified_header = jwt.get_unverified_header(token)
+        except Exception:
+            unverified_header = "unreadable"
+        logger.error(f"jwt_verify_failed: {e!r} header={unverified_header!r}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token tidak valid atau sudah expired",
