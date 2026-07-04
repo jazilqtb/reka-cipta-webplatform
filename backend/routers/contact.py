@@ -1,10 +1,15 @@
 # backend/routers/contact.py
 # Epic 2 Slice 3 (E2-S3-BE-03) — Endpoint publik POST /contact/send.
 #
-# Tanpa auth (form kontak publik). Rate limit 5/menit/IP (slowapi,
-# pola sama dengan routers/auth.py). Email tujuan dibaca dari
-# company_settings saat request masuk — bukan hardcode — supaya
-# perubahan admin di /admin/settings langsung terpakai.
+# Tanpa auth (form kontak publik). Rate limit 5/menit/IP. Email tujuan
+# dibaca dari company_settings saat request masuk — bukan hardcode —
+# supaya perubahan admin di /admin/settings langsung terpakai.
+#
+# CATATAN: slowapi.util.get_remote_address HANYA baca request.client.host
+# — TIDAK membaca X-Forwarded-For sama sekali (ditemukan saat QA staging:
+# rate limit tidak pernah trigger di belakang proxy Railway karena
+# request.client.host tidak stabil per-klien). Pakai get_client_ip di
+# bawah yang eksplisit baca X-Forwarded-For dulu.
 
 from fastapi import APIRouter, HTTPException, Request
 from slowapi import Limiter
@@ -17,8 +22,19 @@ from services.email_service import EmailService
 from core.supabase import get_supabase
 
 router = APIRouter(prefix="/contact", tags=["contact"])
-limiter = Limiter(key_func=get_remote_address)
 logger = logging.getLogger(__name__)
+
+
+def get_client_ip(request: Request) -> str:
+    """IP klien asli di belakang proxy Railway (X-Forwarded-For),
+    fallback ke request.client.host kalau header tidak ada."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_client_ip)
 
 
 @router.post("/send", response_model=ContactResponse)
