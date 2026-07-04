@@ -40,12 +40,16 @@ async def get_all_settings(user=Depends(get_current_user)):
     Dipakai /admin/settings (Slice 3) untuk populate form.
     """
     supabase = get_supabase()
-    response = (
-        supabase.table("company_settings")
-        .select("*")
-        .order("key")
-        .execute()
-    )
+    try:
+        response = (
+            supabase.table("company_settings")
+            .select("*")
+            .order("key")
+            .execute()
+        )
+    except Exception as e:
+        logger.error("settings_fetch_failed", extra={"error": str(e)})
+        raise HTTPException(status_code=500, detail="Gagal mengambil data settings")
 
     if response.data is None:
         # Catatan: parameter `code` tidak valid di HTTPException —
@@ -104,7 +108,12 @@ async def update_settings(
     )
 
     # Return semua settings terbaru (biar frontend refresh state)
-    all_settings = supabase.table("company_settings").select("*").order("key").execute()
+    try:
+        all_settings = supabase.table("company_settings").select("*").order("key").execute()
+    except Exception as e:
+        logger.error("settings_refetch_failed", extra={"error": str(e)})
+        raise HTTPException(status_code=500, detail="Perubahan tersimpan, tapi gagal memuat ulang data terbaru.")
+
     return CompanySettingsResponse(
         data=[CompanySettingItem(**row) for row in all_settings.data],
         count=len(all_settings.data),

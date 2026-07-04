@@ -26,18 +26,22 @@ logger = logging.getLogger(__name__)
 async def send_contact(request: Request, payload: ContactRequest):
     # 1. Ambil email tujuan dari company_settings
     supabase = get_supabase()
-    settings_result = (
-        supabase.table("company_settings")
-        .select("value")
-        .eq("key", "email")
-        .single()
-        .execute()
-    )
+    try:
+        settings_result = (
+            supabase.table("company_settings")
+            .select("value")
+            .eq("key", "email")
+            .single()
+            .execute()
+        )
+        admin_email = settings_result.data.get("value") if settings_result.data else None
+    except Exception as e:
+        logger.error("contact_settings_fetch_failed", extra={"error": str(e)})
+        admin_email = None
 
-    admin_email = settings_result.data.get("value") if settings_result.data else None
     if not admin_email:
         logger.error("contact_missing_admin_email")
-        raise HTTPException(500, detail="Email tujuan tidak terkonfigurasi. Hubungi administrator.")
+        raise HTTPException(500, detail="Gagal mengirim pesan. Silakan coba lagi atau hubungi via WhatsApp.")
 
     # 2. Kirim email
     try:
