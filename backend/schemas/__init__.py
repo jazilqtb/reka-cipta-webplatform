@@ -5,3 +5,4 @@ from .settings import (
     CompanySettingUpdate,
     CompanySettingsBulkUpdate,
 )
+from .contact import ContactRequest, ContactResponse
