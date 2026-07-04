@@ -15,6 +15,7 @@ import { InnerPageHero } from '@/components/sections/InnerPageHero'
 import { ContactInfo } from '@/components/sections/ContactInfo'
 import { WhatsAppButtons } from '@/components/sections/WhatsAppButtons'
 import { ContactForm } from '@/components/forms/ContactForm'
+import { GMapsEmbed } from '@/components/sections/GMapsEmbed'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 
 export const revalidate = 3600
@@ -119,6 +120,10 @@ export default async function KontakPage() {
           </div>
         </div>
       </section>
+
+      <RevealWrapper variant="reveal-up">
+        <GMapsEmbed embedUrl={settings.gmaps_embed_url} address={settings.address} />
+      </RevealWrapper>
     </>
   )
 }
