@@ -9,6 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from core.config import settings
 from routers.auth import router as auth_router
 from routers.settings import router as settings_router
+from routers.contact import router as contact_router
 
 # ── Sentry ───────────────────────────────────────────────────
 if settings.SENTRY_DSN:
@@ -46,6 +47,7 @@ app.add_middleware(
 # ── Routers ──────────────────────────────────────────────────
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
+app.include_router(contact_router, prefix="/api/v1")
 
 # ── Rate limit login endpoint ─────────────────────────────────
 @app.middleware("http")
