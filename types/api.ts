@@ -75,3 +75,19 @@ export interface CompanySettingsBulkUpdate {
 // Convenience: settings sebagai key-value map — dipakai page.tsx
 // (hasil Object.fromEntries dari select key,value)
 export type CompanySettingsMap = Record<string, string>
+
+// === Epic 2 Slice 3: Contact Form (E2-S3-CONT-01) ===
+// Mirror dari backend/schemas/contact.py — jaga sinkron (ARCHITECTURE.md §16)
+
+export interface ContactRequest {
+  name: string
+  email: string
+  phone?: string
+  message: string
+}
+
+export interface ContactResponse {
+  success: boolean
+  message: string
+  submitted_at: string // ISO 8601
+}

@@ -1207,6 +1207,8 @@ app.add_middleware(
 | `class CompanySettingsResponse`   | `interface CompanySettingsResponse`   |
 | `class CompanySettingUpdate`      | `interface CompanySettingUpdate`      |
 | `class CompanySettingsBulkUpdate` | `interface CompanySettingsBulkUpdate` |
+| `class ContactRequest`            | `interface ContactRequest`            |
+| `class ContactResponse`           | `interface ContactResponse`           |
 
 ```typescript
 // types/api.ts — Epic 1 types
