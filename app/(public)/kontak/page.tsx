@@ -14,6 +14,8 @@ import type { CompanySettingsMap } from '@/types/api'
 import { InnerPageHero } from '@/components/sections/InnerPageHero'
 import { ContactInfo } from '@/components/sections/ContactInfo'
 import { WhatsAppButtons } from '@/components/sections/WhatsAppButtons'
+import { ContactForm } from '@/components/forms/ContactForm'
+import { RevealWrapper } from '@/components/animations/RevealWrapper'
 
 export const revalidate = 3600
 
@@ -111,7 +113,9 @@ export default async function KontakPage() {
           </div>
 
           <div className="md:col-span-3">
-            <h2>Kirim Pesan - WIP</h2>
+            <RevealWrapper variant="reveal-right">
+              <ContactForm />
+            </RevealWrapper>
           </div>
         </div>
       </section>

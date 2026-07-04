@@ -25,6 +25,19 @@ interface FetchOptions extends RequestInit {
   timeout?: number
 }
 
+// Epic 2 Slice 3 — Error dengan status code eksplisit. Pesan `detail`
+// dari FastAPI tidak selalu memuat angka status (mis. slowapi pakai
+// key "error", bukan "detail") — caller yang perlu membedakan
+// 401/422/429 HARUS cek `err.status`, bukan string-match pesannya.
+export class ApiFetchError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiFetchError'
+    this.status = status
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   options: FetchOptions = {}
@@ -41,7 +54,7 @@ export async function apiFetch<T>(
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    if (!session) throw new Error('UNAUTHORIZED')
+    if (!session) throw new ApiFetchError('UNAUTHORIZED', 401)
     headers['Authorization'] = `Bearer ${session.access_token}`
   }
 
@@ -61,14 +74,14 @@ export async function apiFetch<T>(
       const err = await res
         .json()
         .catch(() => ({ detail: `HTTP ${res.status}`, code: 'UNKNOWN' }))
-      throw new Error(err.detail ?? `HTTP ${res.status}`)
+      throw new ApiFetchError(err.detail ?? `HTTP ${res.status}`, res.status)
     }
 
     return res.json() as Promise<T>
   } catch (err) {
     clearTimeout(timeoutId)
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error('Permintaan timeout. Silakan coba lagi.')
+      throw new ApiFetchError('Permintaan timeout. Silakan coba lagi.', 408)
     }
     throw err
   }
