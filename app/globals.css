@@ -309,3 +309,19 @@
     justify-content: center;
   }
 }
+
+/* ─── Tambahan Slice 2 — Design System v2.0 §19.5 ─── */
+.photo-teal-hover { position: relative; overflow: hidden; }
+.photo-teal-hover img { transition: filter 400ms ease, transform 400ms ease; }
+.photo-teal-hover::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: #0B7D6E;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  border-radius: inherit;
+}
+.photo-teal-hover:hover img { transform: scale(1.04); filter: grayscale(20%); }
+.photo-teal-hover:hover::after { opacity: 0.3; }
+/* ─── End Tambahan Slice 2 ─── */

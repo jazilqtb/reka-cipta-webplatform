@@ -24,7 +24,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 1.0,
     },
-    // TODO(Slice 2): tambah /tentang-kami priority 0.8
+    {
+      url: `${BASE_URL}/tentang-kami`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.8,
+    },
+    // TODO(Slice 3): tambah /kontak priority 0.7
     // TODO(Slice 3): tambah /kontak priority 0.7
     // TODO(Epic 3): tambah /produk priority 0.9 + /produk/[slug] per produk
   ]
