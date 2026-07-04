@@ -5,14 +5,32 @@
 # Halaman publik TIDAK memakai endpoint ini — mereka fetch
 # langsung dari Supabase via anon key (ARCHITECTURE.md §6.6).
 #
-# PATCH endpoints ditambahkan di Slice 3 (E2-S3-BE-04).
+# PATCH / ditambahkan di Slice 3 (E2-S3-BE-04).
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from dependencies.auth import get_current_user
 from core.supabase import get_supabase
-from schemas.settings import CompanySettingsResponse, CompanySettingItem
+from schemas.settings import (
+    CompanySettingsResponse,
+    CompanySettingItem,
+    CompanySettingsBulkUpdate,
+)
 
 router = APIRouter(prefix="/settings", tags=["settings"])
+logger = logging.getLogger(__name__)
+
+# Hanya key ini yang boleh diubah dari /admin/settings. Sisanya
+# (partner_count, cities_served, dst.) akan di-manage otomatis dari
+# CRM di Epic 4 — mencegah admin panel ini merusak data statistik.
+EDITABLE_KEYS = {
+    "whatsapp_1",
+    "whatsapp_2",
+    "email",
+    "address",
+    "gmaps_embed_url",
+    "wa_default_message",
+}
 
 
 @router.get("/", response_model=CompanySettingsResponse)
@@ -38,4 +56,56 @@ async def get_all_settings(user=Depends(get_current_user)):
     return CompanySettingsResponse(
         data=[CompanySettingItem(**row) for row in response.data],
         count=len(response.data),
+    )
+
+
+@router.patch("/", response_model=CompanySettingsResponse)
+async def update_settings(
+    payload: CompanySettingsBulkUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    [AUTH] Update satu atau lebih field di company_settings.
+    Payload: { updates: { key: value, ... } }
+    Hanya key di EDITABLE_KEYS yang boleh diupdate — mencegah admin
+    accidentally atau intentionally mengubah field statistik yang
+    di-manage dari CRM (Epic 4).
+    """
+    invalid_keys = [key for key in payload.updates if key not in EDITABLE_KEYS]
+    if invalid_keys:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Field berikut tidak boleh diubah dari panel: {', '.join(invalid_keys)}",
+        )
+
+    supabase = get_supabase()
+
+    # Update per row — Supabase Python SDK tidak native support batch
+    # update via satu statement dengan multiple WHERE.
+    for key, value in payload.updates.items():
+        try:
+            result = (
+                supabase.table("company_settings")
+                .update({"value": value})
+                .eq("key", key)
+                .execute()
+            )
+            if not result.data:
+                raise HTTPException(status_code=404, detail=f"Key '{key}' tidak ditemukan di database.")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error("settings_update_failed", extra={"key": key, "error": str(e)})
+            raise HTTPException(status_code=500, detail=f"Gagal update key '{key}'.")
+
+    logger.info(
+        "settings_updated",
+        extra={"user_id": current_user.get("sub"), "keys": list(payload.updates.keys())},
+    )
+
+    # Return semua settings terbaru (biar frontend refresh state)
+    all_settings = supabase.table("company_settings").select("*").order("key").execute()
+    return CompanySettingsResponse(
+        data=[CompanySettingItem(**row) for row in all_settings.data],
+        count=len(all_settings.data),
     )
