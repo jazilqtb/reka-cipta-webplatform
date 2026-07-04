@@ -12,6 +12,8 @@ import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import type { CompanySettingsMap } from '@/types/api'
 import { InnerPageHero } from '@/components/sections/InnerPageHero'
+import { ContactInfo } from '@/components/sections/ContactInfo'
+import { WhatsAppButtons } from '@/components/sections/WhatsAppButtons'
 
 export const revalidate = 3600
 
@@ -96,7 +98,23 @@ export default async function KontakPage() {
         subtitle="Tim kami siap membantu kebutuhan distribusi garam industri Anda. Hubungi via WhatsApp, email, atau kirim pesan langsung dari halaman ini."
         breadcrumb={[{ label: 'Beranda', href: '/' }, { label: 'Hubungi Kami' }]}
       />
-      <h2>Kontak - WIP</h2>
+
+      <section className="max-w-6xl mx-auto px-4 py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+          <div className="md:col-span-2">
+            <ContactInfo address={settings.address} email={settings.email} />
+            <WhatsAppButtons
+              whatsapp1={settings.whatsapp_1}
+              whatsapp2={settings.whatsapp_2}
+              defaultMessage={settings.wa_default_message}
+            />
+          </div>
+
+          <div className="md:col-span-3">
+            <h2>Kirim Pesan - WIP</h2>
+          </div>
+        </div>
+      </section>
     </>
   )
 }
