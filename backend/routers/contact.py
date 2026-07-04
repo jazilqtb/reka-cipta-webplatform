@@ -36,7 +36,7 @@ async def send_contact(request: Request, payload: ContactRequest):
         )
         admin_email = settings_result.data.get("value") if settings_result.data else None
     except Exception as e:
-        logger.error("contact_settings_fetch_failed", extra={"error": str(e)})
+        logger.error(f"contact_settings_fetch_failed: {e!r}")
         admin_email = None
 
     if not admin_email:
@@ -53,7 +53,7 @@ async def send_contact(request: Request, payload: ContactRequest):
             message=payload.message,
         )
     except Exception as e:
-        logger.error("contact_send_failed", extra={"error": str(e)})
+        logger.error(f"contact_send_failed: {e!r}")
         raise HTTPException(500, detail="Gagal mengirim pesan. Silakan coba lagi atau hubungi via WhatsApp.")
 
     return ContactResponse(

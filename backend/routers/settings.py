@@ -48,7 +48,7 @@ async def get_all_settings(user=Depends(get_current_user)):
             .execute()
         )
     except Exception as e:
-        logger.error("settings_fetch_failed", extra={"error": str(e)})
+        logger.error(f"settings_fetch_failed: {e!r}")
         raise HTTPException(status_code=500, detail="Gagal mengambil data settings")
 
     if response.data is None:
@@ -99,19 +99,18 @@ async def update_settings(
         except HTTPException:
             raise
         except Exception as e:
-            logger.error("settings_update_failed", extra={"key": key, "error": str(e)})
+            logger.error(f"settings_update_failed: key={key} error={e!r}")
             raise HTTPException(status_code=500, detail=f"Gagal update key '{key}'.")
 
     logger.info(
-        "settings_updated",
-        extra={"user_id": current_user.get("sub"), "keys": list(payload.updates.keys())},
+        f"settings_updated: user_id={current_user.get('sub')} keys={list(payload.updates.keys())}"
     )
 
     # Return semua settings terbaru (biar frontend refresh state)
     try:
         all_settings = supabase.table("company_settings").select("*").order("key").execute()
     except Exception as e:
-        logger.error("settings_refetch_failed", extra={"error": str(e)})
+        logger.error(f"settings_refetch_failed: {e!r}")
         raise HTTPException(status_code=500, detail="Perubahan tersimpan, tapi gagal memuat ulang data terbaru.")
 
     return CompanySettingsResponse(

@@ -1,4 +1,5 @@
 import os
+import logging
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +11,15 @@ from core.config import settings
 from routers.auth import router as auth_router
 from routers.settings import router as settings_router
 from routers.contact import router as contact_router
+
+# ── Logging ──────────────────────────────────────────────────
+# Tanpa ini, root logger default level WARNING — logger.info(...)
+# di seluruh routers/services (contact_email_sent, settings_updated,
+# dst.) tidak akan pernah muncul di Railway logs.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 # ── Sentry ───────────────────────────────────────────────────
 if settings.SENTRY_DSN:

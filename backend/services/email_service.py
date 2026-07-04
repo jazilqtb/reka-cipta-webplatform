@@ -56,8 +56,8 @@ class EmailService:
                 "subject": f"[Kontak Web] Pesan baru dari {from_name}",
                 "html": html_body,
             })
-            logger.info("contact_email_sent", extra={"resend_id": response.get("id")})
+            logger.info(f"contact_email_sent: resend_id={response.get('id')}")
             return response
         except Exception as e:
-            logger.error("contact_email_failed", extra={"error": str(e)})
+            logger.error(f"contact_email_failed: {e!r}")
             raise
