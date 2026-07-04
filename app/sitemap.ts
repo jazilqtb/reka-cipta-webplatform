@@ -30,8 +30,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.8,
     },
-    // TODO(Slice 3): tambah /kontak priority 0.7
-    // TODO(Slice 3): tambah /kontak priority 0.7
+    {
+      url: `${BASE_URL}/kontak`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
     // TODO(Epic 3): tambah /produk priority 0.9 + /produk/[slug] per produk
   ]
 }
