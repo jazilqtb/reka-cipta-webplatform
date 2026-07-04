@@ -6,9 +6,11 @@
 #   - Epic 4: RFQ notification
 #   - Epic 5: Supplier registration notification
 #
-# Domain `rekaciptaindonesia.com` harus ter-verify di Resend dashboard
-# sebelum go-live. Sampai itu selesai, kirim dari `onboarding@resend.dev`
-# (default testing domain Resend) — lihat README.md backend.
+# Domain `rekaciptaindonesia.com` BELUM di-verify di Resend dashboard.
+# Sementara kirim dari `onboarding@resend.dev` (default testing domain
+# Resend, otomatis verified tanpa setup DNS). GANTI DEFAULT_FROM ke
+# alamat @rekaciptaindonesia.com setelah domain di-verify (lihat
+# Resend dashboard → Domains).
 
 import resend
 import logging
@@ -18,7 +20,7 @@ from core.config import settings
 logger = logging.getLogger(__name__)
 resend.api_key = settings.RESEND_API_KEY
 
-DEFAULT_FROM = "CV Reka Cipta Indonesia <no-reply@rekaciptaindonesia.com>"
+DEFAULT_FROM = "CV Reka Cipta Indonesia <onboarding@resend.dev>"
 
 
 class EmailService:
