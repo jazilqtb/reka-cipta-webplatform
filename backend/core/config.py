@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     SENTRY_DSN: str = ""
     REVALIDATION_SECRET: str = ""
+    RESEND_API_KEY: str = ""
 
     class Config:
         env_file = ".env"
