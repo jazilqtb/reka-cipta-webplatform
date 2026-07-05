@@ -378,7 +378,7 @@ Butuh useState / useEffect / browser event?
 
 | File | Directive | Alasan |
 |------|-----------|--------|
-| `app/(public)/layout.tsx` | Server | Hanya render Navbar + Footer sebagai children |
+| `app/(public)/layout.tsx` | Server | Render Navbar + Footer, fetch company_settings via public client untuk props kontak (Epic 2 Slice 3) |
 | `app/(public)/page.tsx` | Server | Fetch data Supabase, SSG |
 | `app/admin/layout.tsx` | Server | `getUser()` server-side, session check + redirect |
 | `app/admin/dashboard/page.tsx` | Server | Baca user dari session, render placeholder |
@@ -387,11 +387,15 @@ Butuh useState / useEffect / browser event?
 | `app/not-found.tsx` | Server | Static content, tidak ada interaksi |
 | `app/error.tsx` | **'use client'** | Next.js requirement: error boundaries wajib client |
 | `components/layout/Navbar.tsx` | **'use client'** | useState(isOpen), useScrollY, usePathname |
-| `components/layout/Footer.tsx` | Server | Static markup, tidak ada state |
+| `components/layout/Footer.tsx` | Server | Props-only (kontak dari company_settings), tidak ada state |
 | `components/layout/AdminSidebar.tsx` | **'use client'** | usePathname() active detection, signOut() |
 | `components/layout/AdminHeader.tsx` | Server | Props-only (title, breadcrumb), no state |
 | `components/forms/RFQForm.tsx` | **'use client'** | react-hook-form, useSearchParams untuk prefill |
 | `components/forms/ArticleEditor.tsx` | **'use client'** | Tiptap membutuhkan DOM |
+| `app/(public)/kontak/page.tsx` | Server | Data dari Supabase via public client, ISR revalidate: 3600 (Epic 2 Slice 3) |
+| `app/admin/settings/page.tsx` | Server | Wrapper tipis, no auth check (di layout) (Epic 2 Slice 3) |
+| `components/forms/ContactForm.tsx` | **'use client'** | react-hook-form, useState, toast (Epic 2 Slice 3) |
+| `components/admin/SettingsForm.tsx` | **'use client'** | react-hook-form, useState, useEffect fetch (Epic 2 Slice 3) |
 
 ### 5.4 Pola Komposisi: Server Wrapper + Client Leaf
 
@@ -895,6 +899,8 @@ shadow-focus 0 0 0 2px #FFFFFF, 0 0 0 4px #0B7D6E
 Style      : Default
 Base color : Neutral (keputusan final dicatat setelah E1-SPIKE-06)
 Komponen Epic 1 : Button Input Label Form Card Skeleton Badge Separator DropdownMenu
+Komponen Epic 2 Slice 2 : Dialog AspectRatio
+Komponen Epic 2 Slice 3 : Textarea Sonner
 ```
 
 ### 11.4 Font Loading — `next/font` (direkomendasikan)
@@ -1314,6 +1320,7 @@ Validasi bahwa struktur arsitektur ini menampung semua task Epic 1 v1.1 **tanpa 
 |---------|-------|-----------|--------|--------|
 | 2026-06-xx | 1.0 | Initial — output E1-SPIKE-01 | — | Jazi |
 | 2026-06-xx | 1.1 | E1-SPIKE-02 validated: @supabase/ssr bekerja benar di Server Component (getUser() returns null, not error for unauth). RLS blocks anon correctly. | Spike hasil test | Jazi |
+| 2026-07-05 | 1.2 | Epic 2 Slice 3: kontak page + admin settings + PATCH endpoint + Resend service. Termasuk fix: JWT verification via JWKS (project pakai asymmetric ES256, bukan HS256 legacy), Navbar/Footer disambungkan ke company_settings (sebelumnya hardcode), HTTP/1.1 dipaksa untuk Supabase client (hindari StreamReset di jaringan Railway). | Slice 3 selesai — Epic 2 COMPLETE | Tim Dev |
 > ```
 
 ---
