@@ -15,6 +15,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { publicEnv } from '@/lib/env'
+import type { ProductListResponse, ProductDetailResponse } from '@/types/api'
 
 const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
 
@@ -85,4 +86,17 @@ export async function apiFetch<T>(
     }
     throw err
   }
+}
+
+// === Epic 3 Slice 1: Products (E3-S1-CT-01) ===
+// Public, tanpa auth. Server Component /produk & /produk/[slug] fetch
+// langsung dari Supabase (lihat lib/product-mapper.ts) — fetcher ini
+// untuk konsumen lain (mis. Client Component di Epic 3B admin panel).
+
+export async function getProducts(): Promise<ProductListResponse> {
+  return apiFetch<ProductListResponse>('/products', { auth: false })
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductDetailResponse> {
+  return apiFetch<ProductDetailResponse>(`/products/${slug}`, { auth: false })
 }
