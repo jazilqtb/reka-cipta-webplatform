@@ -79,8 +79,35 @@ export default async function ProductDetailPage({
 
   if (!product) notFound()
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description ?? product.tagline ?? '',
+    image: product.photo_url ?? undefined,
+    sku: product.code,
+    brand: {
+      '@type': 'Brand',
+      name: 'CV Reka Cipta Indonesia',
+    },
+    category: product.category,
+    manufacturer: {
+      '@type': 'Organization',
+      name: 'CV Reka Cipta Indonesia',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Surabaya',
+        addressCountry: 'ID',
+      },
+    },
+  }
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ProductBreadcrumb productName={product.name} />
       <ProductHero product={product} />
       <SpecTable specs={product.specs} />
