@@ -4,15 +4,21 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Menu, X, MessageCircle, Mail, ArrowRight, Sprout } from 'lucide-react'
-import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK, COMPANY_INFO } from '@/constants/navigation'
+import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK } from '@/constants/navigation'
 import { Logo } from '@/components/brand/Logo'
+import { generateWALink } from '@/lib/wa-link'
+
+interface NavbarProps {
+  whatsapp1: string
+  email: string
+}
 
 function isNavActive(href: string, pathname: string, exact: boolean): boolean {
   if (exact) return pathname === href
   return pathname.startsWith(href)
 }
 
-export function Navbar() {
+export function Navbar({ whatsapp1, email }: NavbarProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -210,20 +216,20 @@ export function Navbar() {
           {/* Kontak mini */}
           <div className="mt-6 pt-4 border-t border-neutral-100 space-y-2">
             <a
-              href={COMPANY_INFO.contacts.wa1.url}
+              href={generateWALink(whatsapp1)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-teal-600 transition-colors duration-150"
             >
               <MessageCircle size={16} aria-hidden="true" />
-              {COMPANY_INFO.contacts.wa1.display}
+              {whatsapp1}
             </a>
             <a
-              href={`mailto:${COMPANY_INFO.contacts.email}`}
+              href={`mailto:${email}`}
               className="flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-teal-600 transition-colors duration-150"
             >
               <Mail size={16} aria-hidden="true" />
-              {COMPANY_INFO.contacts.email}
+              {email}
             </a>
           </div>
         </div>

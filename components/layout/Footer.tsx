@@ -2,8 +2,16 @@ import Link from 'next/link'
 import { MapPin, MessageCircle, Mail, BadgeCheck, Shield } from 'lucide-react'
 import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK, COMPANY_INFO } from '@/constants/navigation'
 import { Logo } from '@/components/brand/Logo'
+import { generateWALink } from '@/lib/wa-link'
 
-export function Footer() {
+interface FooterProps {
+  address: string
+  whatsapp1: string
+  whatsapp2?: string
+  email: string
+}
+
+export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
   return (
     <footer className="bg-ink-900 text-ink-200" role="contentinfo">
       <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 py-12 md:py-16">
@@ -66,53 +74,51 @@ export function Footer() {
               {/* Alamat */}
               <li className="flex items-start gap-2.5">
                 <MapPin size={16} aria-hidden="true" className="text-ink-400 mt-0.5 shrink-0" />
-                <span className="text-sm text-ink-200 leading-relaxed">
-                  {COMPANY_INFO.address.street},<br />
-                  {COMPANY_INFO.address.district},<br />
-                  {COMPANY_INFO.address.city}
-                </span>
+                <span className="text-sm text-ink-200 leading-relaxed">{address}</span>
               </li>
 
               {/* WhatsApp 1 */}
               <li>
                 <a
-                  href={COMPANY_INFO.contacts.wa1.url}
+                  href={generateWALink(whatsapp1)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 text-sm text-ink-200 hover:text-brand-teal-400 transition-colors duration-150"
                 >
                   <MessageCircle size={16} aria-hidden="true" className="text-ink-400 shrink-0" />
-                  {COMPANY_INFO.contacts.wa1.display}
+                  {whatsapp1}
                   <span className="text-[10px] text-ink-400 bg-white/5 rounded-full px-2 py-0.5">
-                    {COMPANY_INFO.contacts.wa1.label}
+                    WA 1
                   </span>
                 </a>
               </li>
 
               {/* WhatsApp 2 */}
-              <li>
-                <a
-                  href={COMPANY_INFO.contacts.wa2.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 text-sm text-ink-200 hover:text-brand-teal-400 transition-colors duration-150"
-                >
-                  <MessageCircle size={16} aria-hidden="true" className="text-ink-400 shrink-0" />
-                  {COMPANY_INFO.contacts.wa2.display}
-                  <span className="text-[10px] text-ink-400 bg-white/5 rounded-full px-2 py-0.5">
-                    {COMPANY_INFO.contacts.wa2.label}
-                  </span>
-                </a>
-              </li>
+              {whatsapp2 && (
+                <li>
+                  <a
+                    href={generateWALink(whatsapp2)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 text-sm text-ink-200 hover:text-brand-teal-400 transition-colors duration-150"
+                  >
+                    <MessageCircle size={16} aria-hidden="true" className="text-ink-400 shrink-0" />
+                    {whatsapp2}
+                    <span className="text-[10px] text-ink-400 bg-white/5 rounded-full px-2 py-0.5">
+                      WA 2
+                    </span>
+                  </a>
+                </li>
+              )}
 
               {/* Email */}
               <li>
                 <a
-                  href={`mailto:${COMPANY_INFO.contacts.email}`}
+                  href={`mailto:${email}`}
                   className="flex items-center gap-2.5 text-sm text-ink-200 hover:text-brand-teal-400 transition-colors duration-150"
                 >
                   <Mail size={16} aria-hidden="true" className="text-ink-400 shrink-0" />
-                  {COMPANY_INFO.contacts.email}
+                  {email}
                 </a>
               </li>
             </ul>
