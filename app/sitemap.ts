@@ -10,12 +10,34 @@
 // /kontak, Epic 3: /produk dan /produk/[slug]).
 
 import type { MetadataRoute } from 'next'
+import { createPublic } from '@/lib/supabase/public'
 
 const BASE_URL = 'https://rekaciptaindonesia.com'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+async function getProductDetailUrls(): Promise<MetadataRoute.Sitemap> {
+  const supabase = createPublic()
+  const { data, error } = await supabase
+    .from('products')
+    .select('slug, updated_at')
+    .eq('is_active', true)
+
+  if (error || !data) {
+    console.error('[sitemap] Gagal fetch products:', error?.message)
+    return []
+  }
+
+  return data.map((product) => ({
+    url: `${BASE_URL}/produk/${product.slug}`,
+    lastModified: new Date(product.updated_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Tanggal terakhir update Beranda — sesuai dgn ISR revalidate 3600
   const lastModified = new Date()
+  const productDetailUrls = await getProductDetailUrls()
 
   return [
     {
@@ -42,6 +64,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
-    // TODO(Epic 3 Slice 2): tambah /produk/[slug] per produk (E3-S2-FE-09)
+    ...productDetailUrls,
   ]
 }
