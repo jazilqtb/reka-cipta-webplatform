@@ -36,6 +36,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    // TODO(Epic 3): tambah /produk priority 0.9 + /produk/[slug] per produk
+    {
+      url: `${BASE_URL}/produk`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    // TODO(Epic 3 Slice 2): tambah /produk/[slug] per produk (E3-S2-FE-09)
   ]
 }
