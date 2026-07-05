@@ -1022,6 +1022,12 @@ Buckets:
   legal-docs         → private (signed URL), auth write
 ```
 
+**Aturan keras — jangan simpan project ref di data:** Tabel yang menyimpan referensi file di bucket public (mis. `products.photo_path`, `products.lab_doc_path`) **wajib** menyimpan **path relatif** saja (contoh: `pro-yd.jpg`), bukan URL absolut. `<project-ref>` tidak boleh muncul hardcoded di seed SQL atau baris data mana pun — nilainya hanya boleh berasal dari env var (`SUPABASE_URL` di backend, `NEXT_PUBLIC_SUPABASE_URL` di frontend via `publicEnv.supabaseUrl`), supaya pindah project Supabase (mis. staging → prod) tidak butuh migrasi data.
+
+Full public URL dikonstruksi di application layer lewat helper kecil:
+- Frontend: `lib/storage.ts` → `getPublicStorageUrl(bucket, path)`, dipakai untuk map row Supabase langsung (`Product` di `/produk`, `/produk/[slug]`) jadi field siap-render.
+- Backend: `backend/core/storage.py` → `get_public_storage_url(bucket, path)`, dipakai router untuk mengembalikan `photo_url`/`lab_doc_url` (URL absolut) di response JSON `GET /products`, walau kolom DB-nya `photo_path`/`lab_doc_path`.
+
 ### 12.5 WhatsApp Deep Link
 
 ```typescript

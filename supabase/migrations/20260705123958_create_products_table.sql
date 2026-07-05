@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS public.products (
     is_sni BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     sort_order INT NOT NULL DEFAULT 0,
-    photo_url TEXT,
-    lab_doc_url TEXT,
+    photo_path TEXT,
+    lab_doc_path TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT products_category_check
@@ -36,3 +36,5 @@ CREATE TRIGGER trigger_products_set_updated_at
 COMMENT ON TABLE public.products IS 'Katalog produk garam CV Reka Cipta Indonesia — Epic 3';
 COMMENT ON COLUMN public.products.specs IS 'Spesifikasi teknis dari uji lab dalam format JSONB. Contoh: {"nacl_pct": 97.5, "water_pct": 0.5, "kio3_ppm": 30, ...}';
 COMMENT ON COLUMN public.products.industries IS 'Array nama industri yang dilayani. Contoh: ["Makanan & Minuman", "Farmasi", "Peternakan"]';
+COMMENT ON COLUMN public.products.photo_path IS 'Path relatif file di bucket product-photos (mis. pro-yd.jpg), BUKAN URL absolut. Full public URL dikonstruksi di application layer dari env var SUPABASE_URL, lihat ARCHITECTURE.md §12.4.';
+COMMENT ON COLUMN public.products.lab_doc_path IS 'Path relatif file di bucket lab-docs (mis. lab-pro-yd.pdf), BUKAN URL absolut. Full public URL dikonstruksi di application layer dari env var SUPABASE_URL, lihat ARCHITECTURE.md §12.4.';

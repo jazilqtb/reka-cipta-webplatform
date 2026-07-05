@@ -144,13 +144,15 @@ Slice 1 dikerjakan di feature branch `feature/epic3-slice1-katalog-produk` yang 
    - `{ts}_create_products_table.sql` — CREATE TABLE `products` dengan **skema final** (lihat task `E3-S1-DB-01` di task breakdown, termasuk 4 field tambahan: `category`, `sort_order`, `is_active`, `created_at`, dengan CHECK constraint kategori, indexes, dan trigger auto-update `updated_at`).
    - `{ts+1}_products_rls.sql` — 5 policy RLS Pattern A (lihat task `E3-S1-DB-02`).
    - `{ts+2}_storage_products_rls.sql` — 8 policy untuk bucket `product-photos` dan `lab-docs` (lihat task `E3-S1-DB-04`).
-3. Buat file seed `supabase/seeds/products_seed.sql` — 5 produk lengkap dengan JSONB spec, array industries, sort_order 1-5 (lihat task `E3-S1-DB-06`). **BIARKAN placeholder `{PROJECT_REF}`** — akan diganti Jazil manual.
+3. Buat file seed `supabase/seeds/products_seed.sql` — 5 produk lengkap dengan JSONB spec, array industries, sort_order 1-5 (lihat task `E3-S1-DB-06`).
 4. `git add supabase/ && git commit -m "chore(db): add products table migration, RLS, and seed [Epic 3 Slice 1]"`
+
+> **Update (2026-07-05):** Desain awal menyimpan `photo_url`/`lab_doc_url` sebagai URL absolut dengan placeholder `{PROJECT_REF}` yang diganti manual. Ini diubah — kolom DB sekarang `photo_path`/`lab_doc_path` (path relatif saja, mis. `pro-yd.jpg`), **tidak ada project ref di data sama sekali**. Full URL dikonstruksi di application layer dari env var (`lib/storage.ts` di frontend, `backend/core/storage.py` di backend). Lihat ARCHITECTURE.md §12.4. Langkah "replace PROJECT_REF" di STOP Gate 1 di bawah **sudah tidak berlaku**.
 
 ## Jangan
 
 - **JANGAN** eksekusi `supabase db push`, `supabase db reset`, atau perintah apa pun yang mencoba apply migration ke DB. Ini pure file creation phase.
-- **JANGAN** replace `{PROJECT_REF}` di seed file — Jazil yang lakukan manual dengan project ref-nya sendiri.
+- **JANGAN** simpan URL absolut (dengan project ref) di kolom `photo_path`/`lab_doc_path` atau di seed — hanya path relatif. Project ref hanya boleh berasal dari env var, tidak pernah hardcoded di data.
 - **JANGAN** skip CHECK constraint di CREATE TABLE — validasi kategori penting untuk data integrity.
 - **JANGAN** pakai Postgres ENUM type untuk `category` — pakai VARCHAR + CHECK constraint (lebih fleksibel, alasan di AR-01 task breakdown).
 
@@ -158,7 +160,7 @@ Slice 1 dikerjakan di feature branch `feature/epic3-slice1-katalog-produk` yang 
 
 - [ ] 4 file `.sql` created di path yang benar
 - [ ] Commit sudah masuk branch
-- [ ] `{PROJECT_REF}` masih ada sebagai placeholder di `products_seed.sql`
+- [ ] `photo_path`/`lab_doc_path` di seed berisi nama file saja (tanpa `https://` atau project ref)
 - [ ] Semua file syntax-valid SQL (bisa cek dengan `psql --dry-run` kalau perlu, atau visual inspection)
 
 ---
@@ -174,20 +176,18 @@ Slice 1 dikerjakan di feature branch `feature/epic3-slice1-katalog-produk` yang 
    - `lab-docs` (public, 10 MB limit, MIME: `application/pdf`)
 2. **Upload 5 placeholder foto** ke `product-photos` dengan nama file: `pro-yd.jpg`, `pro-l.jpg`, `spo-m.jpg`, `petani-premium.jpg`, `ghpt.jpg`
 3. **Upload 5 placeholder PDF** ke `lab-docs` dengan nama: `lab-pro-yd.pdf`, `lab-pro-l.pdf`, `lab-spo-m.pdf`, `lab-petani-premium.pdf`, `lab-ghpt.pdf`
-4. **Copy project ref** dari Dashboard → Settings → General
-5. **Edit `supabase/seeds/products_seed.sql`** — replace 10 occurrences `{PROJECT_REF}` dengan project ref aktual. Commit perubahan.
-6. **Apply migrations via Dashboard → SQL Editor** dengan urutan:
+4. **Apply migrations via Dashboard → SQL Editor** dengan urutan:
    - `create_products_table.sql`
    - `products_rls.sql`
    - `storage_products_rls.sql`
    - `products_seed.sql`
-7. **Verifikasi** di SQL Editor:
+5. **Verifikasi** di SQL Editor:
    ```sql
    SELECT count(*) FROM products;              -- harus 5
    SELECT slug FROM products ORDER BY sort_order;
    SELECT * FROM pg_policies WHERE tablename = 'products';  -- harus 5 rows
    ```
-8. **Test public URL** salah satu foto di browser — harus render.
+6. **Test public URL** salah satu foto di browser (`https://<project-ref>.supabase.co/storage/v1/object/public/product-photos/pro-yd.jpg`) — harus render.
 
 ## Setelah Gate Ini Clear
 
@@ -196,7 +196,7 @@ Jazil akan bilang: "Gate 1 clear" atau "supabase setup done". Setelah itu lanjut
 ## Sinyal Masalah — Berhenti dan Konsultasi Jazil Kalau
 
 - Migration gagal apply — kemungkinan syntax error atau conflict dengan schema existing.
-- `count(*) FROM products` bukan 5 — kemungkinan seed conflict atau `{PROJECT_REF}` belum di-replace.
+- `count(*) FROM products` bukan 5 — kemungkinan seed conflict (cek `ON CONFLICT (slug) DO NOTHING` tidak diam-diam skip semua baris karena re-run).
 - RLS policy count kurang — cek policy names di migration sudah unique.
 
 ---
@@ -701,12 +701,13 @@ Jazil bilang "demo done, sign-off OK". Setelah itu:
 **Symptom:** `/produk` render tapi foto blank/broken image.
 
 **Root cause biasa:**
-- Public URL Supabase salah format (typo `{PROJECT_REF}` masih ada)
+- `photo_path`/`lab_doc_path` di DB salah (typo nama file, tidak match dengan file yang diupload ke bucket)
+- `NEXT_PUBLIC_SUPABASE_URL` di env salah/tidak sesuai project — `getPublicStorageUrl()` (`lib/storage.ts`) akan hasilkan URL base yang salah
 - Bucket policy tidak public read
 - Next.js `next.config.js` tidak whitelist domain Supabase
 
 **Fix:**
-1. Cek URL manual di browser — akses langsung ke `https://xxx.supabase.co/storage/v1/object/public/product-photos/pro-yd.jpg`. Kalau 404 atau 400, fix di database (update `photo_url`).
+1. Cek URL manual di browser — akses langsung ke `https://xxx.supabase.co/storage/v1/object/public/product-photos/pro-yd.jpg`. Kalau 404 atau 400, fix di database (update `photo_path`).
 2. Kalau URL OK di browser tapi Next.js `<Image>` error: tambah domain di `next.config.js`:
    ```js
    images: {

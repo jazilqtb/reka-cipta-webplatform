@@ -1,8 +1,11 @@
 -- Idempotent seed: kalau slug sudah ada, skip
--- PENTING: ganti setiap placeholder project-ref di URL foto/PDF di bawah dengan project ref Supabase sebelum eksekusi.
+-- photo_path / lab_doc_path adalah PATH RELATIF di bucket (bukan URL absolut) —
+-- tidak ada project ref yang perlu diganti manual di sini. Full public URL
+-- dikonstruksi di application layer dari env var SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL
+-- (lihat lib/storage.ts dan backend/core/storage.py). Ref: ARCHITECTURE.md §12.4.
 INSERT INTO public.products (
     name, slug, code, tagline, description, specs, industries,
-    category, is_sni, sort_order, photo_url, lab_doc_url
+    category, is_sni, sort_order, photo_path, lab_doc_path
 ) VALUES
 (
     'Garam Halus Yodium',
@@ -23,8 +26,8 @@ INSERT INTO public.products (
     'halus',
     TRUE,
     1,
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/product-photos/pro-yd.jpg',
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/lab-docs/lab-pro-yd.pdf'
+    'pro-yd.jpg',
+    'lab-pro-yd.pdf'
 ),
 (
     'Garam Halus Non-Yodium',
@@ -44,8 +47,8 @@ INSERT INTO public.products (
     'halus',
     TRUE,
     2,
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/product-photos/pro-l.jpg',
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/lab-docs/lab-pro-l.pdf'
+    'pro-l.jpg',
+    'lab-pro-l.pdf'
 ),
 (
     'Garam Kasar Industri',
@@ -64,8 +67,8 @@ INSERT INTO public.products (
     'industri',
     FALSE,
     3,
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/product-photos/spo-m.jpg',
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/lab-docs/lab-spo-m.pdf'
+    'spo-m.jpg',
+    'lab-spo-m.pdf'
 ),
 (
     'Garam Kasar Petani Premium',
@@ -84,8 +87,8 @@ INSERT INTO public.products (
     'kasar',
     FALSE,
     4,
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/product-photos/petani-premium.jpg',
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/lab-docs/lab-petani-premium.pdf'
+    'petani-premium.jpg',
+    'lab-petani-premium.pdf'
 ),
 (
     'Garam Halus Pakan Ternak',
@@ -105,7 +108,7 @@ INSERT INTO public.products (
     'halus',
     FALSE,
     5,
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/product-photos/ghpt.jpg',
-    'https://{PROJECT_REF}.supabase.co/storage/v1/object/public/lab-docs/lab-ghpt.pdf'
+    'ghpt.jpg',
+    'lab-ghpt.pdf'
 )
 ON CONFLICT (slug) DO NOTHING;
