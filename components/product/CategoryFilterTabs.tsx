@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useMemo, useEffect, useSyncExternalStore } from 'react'
+import { useRouter } from 'next/navigation'
 import { Tabs } from '@base-ui/react/tabs'
 import { ProductGrid } from './ProductGrid'
 import type { Product, ProductCategory } from '@/types/api'
@@ -25,17 +25,41 @@ function isTabValue(value: string | null): value is TabValue {
   return value !== null && (TAB_VALUES as string[]).includes(value)
 }
 
+// Baca kategori dari URL via useSyncExternalStore — BUKAN useSearchParams()
+// dari next/navigation. useSearchParams() bikin Next.js bailout seluruh
+// subtree ke client-side-only rendering saat static generation (data-dgst
+// BAILOUT_TO_CLIENT_SIDE_RENDERING), menghilangkan grid produk dari HTML
+// awal (buruk untuk SEO & LCP karena /produk statis + ISR).
+// useSyncExternalStore adalah cara resmi React membaca sumber eksternal yang
+// beda antara server & client tanpa hydration mismatch — getServerSnapshot
+// selalu null (server tidak tahu query param), lalu React otomatis koreksi
+// ke nilai client sesaat setelah hydration, tanpa perlu setState di effect.
+function subscribeToUrl(callback: () => void) {
+  window.addEventListener('popstate', callback)
+  return () => window.removeEventListener('popstate', callback)
+}
+
+function getUrlKategori(): string | null {
+  return new URLSearchParams(window.location.search).get('kategori')
+}
+
+function getServerKategori(): string | null {
+  return null
+}
+
 export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState<TabValue>(() => {
-    const kategori = searchParams.get('kategori')
-    return isTabValue(kategori) ? kategori : 'all'
-  })
+  const urlKategori = useSyncExternalStore(subscribeToUrl, getUrlKategori, getServerKategori)
 
-  // Sync URL saat tab berubah (tanpa scroll, tanpa nambah history entry)
+  // overrideTab menang begitu user klik tab — supaya klik langsung responsif
+  // tanpa nunggu round-trip router.replace() lalu useSyncExternalStore
+  // (yang toh tidak akan refire untuk replaceState kita sendiri).
+  const [overrideTab, setOverrideTab] = useState<TabValue | null>(null)
+  const activeTab: TabValue = overrideTab ?? (isTabValue(urlKategori) ? urlKategori : 'all')
+
+  // Sync URL saat tab berubah (tanpa scroll, tanpa nambah history entry).
   useEffect(() => {
-    const params = new URLSearchParams(searchParams)
+    const params = new URLSearchParams(window.location.search)
     if (activeTab === 'all') {
       params.delete('kategori')
     } else {
@@ -44,7 +68,7 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
     const queryString = params.toString()
     const url = queryString ? `/produk?${queryString}` : '/produk'
     router.replace(url, { scroll: false })
-  }, [activeTab, router, searchParams])
+  }, [activeTab, router])
 
   const filteredProducts = useMemo(() => {
     if (activeTab === 'all') return products
@@ -52,7 +76,7 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
   }, [products, activeTab])
 
   return (
-    <Tabs.Root value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+    <Tabs.Root value={activeTab} onValueChange={(value) => setOverrideTab(value as TabValue)}>
       <Tabs.List className="mb-8 flex gap-2 overflow-x-auto border-b border-neutral-200">
         {TAB_VALUES.map((value) => (
           <Tabs.Tab
@@ -71,7 +95,7 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
             <p className="mb-4 text-neutral-600">Belum ada produk di kategori ini.</p>
             <button
               type="button"
-              onClick={() => setActiveTab('all')}
+              onClick={() => setOverrideTab('all')}
               className="text-sm font-medium text-brand-teal-600 underline-offset-4 hover:underline"
             >
               Lihat semua produk

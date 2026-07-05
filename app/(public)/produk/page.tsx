@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { createPublic } from '@/lib/supabase/public'
 import { InnerPageHero } from '@/components/sections/InnerPageHero'
 import { CategoryFilterTabs } from '@/components/product/CategoryFilterTabs'
+import { CardSkeleton } from '@/components/ui/skeletons'
 import { mapProductRow } from '@/lib/product-mapper'
 import type { ProductRow } from '@/types/api'
 
@@ -42,7 +44,17 @@ export default async function ProdukPage() {
         breadcrumb={[{ label: 'Beranda', href: '/' }, { label: 'Produk' }]}
       />
       <section className="container mx-auto px-4 py-12 md:py-16">
-        <CategoryFilterTabs products={products} />
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <CardSkeleton key={i} lines={3} />
+              ))}
+            </div>
+          }
+        >
+          <CategoryFilterTabs products={products} />
+        </Suspense>
       </section>
     </main>
   )
