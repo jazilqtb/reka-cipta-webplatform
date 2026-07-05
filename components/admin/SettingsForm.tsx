@@ -5,6 +5,7 @@
 // editable) + read-only info block (4 stat non-editable).
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -72,6 +73,7 @@ function settingsResponseToFormValues(response: CompanySettingsResponse) {
 }
 
 export function SettingsForm() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [readOnlyData, setReadOnlyData] = useState<Record<string, string>>({})
@@ -98,7 +100,7 @@ export function SettingsForm() {
       setReadOnlyData(readOnly)
     } catch (err) {
       if (err instanceof ApiFetchError && err.status === 401) {
-        window.location.href = '/admin/login'
+        router.push('/admin/login')
         return
       }
       setIsError(true)
@@ -107,7 +109,12 @@ export function SettingsForm() {
     }
   }
 
+  // Fetch-on-mount yang disengaja (arsitektur admin: plain useEffect +
+  // useState, bukan SWR/React Query — ARCHITECTURE.md §6.3). setState
+  // di dalam fetchSettings() mensinkronkan state React dengan data
+  // server, ini adalah use case effect yang valid, bukan anti-pattern.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSettings()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -134,7 +141,7 @@ export function SettingsForm() {
       setReadOnlyData(readOnly)
     } catch (err) {
       if (err instanceof ApiFetchError && err.status === 401) {
-        window.location.href = '/admin/login'
+        router.push('/admin/login')
         return
       }
       toast.error('Gagal menyimpan. Silakan coba lagi. Jika berulang, hubungi developer.')
