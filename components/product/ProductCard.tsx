@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import type { Product } from '@/types/api'
@@ -42,19 +43,12 @@ export function ProductCard({ product }: ProductCardProps) {
           <p className="line-clamp-2 text-sm text-neutral-600">{product.tagline}</p>
         )}
 
-        {/* Placeholder Slice 1 — diaktifkan jadi <Link> di Slice 2 (E3-S2-FE-10) saat /produk/[slug] sudah ada */}
-        <button
-          type="button"
-          aria-disabled="true"
-          disabled
-          title="Halaman detail segera tersedia"
-          className={cn(
-            buttonVariants({ variant: 'outline', size: 'sm' }),
-            'mt-auto w-full cursor-not-allowed opacity-60'
-          )}
+        <Link
+          href={`/produk/${product.slug}`}
+          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'mt-auto w-full')}
         >
           Lihat Detail →
-        </button>
+        </Link>
       </div>
     </article>
   )
