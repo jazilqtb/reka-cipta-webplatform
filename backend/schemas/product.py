@@ -49,3 +49,35 @@ class ProductListResponse(BaseModel):
 class ProductDetailResponse(BaseModel):
     """Response GET /products/{slug}."""
     product: Product
+
+
+# === Epic 3B Slice 1 — Admin edit (E3B-S1-BE-01) ===
+# PUT /products/{id} dan GET /products/admin. WAJIB baca AR-01
+# (task breakdown Epic 3B) sebelum ubah whitelist di bawah ini.
+
+
+class ProductUpdateRequest(BaseModel):
+    """
+    Whitelist field yang bisa diubah via PUT /products/{id}.
+    Field non-whitelisted (id, slug, code, category, created_at, updated_at,
+    photo_url, lab_doc_url) TIDAK ada di sini — kalau frontend accidentally
+    kirim field itu, Pydantic reject dengan 422 (extra='forbid').
+    """
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=3, max_length=255)
+    tagline: Optional[str] = Field(default=None, max_length=300)
+    description: Optional[str] = Field(default=None, max_length=5000)
+    specs: dict[str, Any] = Field(default_factory=dict)
+    industries: list[str] = Field(min_length=1)
+    is_sni: bool
+    is_active: bool
+    sort_order: int = Field(ge=0)
+
+
+class ProductAdminListResponse(BaseModel):
+    """Response GET /products/admin — semua produk termasuk is_active=false."""
+    products: list[Product]
+    total: int
+    active_count: int
+    inactive_count: int
