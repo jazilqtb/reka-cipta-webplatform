@@ -147,3 +147,28 @@ export interface ProductRow extends Omit<Product, 'photo_url' | 'lab_doc_url'> {
   photo_path: string | null
   lab_doc_path: string | null
 }
+
+// === Epic 3B Slice 1: Admin edit (E3B-S1-CT-01) ===
+// Mirror dari backend/schemas/product.py ProductUpdateRequest/
+// ProductAdminListResponse — jaga sinkron (ARCHITECTURE.md §16).
+// Field di sini SENGAJA tidak termasuk id/slug/code/category/created_at/
+// updated_at/photo_url/lab_doc_url — locked per AR-01, backend reject
+// dengan 422 kalau ada field ekstra (Pydantic extra='forbid').
+
+export interface ProductUpdateRequest {
+  name: string
+  tagline: string | null
+  description: string | null
+  specs: ProductSpecs
+  industries: string[]
+  is_sni: boolean
+  is_active: boolean
+  sort_order: number
+}
+
+export interface ProductAdminListResponse {
+  products: Product[]
+  total: number
+  active_count: number
+  inactive_count: number
+}

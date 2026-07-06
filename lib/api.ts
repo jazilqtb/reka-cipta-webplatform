@@ -15,7 +15,12 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { publicEnv } from '@/lib/env'
-import type { ProductListResponse, ProductDetailResponse } from '@/types/api'
+import type {
+  ProductListResponse,
+  ProductDetailResponse,
+  ProductAdminListResponse,
+  ProductUpdateRequest,
+} from '@/types/api'
 
 const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
 
@@ -99,4 +104,24 @@ export async function getProducts(): Promise<ProductListResponse> {
 
 export async function getProductBySlug(slug: string): Promise<ProductDetailResponse> {
   return apiFetch<ProductDetailResponse>(`/products/${slug}`, { auth: false })
+}
+
+// === Epic 3B Slice 1: Admin edit (E3B-S1-CT-01) ===
+// [AUTH] Dipakai Client Component saja (butuh session browser) — Server
+// Component fetch produk admin langsung via lib/supabase/server.ts, RLS
+// "Authenticated can read all products" (lihat migration products_rls.sql).
+
+export async function getProductsAdmin(): Promise<ProductAdminListResponse> {
+  return apiFetch<ProductAdminListResponse>('/products/admin', { auth: true })
+}
+
+export async function updateProduct(
+  id: string,
+  payload: ProductUpdateRequest
+): Promise<ProductDetailResponse> {
+  return apiFetch<ProductDetailResponse>(`/products/${id}`, {
+    method: 'PUT',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
 }
