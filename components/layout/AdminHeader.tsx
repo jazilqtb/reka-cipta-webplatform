@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Bell, ChevronRight } from 'lucide-react'
 
 interface AdminHeaderProps {
@@ -15,7 +16,11 @@ export function AdminHeader({ title, breadcrumb }: AdminHeaderProps) {
         {breadcrumb && (
           <nav aria-label="Breadcrumb" className="mt-0.5">
             <ol className="flex items-center gap-1.5 text-xs text-neutral-400" role="list">
-              <li>Admin</li>
+              <li>
+                <Link href="/admin/dashboard" className="hover:text-neutral-600 hover:underline">
+                  Admin
+                </Link>
+              </li>
               <li aria-hidden="true">
                 <ChevronRight size={12} />
               </li>
