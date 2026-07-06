@@ -4,6 +4,7 @@
 
 'use client'
 
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,7 +32,46 @@ type ContactFormValues = z.infer<typeof contactSchema>
 
 const MESSAGE_MAX = 1000
 
-export function ContactForm() {
+interface AvailableProduct {
+  slug: string
+  name: string
+}
+
+interface ContactFormProps {
+  availableProducts?: AvailableProduct[]
+}
+
+function buildPrefillMessage(productName: string, intent: string | null): string {
+  if (intent === 'sample') {
+    return `Saya tertarik untuk meminta sampel produk ${productName}. Mohon informasi terkait pengiriman sampel.`
+  }
+  if (intent === 'quotation') {
+    return `Saya ingin mendapatkan penawaran harga untuk produk ${productName}. Estimasi kebutuhan: [mohon lengkapi].`
+  }
+  return ''
+}
+
+// Baca query string via useSyncExternalStore — BUKAN useSearchParams() dari
+// next/navigation. useSearchParams() bikin Next.js bailout seluruh subtree
+// ke client-side-only rendering saat static generation
+// (BAILOUT_TO_CLIENT_SIDE_RENDERING), yang akan menghilangkan seluruh form
+// ini dari static HTML /kontak. getServerSnapshot selalu '' (server tidak
+// tahu query param); React otomatis koreksi ke nilai client sesaat setelah
+// hydration tanpa mismatch. Lihat catatan teknis Epic 3 Slice 1.
+function subscribeToUrl(callback: () => void) {
+  window.addEventListener('popstate', callback)
+  return () => window.removeEventListener('popstate', callback)
+}
+
+function getUrlSearch(): string {
+  return window.location.search
+}
+
+function getServerUrlSearch(): string {
+  return ''
+}
+
+export function ContactForm({ availableProducts = [] }: ContactFormProps) {
   const {
     register,
     handleSubmit,
@@ -44,6 +84,29 @@ export function ContactForm() {
   })
 
   const messageLength = watch('message')?.length ?? 0
+
+  const urlSearch = useSyncExternalStore(subscribeToUrl, getUrlSearch, getServerUrlSearch)
+  const params = new URLSearchParams(urlSearch)
+  const produkSlug = params.get('produk')
+  const intent = params.get('intent')
+  const linkedProduct = produkSlug
+    ? (availableProducts.find((p) => p.slug === produkSlug) ?? null)
+    : null
+
+  // reset() react-hook-form dipanggil sekali per produk terkait yang
+  // terdeteksi — bukan raw useState setter, jadi bukan pola "setState di
+  // effect" yang bermasalah untuk hydration; ini memang side effect yang sah
+  // (menyinkronkan form dengan sumber eksternal setelah mount).
+  const appliedPrefillFor = useRef<string | null>(null)
+  useEffect(() => {
+    if (!linkedProduct || appliedPrefillFor.current === linkedProduct.slug) return
+    appliedPrefillFor.current = linkedProduct.slug
+
+    const initialMessage = buildPrefillMessage(linkedProduct.name, intent)
+    if (initialMessage) {
+      reset({ name: '', email: '', phone: '', message: initialMessage })
+    }
+  }, [linkedProduct, intent, reset])
 
   async function onSubmit(values: ContactFormValues) {
     try {
@@ -71,6 +134,12 @@ export function ContactForm() {
   return (
     <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
       <h2 className="text-2xl font-bold text-ink-700">Kirim Pesan</h2>
+
+      {linkedProduct && (
+        <div className="mt-4 rounded bg-brand-teal-50 p-3 text-sm text-ink-700">
+          Terkait produk: <strong>{linkedProduct.name}</strong>
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}

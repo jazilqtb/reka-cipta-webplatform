@@ -68,12 +68,39 @@ async function getCompanySettings(): Promise<CompanySettingsMap> {
   }
 }
 
+// Epic 3 Slice 2 — dipakai ContactForm untuk prefill pesan saat datang dari
+// CTA produk (/kontak?produk=slug&intent=sample|quotation). Fetch di sini
+// (Server Component) supaya ContactForm tidak perlu network call sendiri —
+// data 5 produk kecil, aman di-pass sebagai props.
+async function getAvailableProducts(): Promise<Array<{ slug: string; name: string }>> {
+  try {
+    const supabase = createPublic()
+    const { data, error } = await supabase
+      .from('products')
+      .select('slug, name')
+      .eq('is_active', true)
+
+    if (error || !data) {
+      console.error('[Kontak] Gagal fetch products untuk prefill:', error?.message)
+      return []
+    }
+
+    return data
+  } catch (err) {
+    console.error('[Kontak] Exception saat fetch products untuk prefill:', err)
+    return []
+  }
+}
+
 function toE164(nomor: string): string {
   return '+62' + nomor.replace(/^0/, '')
 }
 
 export default async function KontakPage() {
-  const settings = await getCompanySettings()
+  const [settings, availableProducts] = await Promise.all([
+    getCompanySettings(),
+    getAvailableProducts(),
+  ])
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',
@@ -115,7 +142,7 @@ export default async function KontakPage() {
 
           <div className="md:col-span-3">
             <RevealWrapper variant="reveal-right">
-              <ContactForm />
+              <ContactForm availableProducts={availableProducts} />
             </RevealWrapper>
           </div>
         </div>
