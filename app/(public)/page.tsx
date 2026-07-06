@@ -10,7 +10,8 @@
 
 import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
-import type { CompanySettingsMap } from '@/types/api'
+import { mapProductRow } from '@/lib/product-mapper'
+import type { CompanySettingsMap, Product, ProductRow } from '@/types/api'
 import{ HeroSection } from '@/components/sections/HeroSection'
 import { StatsBar } from '@/components/sections/StatsBar'
 import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
@@ -81,17 +82,42 @@ async function getCompanySettings(): Promise<CompanySettingsMap> {
   }
 }
 
+// Epic 3B Slice 1 — ProductsPreview sebelumnya pakai data hardcode
+// (TODO Epic 3 yang belum sempat dikerjakan saat Slice 1/2 CF). Sekarang
+// fetch produk aktif asli supaya edit dari admin panel (nama/tagline/foto)
+// ikut ter-reflect di Beranda, bukan cuma di /produk.
+async function getProductsPreview(): Promise<Product[]> {
+  try {
+    const supabase = createPublic()
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error || !data) {
+      console.error('[Beranda] Gagal fetch products:', error?.message)
+      return []
+    }
+
+    return data.map((row) => mapProductRow(row as ProductRow))
+  } catch (err) {
+    console.error('[Beranda] Exception saat fetch products:', err)
+    return []
+  }
+}
+
 // ─── Page ────────────────────────────────────────────────────
 // Catatan struktur: <main> sudah disediakan layout (E1-ENG-24)
 // — di sini fragment saja agar tidak nested <main>.
 export default async function BerandaPage() {
-  const settings = await getCompanySettings()
+  const [settings, products] = await Promise.all([getCompanySettings(), getProductsPreview()])
 
   return (
     <>
       <HeroSection />
       <StatsBar settings={settings} />
-      <ProductsPreview />
+      <ProductsPreview products={products} />
       <HowItWorks />
       <IndustriesGrid />
       <CredibilitySection />

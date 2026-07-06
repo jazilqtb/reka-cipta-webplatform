@@ -20,10 +20,14 @@ export async function revalidateProductRoutes(slug: string) {
     throw new Error('UNAUTHORIZED')
   }
 
+  revalidatePath('/')
   revalidatePath('/produk')
   revalidatePath(`/produk/${slug}`)
   revalidatePath('/sitemap.xml')
-  // '/' tidak di-invalidate — Beranda tidak reference produk spesifik (AR-03)
+  // Catatan: AR-03 awalnya skip revalidate('/') dgn asumsi Beranda tidak
+  // reference produk spesifik. Asumsi itu salah — ProductsPreview di
+  // Beranda memang render data produk (fixed bareng bug "homepage tidak
+  // ikut ter-update" pasca Slice 1 QA).
 
   return { revalidated: true, timestamp: new Date().toISOString() }
 }
