@@ -6,7 +6,7 @@
 // dalam satu form react-hook-form + Zod. Pattern submit mengikuti
 // components/admin/SettingsForm.tsx (Epic 2 Slice 3).
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,6 +17,8 @@ import { productUpdateSchema, type ProductUpdateFormData } from '@/lib/validatio
 import { ReadOnlyInfoBlock } from './ReadOnlyInfoBlock'
 import { SpecJSONBEditor } from './SpecJSONBEditor'
 import { IndustriesEditor } from './IndustriesEditor'
+import { PhotoUploader } from './PhotoUploader'
+import { PDFUploader } from './PDFUploader'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,6 +31,12 @@ interface ProductEditFormProps {
 
 export function ProductEditForm({ product, availableIndustries }: ProductEditFormProps) {
   const router = useRouter()
+
+  // Foto & PDF adalah operasi upload terpisah (endpoint sendiri, Epic 3B
+  // Slice 2) — BUKAN field di productUpdateSchema/form submit utama.
+  // State lokal di sini, tidak lewat react-hook-form/Controller.
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState(product.photo_url)
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(product.lab_doc_url)
 
   const {
     register,
@@ -83,6 +91,26 @@ export function ProductEditForm({ product, availableIndustries }: ProductEditFor
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="space-y-6">
       <ReadOnlyInfoBlock product={product} />
+
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 space-y-3">
+        <h2 className="text-lg font-semibold text-ink-700">Foto Produk</h2>
+        <PhotoUploader
+          productId={product.id}
+          productSlug={product.slug}
+          currentPhotoUrl={currentPhotoUrl}
+          onUploadSuccess={setCurrentPhotoUrl}
+        />
+      </div>
+
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 space-y-3">
+        <h2 className="text-lg font-semibold text-ink-700">Dokumen Uji Laboratorium</h2>
+        <PDFUploader
+          productId={product.id}
+          productSlug={product.slug}
+          currentPdfUrl={currentPdfUrl}
+          onUploadSuccess={setCurrentPdfUrl}
+        />
+      </div>
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 space-y-5">
         <h2 className="text-lg font-semibold text-ink-700">Informasi Dasar</h2>
