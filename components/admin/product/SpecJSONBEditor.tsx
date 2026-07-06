@@ -223,13 +223,18 @@ export function SpecJSONBEditor({ value, onChange }: SpecJSONBEditorProps) {
       </div>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent>
+        {/* Override bg-popover/text-popover-foreground/ring-foreground dari
+            components/ui/dialog.tsx — token shadcn itu tidak pernah dipetakan
+            di globals.css (frozen, hanya brand-teal/ink/sand/neutral yang ada
+            di @theme), jadi tanpa override className di sini popup rendernya
+            transparan/tanpa warna teks. */}
+        <DialogContent className="bg-white text-neutral-900 ring-1 ring-neutral-200 shadow-lg">
           <DialogHeader>
-            <DialogTitle>Tambah Custom Field</DialogTitle>
+            <DialogTitle className="text-ink-700">Tambah Custom Field</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3">
-            <div className="space-y-1">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
               <label htmlFor="custom-key" className="text-sm font-medium text-neutral-700">
                 Kunci (key)
               </label>
@@ -252,7 +257,7 @@ export function SpecJSONBEditor({ value, onChange }: SpecJSONBEditorProps) {
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label htmlFor="custom-label" className="text-sm font-medium text-neutral-700">
                 Label untuk Ditampilkan
               </label>
@@ -266,7 +271,7 @@ export function SpecJSONBEditor({ value, onChange }: SpecJSONBEditorProps) {
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label htmlFor="custom-unit" className="text-sm font-medium text-neutral-700">
                 Satuan
               </label>
