@@ -1,10 +1,12 @@
 # backend/routers/products.py
 # Epic 3 Slice 1 (E3-S1-BE-02) — Router katalog produk.
 #
-# GET /products         → public, list produk aktif (is_active=true), sort_order ASC
-# GET /products/admin   → [AUTH] list SEMUA produk termasuk nonaktif (Epic 3B S1)
-# GET /products/{slug}  → public, detail 1 produk. 404 kalau slug tidak ada/nonaktif.
-# PUT /products/{id}    → [AUTH] update produk, whitelist enforced (Epic 3B S1)
+# GET /products                     → public, list produk aktif, sort_order ASC
+# GET /products/admin                → [AUTH] list SEMUA produk termasuk nonaktif (Epic 3B S1)
+# GET /products/{slug}               → public, detail 1 produk. 404 kalau tidak ada/nonaktif.
+# PUT /products/{id}                 → [AUTH] update produk, whitelist enforced (Epic 3B S1)
+# POST /products/{id}/upload-photo   → [AUTH] upload foto produk (Epic 3B S2)
+# POST /products/{id}/upload-lab-doc → [AUTH] upload PDF lab produk (Epic 3B S2)
 #
 # Public — TIDAK ada Depends(get_current_user). Halaman /produk & /produk/[slug]
 # sendiri fetch langsung dari Supabase via anon key (ARCHITECTURE.md §6.6);
@@ -15,7 +17,8 @@
 # sebagai slug value (E3B R-12).
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+import time
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from dependencies.auth import get_current_user
 from core.supabase import get_supabase
 from core.storage import get_public_storage_url
@@ -26,9 +29,28 @@ from schemas.product import (
     ProductListResponse,
     ProductUpdateRequest,
 )
+from services.storage_service import delete_from_storage, upload_to_storage
 
 router = APIRouter(prefix="/products", tags=["products"])
 logger = logging.getLogger(__name__)
+
+ALLOWED_PHOTO_MIME = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
+MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 MB
+
+ALLOWED_PDF_MIME = {"application/pdf": "pdf"}
+MAX_PDF_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+def _slugify_code(code: str) -> str:
+    """'PRO YD' -> 'pro-yd', 'SPO/M' -> 'spo-m' — dipakai sebagai prefix filename upload."""
+    slug = "".join(c if c.isalnum() else "-" for c in code.lower())
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return slug.strip("-")
 
 
 def _row_to_product(row: dict) -> Product:
@@ -151,5 +173,121 @@ async def update_product(product_id: str, payload: ProductUpdateRequest):
     except Exception as e:
         logger.error(f"products_update_failed: id={product_id} error={e!r}")
         raise HTTPException(status_code=500, detail="Gagal menyimpan perubahan produk")
+
+    return ProductDetailResponse(product=_row_to_product(result.data[0]))
+
+
+async def _fetch_product_row(supabase, product_id: str) -> dict:
+    try:
+        existing = (
+            supabase.table("products")
+            .select("*")
+            .eq("id", product_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as e:
+        logger.error(f"products_upload_lookup_failed: id={product_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Gagal mengambil data produk")
+
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Produk tidak ditemukan")
+
+    return existing.data[0]
+
+
+@router.post(
+    "/{product_id}/upload-photo",
+    response_model=ProductDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def upload_product_photo(product_id: str, file: UploadFile = File(...)):
+    """[AUTH] Upload/replace foto produk. Validasi MIME + size, cleanup file lama best-effort (R-17)."""
+    if file.content_type not in ALLOWED_PHOTO_MIME:
+        raise HTTPException(
+            status_code=422,
+            detail="Format tidak didukung. Pakai JPG, PNG, atau WebP.",
+        )
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_PHOTO_SIZE:
+        raise HTTPException(status_code=422, detail="File terlalu besar. Maks 5 MB.")
+
+    supabase = get_supabase()
+    product = await _fetch_product_row(supabase, product_id)
+
+    ext = ALLOWED_PHOTO_MIME[file.content_type]
+    filename = f"{_slugify_code(product['code'])}-{int(time.time())}.{ext}"
+
+    try:
+        new_path = upload_to_storage("product-photos", filename, file_bytes, file.content_type)
+    except Exception as e:
+        logger.error(f"products_photo_upload_failed: id={product_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Gagal mengunggah foto")
+
+    try:
+        result = (
+            supabase.table("products")
+            .update({"photo_path": new_path})
+            .eq("id", product_id)
+            .execute()
+        )
+    except Exception as e:
+        logger.error(f"products_photo_db_update_failed: id={product_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Foto terunggah, tapi gagal menyimpan referensi produk")
+
+    old_path = product.get("photo_path")
+    if old_path and old_path != new_path:
+        try:
+            delete_from_storage("product-photos", old_path)
+        except Exception as e:
+            logger.warning(f"products_old_photo_delete_failed: path={old_path} error={e!r}")
+
+    return ProductDetailResponse(product=_row_to_product(result.data[0]))
+
+
+@router.post(
+    "/{product_id}/upload-lab-doc",
+    response_model=ProductDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def upload_product_lab_doc(product_id: str, file: UploadFile = File(...)):
+    """[AUTH] Upload/replace PDF hasil uji lab. Validasi MIME + size, cleanup file lama best-effort (R-17)."""
+    if file.content_type not in ALLOWED_PDF_MIME:
+        raise HTTPException(status_code=422, detail="Format tidak didukung. Pakai PDF.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_PDF_SIZE:
+        raise HTTPException(status_code=422, detail="File terlalu besar. Maks 10 MB.")
+
+    supabase = get_supabase()
+    product = await _fetch_product_row(supabase, product_id)
+
+    ext = ALLOWED_PDF_MIME[file.content_type]
+    filename = f"lab-{_slugify_code(product['code'])}-{int(time.time())}.{ext}"
+
+    try:
+        new_path = upload_to_storage("lab-docs", filename, file_bytes, file.content_type)
+    except Exception as e:
+        logger.error(f"products_labdoc_upload_failed: id={product_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Gagal mengunggah dokumen")
+
+    try:
+        result = (
+            supabase.table("products")
+            .update({"lab_doc_path": new_path})
+            .eq("id", product_id)
+            .execute()
+        )
+    except Exception as e:
+        logger.error(f"products_labdoc_db_update_failed: id={product_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Dokumen terunggah, tapi gagal menyimpan referensi produk")
+
+    old_path = product.get("lab_doc_path")
+    if old_path and old_path != new_path:
+        try:
+            delete_from_storage("lab-docs", old_path)
+        except Exception as e:
+            logger.warning(f"products_old_labdoc_delete_failed: path={old_path} error={e!r}")
 
     return ProductDetailResponse(product=_row_to_product(result.data[0]))

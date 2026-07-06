@@ -41,6 +41,7 @@ pyroaring==1.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-jose==3.5.0
+python-multipart==0.0.32
 python-json-logger==4.1.0
 PyYAML==6.0.3
 realtime==2.30.1
