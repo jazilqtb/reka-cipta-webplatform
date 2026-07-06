@@ -125,3 +125,81 @@ export async function updateProduct(
     body: JSON.stringify(payload),
   })
 }
+
+// === Epic 3B Slice 2: File uploads (E3B-S2-FE-05) ===
+// fetch() tidak native support upload progress — pakai XHR, di-isolate
+// di sini (R-19) supaya komponen upload tidak perlu tahu detail XHR.
+
+export async function apiFetchMultipart<T>(
+  path: string,
+  formData: FormData,
+  options: { onProgress?: (percent: number) => void } = {}
+): Promise<T> {
+  const supabase = createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new ApiFetchError('UNAUTHORIZED', 401)
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${BASE_URL}/api/v1${path}`)
+    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && options.onProgress) {
+        options.onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText) as T)
+        } catch {
+          reject(new ApiFetchError('Invalid JSON response', xhr.status))
+        }
+        return
+      }
+
+      const parsed = (() => {
+        try {
+          return JSON.parse(xhr.responseText)
+        } catch {
+          return null
+        }
+      })()
+      reject(new ApiFetchError(parsed?.detail ?? `HTTP ${xhr.status}`, xhr.status))
+    }
+
+    xhr.onerror = () => reject(new ApiFetchError('Network error saat upload', 0))
+    xhr.ontimeout = () => reject(new ApiFetchError('Upload timeout. Silakan coba lagi.', 408))
+    xhr.timeout = 60_000
+
+    xhr.send(formData)
+  })
+}
+
+export async function uploadProductPhoto(
+  id: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<ProductDetailResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiFetchMultipart<ProductDetailResponse>(`/products/${id}/upload-photo`, formData, {
+    onProgress,
+  })
+}
+
+export async function uploadProductLabDoc(
+  id: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<ProductDetailResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiFetchMultipart<ProductDetailResponse>(`/products/${id}/upload-lab-doc`, formData, {
+    onProgress,
+  })
+}
