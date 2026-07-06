@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { mapProductRow } from '@/lib/product-mapper'
 import { AdminHeader } from '@/components/layout/AdminHeader'
+import { ProductEditForm } from '@/components/admin/product/ProductEditForm'
 import type { ProductRow } from '@/types/api'
 
 export const dynamic = 'force-dynamic'
@@ -47,9 +48,7 @@ export default async function EditProductPage({
 
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-3xl mx-auto page-transition">
-          <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-sm text-neutral-500">
-            ProductEditForm placeholder untuk {product.name}
-          </div>
+          <ProductEditForm product={product} availableIndustries={availableIndustries} />
         </div>
       </main>
     </>
