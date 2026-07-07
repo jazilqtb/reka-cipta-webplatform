@@ -7,6 +7,7 @@
 # di ketiga tempat. Lihat R-18 di CLAUDE_CODE_GUIDE_epic4_customer-facing.md.
 
 import re
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 INDUSTRY_TYPES = {
@@ -15,6 +16,14 @@ INDUSTRY_TYPES = {
 }
 
 DELIVERY_FREQUENCIES = {'weekly', 'biweekly', 'monthly'}
+
+# Single source of truth untuk lead status — dipakai RFQLeadUpdateRequest
+# validator DAN lead_status_history CHECK constraint (migration). Kalau
+# ubah salah satu, ubah juga yang lain (E4B-S1 R-tambahan: hindari drift).
+LEAD_STATUSES = {
+    'new', 'contacted', 'sample_sent',
+    'negotiation', 'deal', 'lost',
+}
 
 
 class RFQSubmitRequest(BaseModel):
@@ -71,3 +80,84 @@ class RFQSubmitResponse(BaseModel):
     success: bool
     lead_id: str
     message: str = "RFQ berhasil disubmit"
+
+
+# === Epic 4B Slice 1: Admin CRM Pipeline (E4B-S1-BE-01) ===
+# Mirror dari sini ke types/api.ts — jaga sinkron (ARCHITECTURE.md §16).
+
+
+class LeadStatusHistory(BaseModel):
+    """Row lead_status_history — auto-populated oleh DB trigger, read-only."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    lead_id: str
+    from_status: str | None
+    to_status: str
+    changed_at: datetime
+
+
+class RFQLead(BaseModel):
+    """Full lead data untuk admin (Kanban card + detail page)."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    full_name: str
+    company_name: str
+    position: str | None
+    industry_type: str
+    salt_types: list[str]
+    volume_per_month: float
+    delivery_frequency: str
+    delivery_city: str
+    email: str
+    whatsapp: str
+    notes: str | None
+    admin_notes: str | None
+    status: str
+    proposal_html: str | None
+    proposal_generated: bool
+    proposal_generated_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class RFQLeadUpdateRequest(BaseModel):
+    """Whitelist untuk PATCH /rfq/leads/{id} — hanya status dan admin_notes.
+
+    extra='forbid' (bukan 'ignore') supaya request dengan field lain
+    (mis. email, proposal_html) di-reject 422, bukan silent-dropped —
+    ini defense-in-depth kalau frontend punya bug kirim field ekstra.
+    """
+    model_config = ConfigDict(extra='forbid')
+
+    status: str | None = None
+    admin_notes: str | None = None
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        if v is not None and v not in LEAD_STATUSES:
+            raise ValueError(f"Invalid status: {v}")
+        return v
+
+
+class RFQLeadListResponse(BaseModel):
+    leads: list[RFQLead]
+    total: int
+
+
+class RFQLeadDetailResponse(BaseModel):
+    lead: RFQLead
+    history: list[LeadStatusHistory]
+
+
+class WATemplateRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    lead_id: str
+    status: str
+
+
+class WATemplateResponse(BaseModel):
+    template: str
+    whatsapp_number: str  # cleaned untuk wa.me link

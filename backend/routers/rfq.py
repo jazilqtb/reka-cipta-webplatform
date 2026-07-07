@@ -12,16 +12,36 @@
 # request.client.host, tidak baca X-Forwarded-For — pakai get_client_ip
 # eksplisit supaya rate limit ter-enforce dengan benar di belakang
 # proxy Railway.
+#
+# Epic 4B Slice 1 (E4B-S1-BE-02/03/04/05) — admin endpoints ditambah di
+# bawah submit_rfq. PENTING route order: "/leads" HARUS dideklarasikan
+# SEBELUM "/leads/{lead_id}" — FastAPI match by declaration order, kalau
+# terbalik request ke /leads akan coba diinterpretasi sebagai lead_id
+# (sama trap dengan products.py /admin vs /{slug}, lihat E3B R-12).
 
 import logging
+import re
+from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from core.supabase import get_supabase
-from schemas.rfq import RFQSubmitRequest, RFQSubmitResponse
+from dependencies.auth import get_current_user
+from schemas.rfq import (
+    RFQLead,
+    RFQLeadDetailResponse,
+    RFQLeadListResponse,
+    RFQLeadUpdateRequest,
+    RFQSubmitRequest,
+    RFQSubmitResponse,
+    WATemplateRequest,
+    WATemplateResponse,
+    LeadStatusHistory,
+)
 from services.email_service import EmailService
+from services.wa_template_service import generate_wa_template
 
 router = APIRouter(prefix="/rfq", tags=["rfq"])
 logger = logging.getLogger(__name__)
@@ -118,3 +138,146 @@ async def submit_rfq(
         )
 
     return RFQSubmitResponse(success=True, lead_id=lead_id)
+
+
+# ── Admin: CRM Pipeline (Epic 4B Slice 1) ────────────────────
+
+
+@router.get(
+    "/leads",
+    response_model=RFQLeadListResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def list_leads(
+    status: str | None = Query(None),
+    industry: str | None = Query(None),
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
+    search: str | None = Query(None),
+) -> RFQLeadListResponse:
+    """[AUTH] List semua leads untuk Kanban, dengan filter opsional."""
+    supabase = get_supabase()
+    query = supabase.table("rfq_leads").select("*")
+
+    if status:
+        query = query.eq("status", status)
+    if industry:
+        query = query.eq("industry_type", industry)
+    if date_from:
+        query = query.gte("created_at", date_from.isoformat())
+    if date_to:
+        query = query.lte("created_at", date_to.isoformat())
+    if search:
+        query = query.or_(f"full_name.ilike.%{search}%,company_name.ilike.%{search}%")
+
+    try:
+        result = query.order("created_at", desc=True).execute()
+    except Exception as e:
+        logger.error(f"rfq_leads_list_failed: {e!r}")
+        raise HTTPException(500, detail="Gagal mengambil data leads")
+
+    leads = [RFQLead(**row) for row in result.data]
+    return RFQLeadListResponse(leads=leads, total=len(leads))
+
+
+@router.get(
+    "/leads/{lead_id}",
+    response_model=RFQLeadDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def get_lead_detail(lead_id: str) -> RFQLeadDetailResponse:
+    """[AUTH] Detail 1 lead + histori status (sorted terbaru dulu)."""
+    supabase = get_supabase()
+
+    try:
+        lead_result = (
+            supabase.table("rfq_leads").select("*").eq("id", lead_id).limit(1).execute()
+        )
+    except Exception as e:
+        logger.error(f"rfq_lead_detail_failed: lead_id={lead_id} error={e!r}")
+        raise HTTPException(500, detail="Gagal mengambil data lead")
+
+    if not lead_result.data:
+        raise HTTPException(404, detail="Lead tidak ditemukan")
+
+    try:
+        history_result = (
+            supabase.table("lead_status_history")
+            .select("*")
+            .eq("lead_id", lead_id)
+            .order("changed_at", desc=True)
+            .execute()
+        )
+    except Exception as e:
+        logger.error(f"rfq_lead_history_failed: lead_id={lead_id} error={e!r}")
+        raise HTTPException(500, detail="Gagal mengambil histori lead")
+
+    return RFQLeadDetailResponse(
+        lead=RFQLead(**lead_result.data[0]),
+        history=[LeadStatusHistory(**h) for h in history_result.data],
+    )
+
+
+@router.patch(
+    "/leads/{lead_id}",
+    response_model=RFQLeadDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def update_lead(lead_id: str, payload: RFQLeadUpdateRequest) -> RFQLeadDetailResponse:
+    """[AUTH] Update status dan/atau admin_notes. Whitelist di-enforce oleh
+    RFQLeadUpdateRequest (extra='forbid'). Histori status di-log otomatis
+    oleh DB trigger — router TIDAK insert manual (R-28)."""
+    supabase = get_supabase()
+
+    # exclude_none=True krusial: tanpa ini, field yang tidak dikirim client
+    # (None) akan overwrite value existing ke NULL saat partial update.
+    update_data = payload.model_dump(exclude_none=True)
+    if not update_data:
+        raise HTTPException(422, detail="Tidak ada field untuk diupdate")
+
+    try:
+        result = (
+            supabase.table("rfq_leads").update(update_data).eq("id", lead_id).execute()
+        )
+    except Exception as e:
+        logger.error(f"rfq_lead_update_failed: lead_id={lead_id} error={e!r}")
+        raise HTTPException(500, detail="Gagal menyimpan perubahan lead")
+
+    if not result.data:
+        raise HTTPException(404, detail="Lead tidak ditemukan")
+
+    logger.info(f"rfq_lead_updated: lead_id={lead_id} fields={list(update_data.keys())}")
+    return await get_lead_detail(lead_id)
+
+
+@router.post(
+    "/wa-template",
+    response_model=WATemplateResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def generate_wa_template_endpoint(payload: WATemplateRequest) -> WATemplateResponse:
+    """[AUTH] Generate template pesan WA berdasarkan status lead saat ini."""
+    supabase = get_supabase()
+
+    try:
+        lead_result = (
+            supabase.table("rfq_leads").select("*").eq("id", payload.lead_id).limit(1).execute()
+        )
+    except Exception as e:
+        logger.error(f"rfq_wa_template_lookup_failed: lead_id={payload.lead_id} error={e!r}")
+        raise HTTPException(500, detail="Gagal mengambil data lead")
+
+    if not lead_result.data:
+        raise HTTPException(404, detail="Lead tidak ditemukan")
+
+    lead = lead_result.data[0]
+    template = generate_wa_template(lead=lead, status=payload.status)
+
+    # Clean nomor WA untuk wa.me link: strip spasi/dash/plus/kurung, lalu
+    # normalize prefix 08xx -> 62xx (wa.me butuh format internasional
+    # tanpa +). Kalau sudah 62xx atau +62xx, tidak di-double-prefix.
+    whatsapp_clean = re.sub(r'[\s\-+()]', '', lead['whatsapp'])
+    if whatsapp_clean.startswith('0'):
+        whatsapp_clean = '62' + whatsapp_clean[1:]
+
+    return WATemplateResponse(template=template, whatsapp_number=whatsapp_clean)
