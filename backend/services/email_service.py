@@ -12,6 +12,7 @@
 # alamat @rekaciptaindonesia.com setelah domain di-verify (lihat
 # Resend dashboard → Domains).
 
+import base64
 import resend
 import logging
 from typing import Any, Optional
@@ -166,3 +167,42 @@ class EmailService:
             # Tidak raise — lihat catatan di send_rfq_customer_confirmation (R-20).
             logger.error(f"rfq_admin_email_failed: {e!r}")
             return None
+
+    @staticmethod
+    def send_proposal_email(
+        to_email: str,
+        lead_data: dict[str, Any],
+        pdf_bytes: bytes,
+        pdf_filename: str,
+    ) -> dict:
+        """Kirim proposal PDF ke customer (E4B-S2-BE-08). Dipanggil dari
+        POST /rfq/leads/{id}/send-proposal — RAISE kalau gagal (beda dari
+        notifikasi RFQ) karena ini adalah aksi eksplisit admin klik "Kirim",
+        bukan fire-and-forget background notification; admin harus tahu
+        kalau gagal supaya bisa retry, bukan silent failure."""
+        subject = f"Proposal Penawaran Garam Industri — CV Reka Cipta Indonesia untuk {lead_data['company_name']}"
+        html_body = f"""
+        <p>Halo {lead_data['full_name']},</p>
+        <p>Terlampir proposal penawaran garam industri untuk {lead_data['company_name']}
+        sesuai kebutuhan yang Anda sampaikan.</p>
+        <p>Tim kami siap mendiskusikan detail lebih lanjut — silakan reply email ini
+        atau hubungi kami via WhatsApp.</p>
+        <p>Salam,<br>Tim CV Reka Cipta Indonesia</p>
+        """
+        try:
+            response = resend.Emails.send({
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+                "attachments": [{
+                    "filename": pdf_filename,
+                    "content": base64.b64encode(pdf_bytes).decode("utf-8"),
+                    "content_type": "application/pdf",
+                }],
+            })
+            logger.info(f"proposal_email_sent: resend_id={response.get('id')} to={to_email}")
+            return response
+        except Exception as e:
+            logger.error(f"proposal_email_failed: to={to_email} error={e!r}")
+            raise

@@ -118,6 +118,7 @@ class RFQLead(BaseModel):
     proposal_html: str | None
     proposal_generated: bool
     proposal_generated_at: datetime | None
+    proposal_sent_at: datetime | None
     created_at: datetime
     updated_at: datetime
 

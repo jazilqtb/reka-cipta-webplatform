@@ -21,9 +21,10 @@
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -41,6 +42,8 @@ from schemas.rfq import (
     LeadStatusHistory,
 )
 from services.email_service import EmailService
+from services.pdf_service import html_to_pdf
+from services.proposal_generator import ProposalGeneratorError, get_proposal_service
 from services.wa_template_service import generate_wa_template
 
 router = APIRouter(prefix="/rfq", tags=["rfq"])
@@ -281,3 +284,142 @@ async def generate_wa_template_endpoint(payload: WATemplateRequest) -> WATemplat
         whatsapp_clean = '62' + whatsapp_clean[1:]
 
     return WATemplateResponse(template=template, whatsapp_number=whatsapp_clean)
+
+
+# ── Admin: Proposal Generator (Epic 4B Slice 2) ──────────────
+
+
+def _slugify(text: str) -> str:
+    """'PT XYZ Corp' -> 'pt-xyz-corp' — dipakai untuk nama file PDF."""
+    slug = re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
+    return slug or "lead"
+
+
+async def _fetch_lead_or_404(supabase, lead_id: str) -> dict:
+    result = supabase.table("rfq_leads").select("*").eq("id", lead_id).limit(1).execute()
+    if not result.data:
+        raise HTTPException(404, detail="Lead tidak ditemukan")
+    return result.data[0]
+
+
+@router.post(
+    "/leads/{lead_id}/generate-proposal",
+    response_model=RFQLeadDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def generate_proposal(lead_id: str) -> RFQLeadDetailResponse:
+    """[AUTH] Generate proposal HTML via Anthropic Haiku (blocking, R-31
+    — request sengaja 10-30 detik, bukan background job untuk MVP)."""
+    supabase = get_supabase()
+    lead = await _fetch_lead_or_404(supabase, lead_id)
+
+    try:
+        products_result = (
+            supabase.table("products").select("*").in_("slug", lead.get("salt_types") or []).execute()
+        )
+        products = products_result.data or []
+    except Exception as e:
+        logger.warning(f"proposal_products_fetch_failed: lead_id={lead_id} error={e!r}")
+        products = []
+
+    try:
+        settings_result = supabase.table("company_settings").select("key,value").execute()
+        company_settings = {row["key"]: row["value"] for row in (settings_result.data or [])}
+    except Exception as e:
+        logger.warning(f"proposal_company_settings_fetch_failed: lead_id={lead_id} error={e!r}")
+        company_settings = {}
+
+    service = get_proposal_service()
+    try:
+        proposal_html = await service.generate(lead, products, company_settings)
+    except ProposalGeneratorError as e:
+        raise HTTPException(503, detail=str(e))
+
+    try:
+        supabase.table("rfq_leads").update({
+            "proposal_html": proposal_html,
+            "proposal_generated": True,
+            "proposal_generated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", lead_id).execute()
+    except Exception as e:
+        logger.error(f"proposal_save_failed: lead_id={lead_id} error={e!r}")
+        raise HTTPException(500, detail="Proposal digenerate tapi gagal disimpan. Coba lagi.")
+
+    return await get_lead_detail(lead_id)
+
+
+@router.post(
+    "/leads/{lead_id}/send-proposal",
+    response_model=RFQLeadDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def send_proposal_endpoint(lead_id: str) -> RFQLeadDetailResponse:
+    """[AUTH] Generate PDF dari proposal_html tersimpan + kirim ke email
+    customer. Dijalankan SYNC (bukan BackgroundTasks) supaya kegagalan
+    kirim email ter-propagate ke response — admin klik "Kirim" adalah
+    aksi eksplisit yang butuh konfirmasi sukses/gagal real, beda dari
+    notifikasi RFQ submit yang fire-and-forget (R-20 tidak apply di sini)."""
+    supabase = get_supabase()
+    lead = await _fetch_lead_or_404(supabase, lead_id)
+
+    if not lead.get("proposal_html"):
+        raise HTTPException(422, detail="Proposal belum di-generate")
+
+    try:
+        pdf_bytes = html_to_pdf(lead["proposal_html"])
+    except Exception:
+        raise HTTPException(500, detail="Gagal membuat PDF dari proposal")
+
+    filename = f"proposal-{_slugify(lead['company_name'])}.pdf"
+
+    try:
+        EmailService.send_proposal_email(
+            to_email=lead["email"],
+            lead_data=lead,
+            pdf_bytes=pdf_bytes,
+            pdf_filename=filename,
+        )
+    except Exception:
+        raise HTTPException(502, detail="Gagal mengirim email ke customer. Coba lagi.")
+
+    try:
+        supabase.table("rfq_leads").update({
+            "proposal_sent_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", lead_id).execute()
+    except Exception as e:
+        logger.error(f"proposal_sent_at_update_failed: lead_id={lead_id} error={e!r}")
+        # Email sudah terkirim — jangan raise, cuma log. Admin tetap lihat
+        # sukses; proposal_sent_at bisa telat ter-update tapi tidak fatal.
+
+    return await get_lead_detail(lead_id)
+
+
+@router.get(
+    "/leads/{lead_id}/proposal.pdf",
+    dependencies=[Depends(get_current_user)],
+)
+async def download_proposal_pdf(lead_id: str) -> Response:
+    """[AUTH] Download PDF on-demand (AR-03 — tidak di-cache/persist)."""
+    supabase = get_supabase()
+    result = (
+        supabase.table("rfq_leads")
+        .select("proposal_html,company_name")
+        .eq("id", lead_id)
+        .limit(1)
+        .execute()
+    )
+    if not result.data or not result.data[0].get("proposal_html"):
+        raise HTTPException(404, detail="Proposal belum di-generate")
+
+    try:
+        pdf_bytes = html_to_pdf(result.data[0]["proposal_html"])
+    except Exception:
+        raise HTTPException(500, detail="Gagal membuat PDF dari proposal")
+
+    filename = f"proposal-{_slugify(result.data[0]['company_name'])}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
