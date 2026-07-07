@@ -17,6 +17,7 @@ import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { LABEL_MAP } from '@/lib/constants/lead-status'
 import { INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
 import { AdminNotesEditor } from './AdminNotesEditor'
+import { ProposalGeneratorPanel } from './ProposalGeneratorPanel'
 import { StatusHistoryTable } from './StatusHistoryTable'
 import { StatusPanel } from './StatusPanel'
 import type { LeadStatus, RFQLead, LeadStatusHistory } from '@/types/api'
@@ -191,6 +192,11 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
           onSaved={handleNotesSaved}
         />
       </div>
+
+      <ProposalGeneratorPanel
+        lead={lead}
+        onLeadUpdated={(updated) => setLead(updated)}
+      />
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-ink-700 mb-3">Histori Status</h2>
