@@ -81,12 +81,11 @@ class EmailService:
         lead_data: dict[str, Any],
         products: list[dict[str, Any]],
         reply_to: Optional[str] = None,
-    ) -> dict:
+    ) -> Optional[dict]:
         """Kirim email konfirmasi ke customer setelah submit RFQ (E4-CF-BE-03).
 
-        Return: { id: str } jika sukses. Raise Exception jika gagal — caller
-        (BackgroundTasks) sudah wrap ini, jadi failure di sini tidak
-        menggagalkan response 201 ke customer (R-20, fire-and-forget).
+        Return: { id: str } jika sukses, None kalau gagal (sudah di-log,
+        tidak raise — lihat catatan di except block, R-20).
         """
         product_names = ", ".join(f"{p['name']} ({p['code']})" for p in products)
         whatsapp_masked = _mask_whatsapp(lead_data['whatsapp'])
@@ -120,15 +119,22 @@ class EmailService:
             logger.info(f"rfq_customer_email_sent: resend_id={response.get('id')}")
             return response
         except Exception as e:
+            # Tidak raise (beda dari send_contact_notification) — ini dipanggil
+            # via BackgroundTasks bersama send_rfq_admin_notification.
+            # BackgroundTasks.__call__ menjalankan task secara sequential dan
+            # BERHENTI kalau satu task raise, jadi kalau method ini raise,
+            # notifikasi admin (task berikutnya) tidak akan pernah jalan.
+            # Ditemukan saat E2E test manual (STOP GATE 1) — Resend API key
+            # invalid bikin admin notification ikut tidak terkirim. R-20.
             logger.error(f"rfq_customer_email_failed: {e!r}")
-            raise
+            return None
 
     @staticmethod
     def send_rfq_admin_notification(
         to_email: str,
         lead_data: dict[str, Any],
         products: list[dict[str, Any]],
-    ) -> dict:
+    ) -> Optional[dict]:
         """Notifikasi admin ada RFQ baru (E4-CF-BE-03). Fire-and-forget, lihat R-20."""
         product_names = ", ".join(f"{p['code']}" for p in products) or ", ".join(lead_data.get('salt_types', []))
         frequency_label = _FREQUENCY_LABELS.get(
@@ -157,5 +163,6 @@ class EmailService:
             logger.info(f"rfq_admin_email_sent: resend_id={response.get('id')}")
             return response
         except Exception as e:
+            # Tidak raise — lihat catatan di send_rfq_customer_confirmation (R-20).
             logger.error(f"rfq_admin_email_failed: {e!r}")
-            raise
+            return None
