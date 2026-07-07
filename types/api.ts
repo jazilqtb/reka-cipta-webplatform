@@ -234,6 +234,7 @@ export interface RFQLead {
   proposal_html: string | null
   proposal_generated: boolean
   proposal_generated_at: string | null // ISO 8601
+  proposal_sent_at: string | null // ISO 8601 — Epic 4B Slice 2
   created_at: string // ISO 8601
   updated_at: string // ISO 8601
 }

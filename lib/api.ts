@@ -29,7 +29,7 @@ import type {
   WATemplateResponse,
 } from '@/types/api'
 
-const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
+export const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
 
 interface FetchOptions extends RequestInit {
   /** true → inject Authorization: Bearer {supabase-session-jwt} */
@@ -264,4 +264,31 @@ export async function getWATemplate(
     auth: true,
     body: JSON.stringify({ lead_id: leadId, status }),
   })
+}
+
+// === Epic 4B Slice 2: Proposal Generator (E4B-S2-CT-01) ===
+// [AUTH] generateProposal pakai timeout 35s (bukan default 10s) — request
+// sengaja blocking selama Anthropic Haiku menulis proposal (R-31).
+
+export async function generateProposal(leadId: string): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${leadId}/generate-proposal`, {
+    method: 'POST',
+    auth: true,
+    timeout: 35_000,
+  })
+}
+
+export async function sendProposal(leadId: string): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${leadId}/send-proposal`, {
+    method: 'POST',
+    auth: true,
+    timeout: 35_000,
+  })
+}
+
+// Download butuh XHR/fetch manual dengan blob (R-32) — <a href> tidak
+// bisa attach Authorization header — jadi hanya expose URL di sini,
+// komponen yang handle fetch + blob + Authorization header.
+export function getProposalPDFUrl(leadId: string): string {
+  return `${BASE_URL}/api/v1/rfq/leads/${leadId}/proposal.pdf`
 }
