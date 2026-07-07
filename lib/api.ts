@@ -20,6 +20,8 @@ import type {
   ProductDetailResponse,
   ProductAdminListResponse,
   ProductUpdateRequest,
+  RFQSubmitRequest,
+  RFQSubmitResponse,
 } from '@/types/api'
 
 const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
@@ -201,5 +203,16 @@ export async function uploadProductLabDoc(
   formData.append('file', file)
   return apiFetchMultipart<ProductDetailResponse>(`/products/${id}/upload-lab-doc`, formData, {
     onProgress,
+  })
+}
+
+// === Epic 4 Customer-Facing: RFQ (E4-CF-CT-01) ===
+// Public, tanpa auth. Dipakai RFQForm ('use client') di /minta-penawaran.
+
+export async function submitRFQ(payload: RFQSubmitRequest): Promise<RFQSubmitResponse> {
+  return apiFetch<RFQSubmitResponse>('/rfq/submit', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify(payload),
   })
 }

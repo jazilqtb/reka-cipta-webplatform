@@ -172,3 +172,39 @@ export interface ProductAdminListResponse {
   active_count: number
   inactive_count: number
 }
+
+// === Epic 4 Customer-Facing: RFQ (E4-CF-CT-01) ===
+// Mirror dari backend/schemas/rfq.py — jaga sinkron (ARCHITECTURE.md §16).
+// Enum values HARUS match char-per-char dengan Pydantic constants
+// INDUSTRY_TYPES/DELIVERY_FREQUENCIES dan lib/validation/rfq-schema.ts (Zod).
+
+export type DeliveryFrequency = 'weekly' | 'biweekly' | 'monthly'
+
+export type IndustryType =
+  | 'makanan-minuman'
+  | 'farmasi'
+  | 'kimia'
+  | 'peternakan'
+  | 'tekstil'
+  | 'pengolahan-ikan'
+  | 'lainnya'
+
+export interface RFQSubmitRequest {
+  full_name: string
+  company_name: string
+  position: string | null
+  industry_type: IndustryType
+  salt_types: string[]
+  volume_per_month: number
+  delivery_frequency: DeliveryFrequency
+  delivery_city: string
+  email: string
+  whatsapp: string
+  notes: string | null
+}
+
+export interface RFQSubmitResponse {
+  success: boolean
+  lead_id: string
+  message: string
+}
