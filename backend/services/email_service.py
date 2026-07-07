@@ -14,13 +14,26 @@
 
 import resend
 import logging
-from typing import Optional
+from typing import Any, Optional
 from core.config import settings
 
 logger = logging.getLogger(__name__)
 resend.api_key = settings.RESEND_API_KEY
 
 DEFAULT_FROM = "CV Reka Cipta Indonesia <onboarding@resend.dev>"
+
+_FREQUENCY_LABELS = {
+    'weekly': 'mingguan',
+    'biweekly': 'dua minggu sekali',
+    'monthly': 'bulanan',
+}
+
+
+def _mask_whatsapp(wa: str) -> str:
+    """Mask 4 digit tengah nomor WhatsApp untuk privacy (+62812****5678)."""
+    if len(wa) < 8:
+        return wa
+    return wa[:4] + "*" * (len(wa) - 8) + wa[-4:]
 
 
 class EmailService:
@@ -60,4 +73,89 @@ class EmailService:
             return response
         except Exception as e:
             logger.error(f"contact_email_failed: {e!r}")
+            raise
+
+    @staticmethod
+    def send_rfq_customer_confirmation(
+        to_email: str,
+        lead_data: dict[str, Any],
+        products: list[dict[str, Any]],
+        reply_to: Optional[str] = None,
+    ) -> dict:
+        """Kirim email konfirmasi ke customer setelah submit RFQ (E4-CF-BE-03).
+
+        Return: { id: str } jika sukses. Raise Exception jika gagal — caller
+        (BackgroundTasks) sudah wrap ini, jadi failure di sini tidak
+        menggagalkan response 201 ke customer (R-20, fire-and-forget).
+        """
+        product_names = ", ".join(f"{p['name']} ({p['code']})" for p in products)
+        whatsapp_masked = _mask_whatsapp(lead_data['whatsapp'])
+        frequency_label = _FREQUENCY_LABELS.get(
+            lead_data['delivery_frequency'], lead_data['delivery_frequency']
+        )
+
+        subject = f"[CV Reka Cipta] Konfirmasi Permintaan Penawaran — {lead_data['company_name']}"
+        html_body = f"""
+        <p>Halo {lead_data['full_name']},</p>
+        <p>Terima kasih atas ketertarikan Anda pada produk kami: <strong>{product_names or '-'}</strong>.</p>
+        <p>Kami sudah menerima permintaan penawaran Anda dan tim kami akan
+        menyiapkan proposal khusus sesuai kebutuhan {lead_data['company_name']}
+        ({lead_data['volume_per_month']} ton/{frequency_label},
+        pengiriman ke {lead_data['delivery_city']}).</p>
+        <p>Tim kami akan menghubungi Anda via WhatsApp di {whatsapp_masked}
+        dalam 1×24 jam dengan proposal lengkap.</p>
+        <p>Kalau ada pertanyaan mendesak, silakan reply email ini.</p>
+        <p>Salam,<br>Tim CV Reka Cipta Indonesia</p>
+        """
+        try:
+            payload: dict[str, Any] = {
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+            }
+            if reply_to:
+                payload["reply_to"] = reply_to
+            response = resend.Emails.send(payload)
+            logger.info(f"rfq_customer_email_sent: resend_id={response.get('id')}")
+            return response
+        except Exception as e:
+            logger.error(f"rfq_customer_email_failed: {e!r}")
+            raise
+
+    @staticmethod
+    def send_rfq_admin_notification(
+        to_email: str,
+        lead_data: dict[str, Any],
+        products: list[dict[str, Any]],
+    ) -> dict:
+        """Notifikasi admin ada RFQ baru (E4-CF-BE-03). Fire-and-forget, lihat R-20."""
+        product_names = ", ".join(f"{p['code']}" for p in products) or ", ".join(lead_data.get('salt_types', []))
+        frequency_label = _FREQUENCY_LABELS.get(
+            lead_data['delivery_frequency'], lead_data['delivery_frequency']
+        )
+        subject = f"RFQ baru dari {lead_data['company_name']}"
+        html_body = f"""
+        <h2>RFQ baru masuk</h2>
+        <p><strong>Perusahaan:</strong> {lead_data['company_name']}</p>
+        <p><strong>Kontak:</strong> {lead_data['full_name']} ({lead_data.get('position') or '-'})</p>
+        <p><strong>Industri:</strong> {lead_data['industry_type']}</p>
+        <p><strong>Produk:</strong> {product_names}</p>
+        <p><strong>Volume:</strong> {lead_data['volume_per_month']} ton/{frequency_label}</p>
+        <p><strong>Kota Tujuan:</strong> {lead_data['delivery_city']}</p>
+        <p><strong>Email:</strong> <a href="mailto:{lead_data['email']}">{lead_data['email']}</a></p>
+        <p><strong>WhatsApp:</strong> {lead_data['whatsapp']}</p>
+        <p><strong>Catatan:</strong> {lead_data.get('notes') or '-'}</p>
+        """
+        try:
+            response = resend.Emails.send({
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+            })
+            logger.info(f"rfq_admin_email_sent: resend_id={response.get('id')}")
+            return response
+        except Exception as e:
+            logger.error(f"rfq_admin_email_failed: {e!r}")
             raise
