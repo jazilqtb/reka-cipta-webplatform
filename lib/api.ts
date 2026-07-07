@@ -22,6 +22,11 @@ import type {
   ProductUpdateRequest,
   RFQSubmitRequest,
   RFQSubmitResponse,
+  LeadStatus,
+  RFQLeadListResponse,
+  RFQLeadDetailResponse,
+  RFQLeadUpdateRequest,
+  WATemplateResponse,
 } from '@/types/api'
 
 const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
@@ -214,5 +219,49 @@ export async function submitRFQ(payload: RFQSubmitRequest): Promise<RFQSubmitRes
     method: 'POST',
     auth: false,
     body: JSON.stringify(payload),
+  })
+}
+
+// === Epic 4B Slice 1: Admin CRM Pipeline (E4B-S1-CT-01) ===
+// [AUTH] Dipakai Client Component saja — lihat komentar apiFetch di atas.
+
+export async function getLeads(filters?: {
+  status?: LeadStatus
+  industry?: string
+  date_from?: string
+  date_to?: string
+  search?: string
+}): Promise<RFQLeadListResponse> {
+  const params = new URLSearchParams()
+  Object.entries(filters ?? {}).forEach(([k, v]) => {
+    if (v) params.set(k, v)
+  })
+  const query = params.toString()
+  return apiFetch<RFQLeadListResponse>(`/rfq/leads${query ? `?${query}` : ''}`, { auth: true })
+}
+
+export async function getLeadDetail(id: string): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${id}`, { auth: true })
+}
+
+export async function updateLead(
+  id: string,
+  payload: RFQLeadUpdateRequest
+): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${id}`, {
+    method: 'PATCH',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getWATemplate(
+  leadId: string,
+  status: LeadStatus
+): Promise<WATemplateResponse> {
+  return apiFetch<WATemplateResponse>('/rfq/wa-template', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify({ lead_id: leadId, status }),
   })
 }

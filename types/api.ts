@@ -208,3 +208,60 @@ export interface RFQSubmitResponse {
   lead_id: string
   message: string
 }
+
+// === Epic 4B Slice 1: Admin CRM Pipeline (E4B-S1-CT-01) ===
+// Mirror dari backend/schemas/rfq.py — jaga sinkron (ARCHITECTURE.md §16).
+
+export type LeadStatus =
+  | 'new' | 'contacted' | 'sample_sent'
+  | 'negotiation' | 'deal' | 'lost'
+
+export interface RFQLead {
+  id: string
+  full_name: string
+  company_name: string
+  position: string | null
+  industry_type: IndustryType
+  salt_types: string[]
+  volume_per_month: number
+  delivery_frequency: DeliveryFrequency
+  delivery_city: string
+  email: string
+  whatsapp: string
+  notes: string | null
+  admin_notes: string | null
+  status: LeadStatus
+  proposal_html: string | null
+  proposal_generated: boolean
+  proposal_generated_at: string | null // ISO 8601
+  created_at: string // ISO 8601
+  updated_at: string // ISO 8601
+}
+
+export interface LeadStatusHistory {
+  id: string
+  lead_id: string
+  from_status: LeadStatus | null
+  to_status: LeadStatus
+  changed_at: string // ISO 8601
+}
+
+export interface RFQLeadUpdateRequest {
+  status?: LeadStatus
+  admin_notes?: string
+}
+
+export interface RFQLeadListResponse {
+  leads: RFQLead[]
+  total: number
+}
+
+export interface RFQLeadDetailResponse {
+  lead: RFQLead
+  history: LeadStatusHistory[]
+}
+
+export interface WATemplateResponse {
+  template: string
+  whatsapp_number: string
+}
