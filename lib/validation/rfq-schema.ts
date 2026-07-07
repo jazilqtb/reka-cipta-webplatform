@@ -20,7 +20,7 @@ export const rfqSubmitSchema = z.object({
     'lainnya',
   ]),
   salt_types: z.array(z.string()).min(1, 'Pilih minimal 1 jenis garam'),
-  volume_per_month: z.coerce.number().positive('Volume harus lebih dari 0'),
+  volume_per_month: z.number().positive('Volume harus lebih dari 0'),
   delivery_frequency: z.enum(['weekly', 'biweekly', 'monthly']),
   delivery_city: z.string().min(1, 'Wajib diisi').max(100),
   email: z.string().email('Format email tidak valid'),
