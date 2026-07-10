@@ -17,6 +17,8 @@ import resend
 import logging
 from typing import Any, Optional
 from core.config import settings
+from core.supabase import get_supabase
+from services.email_templates_service import EmailTemplatesService
 
 logger = logging.getLogger(__name__)
 resend.api_key = settings.RESEND_API_KEY
@@ -87,6 +89,11 @@ class EmailService:
 
         Return: { id: str } jika sukses, None kalau gagal (sudah di-log,
         tidak raise — lihat catatan di except block, R-20).
+
+        Epic 4B Slice 3B (E4B-S3B-BE-03): subject/html di-render dari
+        DB-backed template (admin-editable di /admin/email-templates),
+        fallback ke hardcoded default (R-37) kalau row DB hilang/corrupt —
+        lihat EmailTemplatesService.
         """
         product_names = ", ".join(f"{p['name']} ({p['code']})" for p in products)
         whatsapp_masked = _mask_whatsapp(lead_data['whatsapp'])
@@ -94,19 +101,19 @@ class EmailService:
             lead_data['delivery_frequency'], lead_data['delivery_frequency']
         )
 
-        subject = f"[CV Reka Cipta] Konfirmasi Permintaan Penawaran — {lead_data['company_name']}"
-        html_body = f"""
-        <p>Halo {lead_data['full_name']},</p>
-        <p>Terima kasih atas ketertarikan Anda pada produk kami: <strong>{product_names or '-'}</strong>.</p>
-        <p>Kami sudah menerima permintaan penawaran Anda dan tim kami akan
-        menyiapkan proposal khusus sesuai kebutuhan {lead_data['company_name']}
-        ({lead_data['volume_per_month']} ton/{frequency_label},
-        pengiriman ke {lead_data['delivery_city']}).</p>
-        <p>Tim kami akan menghubungi Anda via WhatsApp di {whatsapp_masked}
-        dalam 1×24 jam dengan proposal lengkap.</p>
-        <p>Kalau ada pertanyaan mendesak, silakan reply email ini.</p>
-        <p>Salam,<br>Tim CV Reka Cipta Indonesia</p>
-        """
+        context = {
+            "full_name": lead_data['full_name'],
+            "product_names": product_names or '-',
+            "company_name": lead_data['company_name'],
+            "volume_per_month": lead_data['volume_per_month'],
+            "frequency_label": frequency_label,
+            "delivery_city": lead_data['delivery_city'],
+            "whatsapp_masked": whatsapp_masked,
+        }
+        subject, html_body, _text_body = EmailTemplatesService(get_supabase()).render(
+            "rfq_confirmation", context
+        )
+
         try:
             payload: dict[str, Any] = {
                 "from": DEFAULT_FROM,

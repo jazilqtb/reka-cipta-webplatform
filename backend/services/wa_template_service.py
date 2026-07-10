@@ -1,63 +1,20 @@
 # backend/services/wa_template_service.py
 # Epic 4B Slice 1 (E4B-S1-BE-06) — Generate template pesan WhatsApp
-# berdasarkan status lead. Hardcoded 5 template (AR-05) — editability
-# via UI adalah Slice 3 (post-MVP), jangan spec di sini.
+# berdasarkan status lead untuk 1 lead spesifik (dipanggil dari
+# POST /rfq/wa-template).
 #
-# Pakai str.format() dengan {placeholder} — kalau nanti template jadi
-# editable dari admin UI, ganti ke Jinja2 atau string.Template supaya
-# user input tidak bisa inject format-spec yang crash .format().
+# Epic 4B Slice 3B (E4B-S3B-BE-03): rendering dipindah ke
+# WATemplatesService (DB-backed, admin-editable di /admin/email-templates
+# tab WhatsApp), fallback ke HARDCODED_WA_TEMPLATES (R-37) kalau row DB
+# hilang/corrupt. WA_TEMPLATES dict lama (single-brace .format()) sudah
+# dihapus dari sini — single source sekarang di wa_templates_service.py
+# (double-brace {{placeholder}}, replace literal — lebih aman dari
+# .format() untuk template yang admin-editable, lihat catatan di sana).
 
 from typing import Any
 
-WA_TEMPLATES: dict[str, str] = {
-    'new': """Halo {full_name},
-
-Terima kasih atas permintaan penawaran dari {company_name}.
-
-Kami sudah menerima detail kebutuhan Anda ({volume} ton/{frequency}). Tim kami sedang menyiapkan proposal khusus dan akan mengirim ke email {email} dalam 1x24 jam.
-
-Kalau ada pertanyaan mendesak, silakan reply pesan ini.
-
-Salam,
-Tim CV Reka Cipta Indonesia""",
-
-    'contacted': """Halo {full_name},
-
-Saya {admin_name} dari CV Reka Cipta Indonesia. Terkait permintaan penawaran garam untuk {company_name}, apakah proposal yang kami kirim via email sudah diterima?
-
-Kalau ada pertanyaan atau butuh diskusi lebih lanjut, saya siap membantu.""",
-
-    'sample_sent': """Halo {full_name},
-
-Update pengiriman sampel {product_names} untuk {company_name}:
-
-Nomor resi: [ISI RESI]
-Estimasi tiba: [ISI ESTIMASI]
-
-Mohon konfirmasi setelah sampel diterima. Terima kasih.""",
-
-    'negotiation': """Halo {full_name},
-
-Terkait diskusi harga garam untuk kebutuhan {company_name} ({volume} ton/{frequency}), berikut poin penawaran:
-
-- [POIN 1]
-- [POIN 2]
-- [POIN 3]
-
-Mohon feedback dan kita bisa lanjut ke tahap final. Terima kasih.""",
-
-    'deal': """Halo {full_name},
-
-Terima kasih atas kepercayaan {company_name} untuk bekerja sama dengan CV Reka Cipta Indonesia.
-
-Tim kami akan segera follow up untuk proses order pertama ({volume} ton/{frequency}). Sampai jumpa!""",
-
-    'lost': """Halo {full_name},
-
-Terima kasih atas waktu dan kesempatan diskusi dengan {company_name}. Kami memahami kebutuhan saat ini belum sesuai.
-
-Kalau di kemudian hari {company_name} butuh garam industri lagi, kami siap membantu. Salam sukses.""",
-}
+from core.supabase import get_supabase
+from services.wa_templates_service import WATemplatesService
 
 _FREQUENCY_LABEL: dict[str, str] = {
     'weekly': 'minggu', 'biweekly': 'dua minggu', 'monthly': 'bulan',
@@ -65,14 +22,9 @@ _FREQUENCY_LABEL: dict[str, str] = {
 
 
 def generate_wa_template(lead: dict[str, Any], status: str) -> str:
-    """Generate WA template berdasarkan status lead. Fallback ke template
-    generic kalau status tidak dikenal (mis. hardcoded dict belum di-update
-    saat status baru ditambahkan)."""
-    template_str = WA_TEMPLATES.get(
-        status,
-        "Halo {full_name}, terkait permintaan penawaran {company_name}, mohon informasi lebih lanjut.",
-    )
-
+    """Generate WA template untuk 1 lead berdasarkan status. Template
+    di-load dari DB (admin-editable), fallback ke hardcoded default
+    kalau row tidak ada (R-37) — tidak pernah raise/gagal."""
     frequency_label = _FREQUENCY_LABEL.get(lead.get('delivery_frequency', ''), 'bulan')
     product_names = ", ".join(lead.get('salt_types') or [])
 
@@ -86,4 +38,4 @@ def generate_wa_template(lead: dict[str, Any], status: str) -> str:
         'admin_name': '[Nama Admin]',  # Placeholder — admin edit sebelum kirim
     }
 
-    return template_str.format(**context)
+    return WATemplatesService(get_supabase()).render(status, context)

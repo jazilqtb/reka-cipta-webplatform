@@ -4,6 +4,16 @@
 // Epic 4B Slice 2 (E4B-S2-FE-01) — generate (Anthropic Haiku, blocking
 // 10-30s) -> preview (sandboxed iframe) -> download PDF (JWT blob
 // workaround, R-32) -> send ke customer (confirm dialog dulu).
+//
+// Epic 4B Slice 3A (E4B-S3A-FE-02, R-38/R-39, CROSS-SLICE) — tambah
+// Advanced Mode toggle (temperature/max_tokens/custom_instructions,
+// semua optional). Toggle OFF (default) = Quick Mode, `handleGenerate`
+// memanggil `generateProposal(lead.id)` tanpa argumen ke-2 — behavior
+// identik Slice 2, TIDAK berubah.
+//
+// NOTE: implemented ahead of Slice 3 trigger criteria (task breakdown
+// "Trigger Criteria") per instruksi eksplisit supaya kode siap begitu
+// Anthropic API key tersedia — belum pernah divalidasi end-to-end.
 
 import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
@@ -17,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import type { RFQLead } from '@/types/api'
 
 interface Props {
@@ -26,6 +37,8 @@ interface Props {
 
 type ActionState = 'idle' | 'generating' | 'sending'
 
+const CUSTOM_INSTRUCTIONS_MAX = 2000
+
 function sanitizeFilename(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'lead'
 }
@@ -34,12 +47,27 @@ export function ProposalGeneratorPanel({ lead, onLeadUpdated }: Props) {
   const [actionState, setActionState] = useState<ActionState>('idle')
   const [confirmSendOpen, setConfirmSendOpen] = useState(false)
 
+  // Advanced Mode (Slice 3A, R-38) — semua undefined = Quick Mode default.
+  const [advancedMode, setAdvancedMode] = useState(false)
+  const [temperature, setTemperature] = useState<number | undefined>(undefined)
+  const [maxTokens, setMaxTokens] = useState<number | undefined>(undefined)
+  const [customInstructions, setCustomInstructions] = useState('')
+
   const hasProposal = lead.proposal_generated && !!lead.proposal_html
+  const isBusy = actionState !== 'idle'
 
   async function handleGenerate() {
     setActionState('generating')
     try {
-      const data = await generateProposal(lead.id)
+      // R-39: toggle off → panggil TANPA argumen ke-2, identik Slice 2.
+      const advanced = advancedMode
+        ? {
+            temperature,
+            max_tokens: maxTokens,
+            custom_instructions: customInstructions || undefined,
+          }
+        : undefined
+      const data = await generateProposal(lead.id, advanced)
       onLeadUpdated(data.lead)
       toast.success('Proposal berhasil digenerate')
     } catch (err) {
@@ -169,6 +197,84 @@ export function ProposalGeneratorPanel({ lead, onLeadUpdated }: Props) {
               {actionState === 'sending' ? 'Mengirim...' : 'Kirim ke Customer'}
             </button>
           </div>
+        </div>
+      )}
+
+      {actionState !== 'generating' && (
+        <div className="border-t border-neutral-200 pt-4">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={advancedMode}
+              onChange={(e) => setAdvancedMode(e.target.checked)}
+              disabled={isBusy}
+              className="h-4 w-4 rounded border-neutral-300 text-brand-teal-600 focus:ring-brand-teal-500"
+            />
+            <span className="text-sm font-medium text-neutral-700">Advanced Mode</span>
+            <span className="text-xs text-neutral-500">(override default AI — biaya bisa lebih tinggi)</span>
+          </label>
+
+          {advancedMode && (
+            <div className="mt-3 p-3 bg-neutral-50 rounded-lg space-y-3">
+              <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2">
+                Kosongkan field yang tidak ingin di-override — akan pakai default dari Pengaturan
+                Proposal.
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-600" htmlFor="adv-temperature">
+                    Temperature (opsional)
+                  </label>
+                  <input
+                    id="adv-temperature"
+                    type="number"
+                    min={0}
+                    max={1.5}
+                    step={0.1}
+                    placeholder="Default"
+                    disabled={isBusy}
+                    value={temperature ?? ''}
+                    onChange={(e) => setTemperature(e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full h-9 px-2.5 rounded-md border border-neutral-300 text-sm disabled:opacity-60"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-600" htmlFor="adv-max-tokens">
+                    Max Tokens (opsional)
+                  </label>
+                  <input
+                    id="adv-max-tokens"
+                    type="number"
+                    min={500}
+                    max={8000}
+                    step={100}
+                    placeholder="Default"
+                    disabled={isBusy}
+                    value={maxTokens ?? ''}
+                    onChange={(e) => setMaxTokens(e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full h-9 px-2.5 rounded-md border border-neutral-300 text-sm disabled:opacity-60"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-neutral-600" htmlFor="adv-custom-instructions">
+                  Instruksi Tambahan (opsional)
+                </label>
+                <Textarea
+                  id="adv-custom-instructions"
+                  value={customInstructions}
+                  disabled={isBusy}
+                  onChange={(e) => setCustomInstructions(e.target.value.slice(0, CUSTOM_INSTRUCTIONS_MAX))}
+                  placeholder="Contoh: Tekankan aspek harga kompetitif dan pengiriman cepat."
+                  rows={3}
+                  className="text-sm"
+                />
+                <p className="text-xs text-neutral-400">
+                  {customInstructions.length}/{CUSTOM_INSTRUCTIONS_MAX}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

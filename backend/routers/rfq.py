@@ -30,6 +30,7 @@ from slowapi.util import get_remote_address
 
 from core.supabase import get_supabase
 from dependencies.auth import get_current_user
+from schemas.proposal_settings import GenerateProposalRequest
 from schemas.rfq import (
     RFQLead,
     RFQLeadDetailResponse,
@@ -42,8 +43,9 @@ from schemas.rfq import (
     LeadStatusHistory,
 )
 from services.email_service import EmailService
-from services.pdf_service import html_to_pdf
+from services.pdf_service import apply_layout, html_to_pdf
 from services.proposal_generator import ProposalGeneratorError, get_proposal_service
+from services.proposal_settings_service import ProposalSettingsService
 from services.wa_template_service import generate_wa_template
 
 router = APIRouter(prefix="/rfq", tags=["rfq"])
@@ -307,9 +309,17 @@ async def _fetch_lead_or_404(supabase, lead_id: str) -> dict:
     response_model=RFQLeadDetailResponse,
     dependencies=[Depends(get_current_user)],
 )
-async def generate_proposal(lead_id: str) -> RFQLeadDetailResponse:
+async def generate_proposal(
+    lead_id: str,
+    payload: GenerateProposalRequest = GenerateProposalRequest(),
+) -> RFQLeadDetailResponse:
     """[AUTH] Generate proposal HTML via Anthropic Haiku (blocking, R-31
-    — request sengaja 10-30 detik, bukan background job untuk MVP)."""
+    — request sengaja 10-30 detik, bukan background job untuk MVP).
+
+    Epic 4B Slice 3A (R-38): `payload` optional — body kosong/absen
+    (Slice 2 frontend belum update) = Quick Mode, behavior identik
+    sebelum Slice 3A. temperature/max_tokens/custom_instructions hanya
+    berlaku kalau eksplisit di-pass (Advanced Mode)."""
     supabase = get_supabase()
     lead = await _fetch_lead_or_404(supabase, lead_id)
 
@@ -331,7 +341,14 @@ async def generate_proposal(lead_id: str) -> RFQLeadDetailResponse:
 
     service = get_proposal_service()
     try:
-        proposal_html = await service.generate(lead, products, company_settings)
+        proposal_html = await service.generate(
+            lead,
+            products,
+            company_settings,
+            temperature=payload.temperature,
+            max_tokens=payload.max_tokens,
+            custom_instructions=payload.custom_instructions,
+        )
     except ProposalGeneratorError as e:
         raise HTTPException(503, detail=str(e))
 
@@ -366,7 +383,11 @@ async def send_proposal_endpoint(lead_id: str) -> RFQLeadDetailResponse:
         raise HTTPException(422, detail="Proposal belum di-generate")
 
     try:
-        pdf_bytes = html_to_pdf(lead["proposal_html"])
+        # Slice 3C (E4B-S3C-BE-04): suntik header/footer/logo/warna aksen
+        # dari proposal_settings sebelum convert PDF. Kalau semua field
+        # layout kosong (belum pernah di-customize), hasil identik Slice 2.
+        layout_settings = ProposalSettingsService(supabase).get()
+        pdf_bytes = html_to_pdf(apply_layout(lead["proposal_html"], layout_settings))
     except Exception:
         raise HTTPException(500, detail="Gagal membuat PDF dari proposal")
 
@@ -412,7 +433,8 @@ async def download_proposal_pdf(lead_id: str) -> Response:
         raise HTTPException(404, detail="Proposal belum di-generate")
 
     try:
-        pdf_bytes = html_to_pdf(result.data[0]["proposal_html"])
+        layout_settings = ProposalSettingsService(supabase).get()
+        pdf_bytes = html_to_pdf(apply_layout(result.data[0]["proposal_html"], layout_settings))
     except Exception:
         raise HTTPException(500, detail="Gagal membuat PDF dari proposal")
 
