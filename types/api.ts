@@ -172,3 +172,174 @@ export interface ProductAdminListResponse {
   active_count: number
   inactive_count: number
 }
+
+// === Epic 4 Customer-Facing: RFQ (E4-CF-CT-01) ===
+// Mirror dari backend/schemas/rfq.py — jaga sinkron (ARCHITECTURE.md §16).
+// Enum values HARUS match char-per-char dengan Pydantic constants
+// INDUSTRY_TYPES/DELIVERY_FREQUENCIES dan lib/validation/rfq-schema.ts (Zod).
+
+export type DeliveryFrequency = 'weekly' | 'biweekly' | 'monthly'
+
+export type IndustryType =
+  | 'makanan-minuman'
+  | 'farmasi'
+  | 'kimia'
+  | 'peternakan'
+  | 'tekstil'
+  | 'pengolahan-ikan'
+  | 'lainnya'
+
+export interface RFQSubmitRequest {
+  full_name: string
+  company_name: string
+  position: string | null
+  industry_type: IndustryType
+  salt_types: string[]
+  volume_per_month: number
+  delivery_frequency: DeliveryFrequency
+  delivery_city: string
+  email: string
+  whatsapp: string
+  notes: string | null
+}
+
+export interface RFQSubmitResponse {
+  success: boolean
+  lead_id: string
+  message: string
+}
+
+// === Epic 4B Slice 1: Admin CRM Pipeline (E4B-S1-CT-01) ===
+// Mirror dari backend/schemas/rfq.py — jaga sinkron (ARCHITECTURE.md §16).
+
+export type LeadStatus =
+  | 'new' | 'contacted' | 'sample_sent'
+  | 'negotiation' | 'deal' | 'lost'
+
+export interface RFQLead {
+  id: string
+  full_name: string
+  company_name: string
+  position: string | null
+  industry_type: IndustryType
+  salt_types: string[]
+  volume_per_month: number
+  delivery_frequency: DeliveryFrequency
+  delivery_city: string
+  email: string
+  whatsapp: string
+  notes: string | null
+  admin_notes: string | null
+  status: LeadStatus
+  proposal_html: string | null
+  proposal_generated: boolean
+  proposal_generated_at: string | null // ISO 8601
+  proposal_sent_at: string | null // ISO 8601 — Epic 4B Slice 2
+  created_at: string // ISO 8601
+  updated_at: string // ISO 8601
+}
+
+export interface LeadStatusHistory {
+  id: string
+  lead_id: string
+  from_status: LeadStatus | null
+  to_status: LeadStatus
+  changed_at: string // ISO 8601
+}
+
+export interface RFQLeadUpdateRequest {
+  status?: LeadStatus
+  admin_notes?: string
+}
+
+export interface RFQLeadListResponse {
+  leads: RFQLead[]
+  total: number
+}
+
+export interface RFQLeadDetailResponse {
+  lead: RFQLead
+  history: LeadStatusHistory[]
+}
+
+export interface WATemplateResponse {
+  template: string
+  whatsapp_number: string
+}
+
+// === Epic 4B Slice 3A: Proposal Settings (E4B-S3A-CT-01) ===
+// Mirror dari backend/schemas/proposal_settings.py — jaga sinkron
+// (ARCHITECTURE.md §16).
+//
+// NOTE: implemented ahead of Slice 3 trigger criteria (task breakdown
+// "Trigger Criteria" — Slice 1+2 live 2+ minggu, 5+ proposal terkirim,
+// klien explicit request) per instruksi eksplisit supaya kode siap saat
+// Anthropic API key tersedia. Belum di-demo ke klien.
+
+export interface ProposalSettings {
+  prompt_role: string
+  prompt_task: string
+  prompt_constraints: string
+  prompt_output_format: string
+  default_temperature: number
+  default_max_tokens: number
+  model_id: string
+  // Epic 4B Slice 3C — layout customizer (same row, ALTER TABLE extension)
+  layout_header_text: string | null
+  layout_footer_text: string | null
+  layout_logo_url: string | null
+  layout_primary_color: string
+}
+
+export interface ProposalSettingsUpdateRequest {
+  prompt_role: string
+  prompt_task: string
+  prompt_constraints: string
+  prompt_output_format: string
+  default_temperature: number
+  default_max_tokens: number
+  layout_header_text: string | null
+  layout_footer_text: string | null
+  layout_logo_url: string | null
+  layout_primary_color: string
+}
+
+export interface ProposalSettingsHistoryEntry {
+  id: number
+  snapshot: ProposalSettingsUpdateRequest & Record<string, unknown>
+  created_at: string // ISO 8601
+  created_by: string | null
+}
+
+export interface GenerateProposalAdvancedParams {
+  temperature?: number
+  max_tokens?: number
+  custom_instructions?: string
+}
+
+// === Epic 4B Slice 3B: Email + WA Template Management (E4B-S3B-CT-01) ===
+// Mirror dari backend/schemas/templates.py — jaga sinkron.
+
+export interface EmailTemplate {
+  template_type: string
+  subject: string
+  body_html: string
+  body_text: string
+  available_placeholders: string[]
+}
+
+export interface EmailTemplateUpdateRequest {
+  subject: string
+  body_html: string
+  body_text: string
+}
+
+export interface WATemplateSetting {
+  status_key: LeadStatus
+  template_text: string
+  available_placeholders: string[]
+}
+
+export interface WATemplateSettingUpdateRequest {
+  template_text: string
+}

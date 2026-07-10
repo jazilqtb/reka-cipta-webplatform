@@ -9,7 +9,7 @@ interface ProductCTAProps {
 
 export function ProductCTA({ product }: ProductCTAProps) {
   const sampleHref = `/kontak?produk=${product.slug}&intent=sample`
-  const quotationHref = `/kontak?produk=${product.slug}&intent=quotation`
+  const quotationHref = `/minta-penawaran?produk=${product.slug}`
 
   return (
     <section className="bg-brand-teal-50 py-12 md:py-16">

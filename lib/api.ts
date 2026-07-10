@@ -20,9 +20,24 @@ import type {
   ProductDetailResponse,
   ProductAdminListResponse,
   ProductUpdateRequest,
+  RFQSubmitRequest,
+  RFQSubmitResponse,
+  LeadStatus,
+  RFQLeadListResponse,
+  RFQLeadDetailResponse,
+  RFQLeadUpdateRequest,
+  WATemplateResponse,
+  ProposalSettings,
+  ProposalSettingsUpdateRequest,
+  ProposalSettingsHistoryEntry,
+  GenerateProposalAdvancedParams,
+  EmailTemplate,
+  EmailTemplateUpdateRequest,
+  WATemplateSetting,
+  WATemplateSettingUpdateRequest,
 } from '@/types/api'
 
-const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
+export const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
 
 interface FetchOptions extends RequestInit {
   /** true → inject Authorization: Bearer {supabase-session-jwt} */
@@ -201,5 +216,209 @@ export async function uploadProductLabDoc(
   formData.append('file', file)
   return apiFetchMultipart<ProductDetailResponse>(`/products/${id}/upload-lab-doc`, formData, {
     onProgress,
+  })
+}
+
+// === Epic 4 Customer-Facing: RFQ (E4-CF-CT-01) ===
+// Public, tanpa auth. Dipakai RFQForm ('use client') di /minta-penawaran.
+
+export async function submitRFQ(payload: RFQSubmitRequest): Promise<RFQSubmitResponse> {
+  return apiFetch<RFQSubmitResponse>('/rfq/submit', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify(payload),
+  })
+}
+
+// === Epic 4B Slice 1: Admin CRM Pipeline (E4B-S1-CT-01) ===
+// [AUTH] Dipakai Client Component saja — lihat komentar apiFetch di atas.
+
+export async function getLeads(filters?: {
+  status?: LeadStatus
+  industry?: string
+  date_from?: string
+  date_to?: string
+  search?: string
+}): Promise<RFQLeadListResponse> {
+  const params = new URLSearchParams()
+  Object.entries(filters ?? {}).forEach(([k, v]) => {
+    if (v) params.set(k, v)
+  })
+  const query = params.toString()
+  return apiFetch<RFQLeadListResponse>(`/rfq/leads${query ? `?${query}` : ''}`, { auth: true })
+}
+
+export async function getLeadDetail(id: string): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${id}`, { auth: true })
+}
+
+export async function updateLead(
+  id: string,
+  payload: RFQLeadUpdateRequest
+): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${id}`, {
+    method: 'PATCH',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getWATemplate(
+  leadId: string,
+  status: LeadStatus
+): Promise<WATemplateResponse> {
+  return apiFetch<WATemplateResponse>('/rfq/wa-template', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify({ lead_id: leadId, status }),
+  })
+}
+
+// === Epic 4B Slice 2: Proposal Generator (E4B-S2-CT-01) ===
+// [AUTH] generateProposal pakai timeout 35s (bukan default 10s) — request
+// sengaja blocking selama Anthropic Haiku menulis proposal (R-31).
+
+// Epic 4B Slice 3A (E4B-S3A-CT-01) — `advanced` optional & last-arg, jadi
+// caller Slice 2 existing (tanpa argumen ke-2) tetap Quick Mode, behavior
+// identik (R-39 backward compat).
+export async function generateProposal(
+  leadId: string,
+  advanced?: GenerateProposalAdvancedParams
+): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${leadId}/generate-proposal`, {
+    method: 'POST',
+    auth: true,
+    timeout: 35_000,
+    body: advanced ? JSON.stringify(advanced) : undefined,
+  })
+}
+
+export async function sendProposal(leadId: string): Promise<RFQLeadDetailResponse> {
+  return apiFetch<RFQLeadDetailResponse>(`/rfq/leads/${leadId}/send-proposal`, {
+    method: 'POST',
+    auth: true,
+    timeout: 35_000,
+  })
+}
+
+// Download butuh XHR/fetch manual dengan blob (R-32) — <a href> tidak
+// bisa attach Authorization header — jadi hanya expose URL di sini,
+// komponen yang handle fetch + blob + Authorization header.
+export function getProposalPDFUrl(leadId: string): string {
+  return `${BASE_URL}/api/v1/rfq/leads/${leadId}/proposal.pdf`
+}
+
+// === Epic 4B Slice 3A: Proposal Settings (E4B-S3A-CT-01) ===
+// [AUTH] Editable prompt (R-40 structured 4-field) + Advanced Mode
+// defaults + rollback history. Dipakai /admin/proposal-settings.
+//
+// NOTE: implemented ahead of Slice 3 trigger criteria — lihat catatan
+// di types/api.ts. Route ada di nav tapi belum pernah di-demo ke klien.
+
+export async function getProposalSettings(): Promise<ProposalSettings> {
+  return apiFetch<ProposalSettings>('/proposal-settings', { auth: true })
+}
+
+export async function updateProposalSettings(
+  payload: ProposalSettingsUpdateRequest
+): Promise<ProposalSettings> {
+  return apiFetch<ProposalSettings>('/proposal-settings', {
+    method: 'PUT',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getProposalSettingsHistory(): Promise<ProposalSettingsHistoryEntry[]> {
+  return apiFetch<ProposalSettingsHistoryEntry[]>('/proposal-settings/history', { auth: true })
+}
+
+export async function rollbackProposalSettings(historyId: number): Promise<ProposalSettings> {
+  return apiFetch<ProposalSettings>(`/proposal-settings/rollback/${historyId}`, {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+export async function resetProposalSettingsToDefault(): Promise<ProposalSettings> {
+  return apiFetch<ProposalSettings>('/proposal-settings/reset-to-default', {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+// R-43: preview PDF dengan layout belum-disimpan sebelum admin klik save.
+// Return blob URL — sama pola JWT workaround dengan handleDownload di
+// ProposalGeneratorPanel (R-32), karena ini juga butuh Authorization
+// header yang tidak bisa dibawa <a href>/<iframe src> langsung.
+export async function fetchLayoutPreviewPdfBlobUrl(
+  layout: Pick<
+    ProposalSettingsUpdateRequest,
+    'layout_header_text' | 'layout_footer_text' | 'layout_logo_url' | 'layout_primary_color'
+  >
+): Promise<string> {
+  const supabase = createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new ApiFetchError('UNAUTHORIZED', 401)
+
+  const response = await fetch(`${BASE_URL}/api/v1/proposal-settings/layout-preview`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(layout),
+  })
+  if (!response.ok) throw new ApiFetchError('Gagal membuat preview PDF', response.status)
+  const blob = await response.blob()
+  return URL.createObjectURL(blob)
+}
+
+// === Epic 4B Slice 3B: Email + WA Template Management (E4B-S3B-CT-01) ===
+// [AUTH] Dipakai /admin/email-templates.
+
+export async function getEmailTemplates(): Promise<EmailTemplate[]> {
+  return apiFetch<EmailTemplate[]>('/templates/email-templates', { auth: true })
+}
+
+export async function updateEmailTemplate(
+  templateType: string,
+  payload: EmailTemplateUpdateRequest
+): Promise<EmailTemplate> {
+  return apiFetch<EmailTemplate>(`/templates/email-templates/${templateType}`, {
+    method: 'PUT',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function resetEmailTemplateToDefault(templateType: string): Promise<EmailTemplate> {
+  return apiFetch<EmailTemplate>(`/templates/email-templates/${templateType}/reset-to-default`, {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+export async function getWATemplatesAdmin(): Promise<WATemplateSetting[]> {
+  return apiFetch<WATemplateSetting[]>('/templates/wa-templates', { auth: true })
+}
+
+export async function updateWATemplateAdmin(
+  statusKey: LeadStatus,
+  payload: WATemplateSettingUpdateRequest
+): Promise<WATemplateSetting> {
+  return apiFetch<WATemplateSetting>(`/templates/wa-templates/${statusKey}`, {
+    method: 'PUT',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function resetWATemplateAdminToDefault(statusKey: LeadStatus): Promise<WATemplateSetting> {
+  return apiFetch<WATemplateSetting>(`/templates/wa-templates/${statusKey}/reset-to-default`, {
+    method: 'POST',
+    auth: true,
   })
 }

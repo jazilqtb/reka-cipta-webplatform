@@ -12,15 +12,31 @@
 # alamat @rekaciptaindonesia.com setelah domain di-verify (lihat
 # Resend dashboard → Domains).
 
+import base64
 import resend
 import logging
-from typing import Optional
+from typing import Any, Optional
 from core.config import settings
+from core.supabase import get_supabase
+from services.email_templates_service import EmailTemplatesService
 
 logger = logging.getLogger(__name__)
 resend.api_key = settings.RESEND_API_KEY
 
 DEFAULT_FROM = "CV Reka Cipta Indonesia <onboarding@resend.dev>"
+
+_FREQUENCY_LABELS = {
+    'weekly': 'mingguan',
+    'biweekly': 'dua minggu sekali',
+    'monthly': 'bulanan',
+}
+
+
+def _mask_whatsapp(wa: str) -> str:
+    """Mask 4 digit tengah nomor WhatsApp untuk privacy (+62812****5678)."""
+    if len(wa) < 8:
+        return wa
+    return wa[:4] + "*" * (len(wa) - 8) + wa[-4:]
 
 
 class EmailService:
@@ -60,4 +76,140 @@ class EmailService:
             return response
         except Exception as e:
             logger.error(f"contact_email_failed: {e!r}")
+            raise
+
+    @staticmethod
+    def send_rfq_customer_confirmation(
+        to_email: str,
+        lead_data: dict[str, Any],
+        products: list[dict[str, Any]],
+        reply_to: Optional[str] = None,
+    ) -> Optional[dict]:
+        """Kirim email konfirmasi ke customer setelah submit RFQ (E4-CF-BE-03).
+
+        Return: { id: str } jika sukses, None kalau gagal (sudah di-log,
+        tidak raise — lihat catatan di except block, R-20).
+
+        Epic 4B Slice 3B (E4B-S3B-BE-03): subject/html di-render dari
+        DB-backed template (admin-editable di /admin/email-templates),
+        fallback ke hardcoded default (R-37) kalau row DB hilang/corrupt —
+        lihat EmailTemplatesService.
+        """
+        product_names = ", ".join(f"{p['name']} ({p['code']})" for p in products)
+        whatsapp_masked = _mask_whatsapp(lead_data['whatsapp'])
+        frequency_label = _FREQUENCY_LABELS.get(
+            lead_data['delivery_frequency'], lead_data['delivery_frequency']
+        )
+
+        context = {
+            "full_name": lead_data['full_name'],
+            "product_names": product_names or '-',
+            "company_name": lead_data['company_name'],
+            "volume_per_month": lead_data['volume_per_month'],
+            "frequency_label": frequency_label,
+            "delivery_city": lead_data['delivery_city'],
+            "whatsapp_masked": whatsapp_masked,
+        }
+        subject, html_body, _text_body = EmailTemplatesService(get_supabase()).render(
+            "rfq_confirmation", context
+        )
+
+        try:
+            payload: dict[str, Any] = {
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+            }
+            if reply_to:
+                payload["reply_to"] = reply_to
+            response = resend.Emails.send(payload)
+            logger.info(f"rfq_customer_email_sent: resend_id={response.get('id')}")
+            return response
+        except Exception as e:
+            # Tidak raise (beda dari send_contact_notification) — ini dipanggil
+            # via BackgroundTasks bersama send_rfq_admin_notification.
+            # BackgroundTasks.__call__ menjalankan task secara sequential dan
+            # BERHENTI kalau satu task raise, jadi kalau method ini raise,
+            # notifikasi admin (task berikutnya) tidak akan pernah jalan.
+            # Ditemukan saat E2E test manual (STOP GATE 1) — Resend API key
+            # invalid bikin admin notification ikut tidak terkirim. R-20.
+            logger.error(f"rfq_customer_email_failed: {e!r}")
+            return None
+
+    @staticmethod
+    def send_rfq_admin_notification(
+        to_email: str,
+        lead_data: dict[str, Any],
+        products: list[dict[str, Any]],
+    ) -> Optional[dict]:
+        """Notifikasi admin ada RFQ baru (E4-CF-BE-03). Fire-and-forget, lihat R-20."""
+        product_names = ", ".join(f"{p['code']}" for p in products) or ", ".join(lead_data.get('salt_types', []))
+        frequency_label = _FREQUENCY_LABELS.get(
+            lead_data['delivery_frequency'], lead_data['delivery_frequency']
+        )
+        subject = f"RFQ baru dari {lead_data['company_name']}"
+        html_body = f"""
+        <h2>RFQ baru masuk</h2>
+        <p><strong>Perusahaan:</strong> {lead_data['company_name']}</p>
+        <p><strong>Kontak:</strong> {lead_data['full_name']} ({lead_data.get('position') or '-'})</p>
+        <p><strong>Industri:</strong> {lead_data['industry_type']}</p>
+        <p><strong>Produk:</strong> {product_names}</p>
+        <p><strong>Volume:</strong> {lead_data['volume_per_month']} ton/{frequency_label}</p>
+        <p><strong>Kota Tujuan:</strong> {lead_data['delivery_city']}</p>
+        <p><strong>Email:</strong> <a href="mailto:{lead_data['email']}">{lead_data['email']}</a></p>
+        <p><strong>WhatsApp:</strong> {lead_data['whatsapp']}</p>
+        <p><strong>Catatan:</strong> {lead_data.get('notes') or '-'}</p>
+        """
+        try:
+            response = resend.Emails.send({
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+            })
+            logger.info(f"rfq_admin_email_sent: resend_id={response.get('id')}")
+            return response
+        except Exception as e:
+            # Tidak raise — lihat catatan di send_rfq_customer_confirmation (R-20).
+            logger.error(f"rfq_admin_email_failed: {e!r}")
+            return None
+
+    @staticmethod
+    def send_proposal_email(
+        to_email: str,
+        lead_data: dict[str, Any],
+        pdf_bytes: bytes,
+        pdf_filename: str,
+    ) -> dict:
+        """Kirim proposal PDF ke customer (E4B-S2-BE-08). Dipanggil dari
+        POST /rfq/leads/{id}/send-proposal — RAISE kalau gagal (beda dari
+        notifikasi RFQ) karena ini adalah aksi eksplisit admin klik "Kirim",
+        bukan fire-and-forget background notification; admin harus tahu
+        kalau gagal supaya bisa retry, bukan silent failure."""
+        subject = f"Proposal Penawaran Garam Industri — CV Reka Cipta Indonesia untuk {lead_data['company_name']}"
+        html_body = f"""
+        <p>Halo {lead_data['full_name']},</p>
+        <p>Terlampir proposal penawaran garam industri untuk {lead_data['company_name']}
+        sesuai kebutuhan yang Anda sampaikan.</p>
+        <p>Tim kami siap mendiskusikan detail lebih lanjut — silakan reply email ini
+        atau hubungi kami via WhatsApp.</p>
+        <p>Salam,<br>Tim CV Reka Cipta Indonesia</p>
+        """
+        try:
+            response = resend.Emails.send({
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+                "attachments": [{
+                    "filename": pdf_filename,
+                    "content": base64.b64encode(pdf_bytes).decode("utf-8"),
+                    "content_type": "application/pdf",
+                }],
+            })
+            logger.info(f"proposal_email_sent: resend_id={response.get('id')} to={to_email}")
+            return response
+        except Exception as e:
+            logger.error(f"proposal_email_failed: to={to_email} error={e!r}")
             raise
