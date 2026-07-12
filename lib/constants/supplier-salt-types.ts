@@ -18,6 +18,13 @@ export const SUPPLIER_SALT_TYPES = [
 
 export type SupplierSaltTypeValue = (typeof SUPPLIER_SALT_TYPES)[number]['value']
 
+// Lookup derived dari SUPPLIER_SALT_TYPES — single source untuk admin UI
+// (SaltTypesCell, SupplierInfoCard) supaya label map tidak diketik ulang
+// di 2 tempat berbeda (lihat R-53/R-46 discipline, Epic 5 Admin guide).
+export const SUPPLIER_SALT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  SUPPLIER_SALT_TYPES.map((t) => [t.value, t.label])
+)
+
 export const CAPACITY_UNITS = [
   { value: 'ton', label: 'Ton' },
   { value: 'kwintal', label: 'Kwintal' },
@@ -25,3 +32,7 @@ export const CAPACITY_UNITS = [
 ] as const
 
 export type CapacityUnitValue = (typeof CAPACITY_UNITS)[number]['value']
+
+export const CAPACITY_UNIT_LABELS: Record<string, string> = Object.fromEntries(
+  CAPACITY_UNITS.map((u) => [u.value, u.label])
+)

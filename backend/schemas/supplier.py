@@ -8,6 +8,7 @@
 # CLAUDE_CODE_GUIDE_epic5_cf_supplier-registration.md).
 
 import re
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 SUPPLIER_SALT_TYPES = {
@@ -75,3 +76,68 @@ class SupplierRegisterResponse(BaseModel):
     success: bool
     supplier_id: str
     message: str = "Pendaftaran supplier berhasil"
+
+
+# ==============================================
+# Epic 5 Admin — Schemas untuk admin operations
+# ==============================================
+
+SUPPLIER_STATUSES: set[str] = {'new', 'verified', 'active', 'inactive'}
+
+
+class Supplier(BaseModel):
+    """Full supplier data untuk admin operations (list/detail/update response)."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    business_name: str
+    location_city: str
+    location_province: str
+    salt_types_available: list[str]
+    capacity_per_month: float
+    capacity_unit: str
+    whatsapp: str
+    email: str | None
+    additional_notes: str | None
+    admin_notes: str | None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class SupplierUpdateRequest(BaseModel):
+    """Whitelist untuk PATCH /supplier/{id} — hanya status dan admin_notes."""
+    model_config = ConfigDict(extra='forbid')
+
+    status: str | None = None
+    admin_notes: str | None = None
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        if v is not None and v not in SUPPLIER_STATUSES:
+            raise ValueError(f"Invalid status: {v}")
+        return v
+
+
+class SupplierListResponse(BaseModel):
+    suppliers: list[Supplier]
+    total: int
+
+
+class SupplierWATemplateRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    supplier_id: str
+    status: str
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in SUPPLIER_STATUSES:
+            raise ValueError(f"Invalid status: {v}")
+        return v
+
+
+class SupplierWATemplateResponse(BaseModel):
+    template: str  # bisa empty string untuk status tanpa template (mis. 'inactive')
+    whatsapp_number: str  # cleaned untuk wa.me (tanpa +)

@@ -37,6 +37,12 @@ import type {
   WATemplateSettingUpdateRequest,
   SupplierRegisterRequest,
   SupplierRegisterResponse,
+  Supplier,
+  SupplierListResponse,
+  SupplierStatus,
+  SupplierUpdateRequest,
+  SupplierWATemplateRequest,
+  SupplierWATemplateResponse,
 } from '@/types/api'
 
 export const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
@@ -432,6 +438,43 @@ export async function registerSupplier(payload: SupplierRegisterRequest): Promis
   return apiFetch<SupplierRegisterResponse>('/supplier/register', {
     method: 'POST',
     auth: false,
+    body: JSON.stringify(payload),
+  })
+}
+
+// === Epic 5 Admin: Supplier Management (E5-ADM-CT-01) ===
+// [AUTH] Dipakai Client Component saja — lihat komentar apiFetch di atas.
+
+export async function listSuppliers(filters?: {
+  status?: SupplierStatus
+  search?: string
+}): Promise<SupplierListResponse> {
+  const params = new URLSearchParams()
+  Object.entries(filters ?? {}).forEach(([k, v]) => {
+    if (v) params.set(k, v)
+  })
+  const query = params.toString()
+  return apiFetch<SupplierListResponse>(`/supplier${query ? `?${query}` : ''}`, { auth: true })
+}
+
+export async function getSupplier(id: string): Promise<Supplier> {
+  return apiFetch<Supplier>(`/supplier/${id}`, { auth: true })
+}
+
+export async function updateSupplier(id: string, payload: SupplierUpdateRequest): Promise<Supplier> {
+  return apiFetch<Supplier>(`/supplier/${id}`, {
+    method: 'PATCH',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function generateSupplierWATemplate(
+  payload: SupplierWATemplateRequest
+): Promise<SupplierWATemplateResponse> {
+  return apiFetch<SupplierWATemplateResponse>('/supplier/wa-template', {
+    method: 'POST',
+    auth: true,
     body: JSON.stringify(payload),
   })
 }

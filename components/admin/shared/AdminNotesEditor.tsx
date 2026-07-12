@@ -1,25 +1,31 @@
 'use client'
 
-// components/admin/lead/AdminNotesEditor.tsx
+// components/admin/shared/AdminNotesEditor.tsx
 // Epic 4B Slice 1 (E4B-S1-FE-10, R-24) — auto-save catatan admin on-blur,
 // debounce 500ms, race-safe via 3 refs (timeout/lastSaved/pendingValue).
+//
+// Epic 5 Admin (R-53): extracted dari components/admin/lead/ ke shared/ +
+// generic-ized via prop `endpoint` (PATCH generic, bukan hardcoded
+// updateLead) supaya reusable oleh LeadDetailView (`/rfq/leads/{id}`) dan
+// SupplierDetailView (`/supplier/{id}`). Kedua endpoint accept body
+// `{ admin_notes: string }` — shape sama, cuma path beda.
 //
 // JANGAN pakai useEffect([notes]) untuk trigger save — closure stale.
 // Save function selalu baca pendingValueRef.current, bukan state `notes`.
 
 import { useRef, useState } from 'react'
-import { updateLead, ApiFetchError } from '@/lib/api'
+import { apiFetch, ApiFetchError } from '@/lib/api'
 import { toast } from 'sonner'
 
 interface Props {
-  leadId: string
+  endpoint: string
   initialNotes: string | null
   onSaved?: () => void
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
-export function AdminNotesEditor({ leadId, initialNotes, onSaved }: Props) {
+export function AdminNotesEditor({ endpoint, initialNotes, onSaved }: Props) {
   const [notes, setNotes] = useState(initialNotes ?? '')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
@@ -33,7 +39,11 @@ export function AdminNotesEditor({ leadId, initialNotes, onSaved }: Props) {
 
     setSaveStatus('saving')
     try {
-      await updateLead(leadId, { admin_notes: pendingValueRef.current })
+      await apiFetch(endpoint, {
+        method: 'PATCH',
+        auth: true,
+        body: JSON.stringify({ admin_notes: pendingValueRef.current }),
+      })
       lastSavedRef.current = pendingValueRef.current
       setSaveStatus('saved')
       onSaved?.()

@@ -364,3 +364,47 @@ export interface SupplierRegisterResponse {
   supplier_id: string
   message: string
 }
+
+// === Epic 5 Admin: Supplier Management (E5-ADM-CT-01) ===
+// Mirror dari backend/schemas/supplier.py (bagian admin) — jaga sinkron.
+// R-56: sengaja TIDAK ada SupplierDetailResponse wrapper dengan field
+// history — supplier tidak punya status history table (beda dari RFQLead).
+
+export type SupplierStatus = 'new' | 'verified' | 'active' | 'inactive'
+
+export interface Supplier {
+  id: string
+  business_name: string
+  location_city: string
+  location_province: string
+  salt_types_available: string[]
+  capacity_per_month: number
+  capacity_unit: 'ton' | 'kwintal' | 'kg'
+  whatsapp: string
+  email: string | null
+  additional_notes: string | null
+  admin_notes: string | null
+  status: SupplierStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface SupplierListResponse {
+  suppliers: Supplier[]
+  total: number
+}
+
+export interface SupplierUpdateRequest {
+  status?: SupplierStatus
+  admin_notes?: string
+}
+
+export interface SupplierWATemplateRequest {
+  supplier_id: string
+  status: SupplierStatus
+}
+
+export interface SupplierWATemplateResponse {
+  template: string
+  whatsapp_number: string
+}

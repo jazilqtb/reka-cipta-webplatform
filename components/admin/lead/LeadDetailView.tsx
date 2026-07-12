@@ -16,7 +16,7 @@ import { revalidateLeadRoutes } from '@/app/actions/leads'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { LABEL_MAP } from '@/lib/constants/lead-status'
 import { INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
-import { AdminNotesEditor } from './AdminNotesEditor'
+import { AdminNotesEditor } from '@/components/admin/shared/AdminNotesEditor'
 import { ProposalGeneratorPanel } from './ProposalGeneratorPanel'
 import { StatusHistoryTable } from './StatusHistoryTable'
 import { StatusPanel } from './StatusPanel'
@@ -187,7 +187,7 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-6">
         <AdminNotesEditor
-          leadId={lead.id}
+          endpoint={`/rfq/leads/${lead.id}`}
           initialNotes={lead.admin_notes}
           onSaved={handleNotesSaved}
         />
