@@ -31,6 +31,22 @@ _FREQUENCY_LABELS = {
     'monthly': 'bulanan',
 }
 
+# Epic 5 CF — label map untuk readable email content. WARNING: duplicate
+# dari backend/schemas/supplier.py (SUPPLIER_SALT_TYPES) dan
+# lib/constants/supplier-salt-types.ts. Sync manual kalau ubah (R-46).
+_SUPPLIER_SALT_TYPES_LABEL = {
+    'kasar_petani': 'Kasar Petani',
+    'halus_yodium': 'Halus Yodium',
+    'halus_non_yodium': 'Halus Non-Yodium',
+    'industri_spo_m': 'Industri (SPO/M)',
+    'ghpt': 'GHPT',
+}
+
+
+def _readable_supplier_salt_types(salt_types: list[str]) -> str:
+    labels = [_SUPPLIER_SALT_TYPES_LABEL.get(t, t) for t in salt_types]
+    return ", ".join(labels)
+
 
 def _mask_whatsapp(wa: str) -> str:
     """Mask 4 digit tengah nomor WhatsApp untuk privacy (+62812****5678)."""
@@ -213,3 +229,74 @@ class EmailService:
         except Exception as e:
             logger.error(f"proposal_email_failed: to={to_email} error={e!r}")
             raise
+
+    @staticmethod
+    def send_supplier_notification_to_admin(supplier: dict[str, Any]) -> Optional[dict]:
+        """Notifikasi admin ada pendaftaran supplier baru (E5-CF-BE-05).
+
+        Fire-and-forget dari caller (router wrap try-except, R-50) — data
+        supplier sudah tersimpan di DB terlepas email ini sukses/gagal.
+        """
+        salt_types_readable = _readable_supplier_salt_types(
+            supplier['salt_types_available']
+        )
+
+        # Admin panel URL — halaman belum live sampai Epic 5 Admin Panel
+        # slice, tapi URL structure fixed dari sekarang.
+        admin_panel_url = f"{settings.FRONTEND_URL}/admin/suppliers/{supplier['id']}"
+
+        subject = f"[CV Reka Cipta] Supplier Baru Mendaftar — {supplier['business_name']}"
+
+        html_body = f"""
+        <h2>Supplier Baru Mendaftar</h2>
+        <p><strong>Nama Usaha:</strong> {supplier['business_name']}</p>
+        <p><strong>Lokasi:</strong> {supplier['location_city']}, {supplier['location_province']}</p>
+        <p><strong>Jenis Garam:</strong> {salt_types_readable}</p>
+        <p><strong>Kapasitas:</strong> {supplier['capacity_per_month']} {supplier['capacity_unit']}/bulan</p>
+        <p><strong>WhatsApp:</strong> {supplier['whatsapp']}</p>
+        <p><strong>Email:</strong> {supplier.get('email') or '-'}</p>
+        <p><strong>Keterangan tambahan:</strong> {supplier.get('additional_notes') or '-'}</p>
+        <p>Segera hubungi supplier dalam 2-3 hari kerja untuk verifikasi.</p>
+        <p style="margin:24px 0;">
+          <a href="{admin_panel_url}" style="background:#0B7D6E;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;">
+            Buka di Admin Panel
+          </a>
+        </p>
+        <hr>
+        <p style="color:#666;font-size:12px;">Notifikasi otomatis dari sistem Reka Cipta Platform</p>
+        """
+        to_email = EmailService._get_admin_email()
+        if not to_email:
+            logger.warning(f"supplier_notification_no_admin_email: supplier_id={supplier['id']}")
+            return None
+
+        try:
+            response = resend.Emails.send({
+                "from": DEFAULT_FROM,
+                "to": to_email,
+                "subject": subject,
+                "html": html_body,
+            })
+            logger.info(f"supplier_notification_email_sent: resend_id={response.get('id')} supplier_id={supplier['id']}")
+            return response
+        except Exception as e:
+            logger.error(f"supplier_notification_email_failed: supplier_id={supplier['id']} error={e!r}")
+            raise
+
+    @staticmethod
+    def _get_admin_email() -> Optional[str]:
+        """Fetch admin notification email dari company_settings — sama pola
+        inline query yang dipakai di routers/rfq.py dan routers/contact.py."""
+        try:
+            result = (
+                get_supabase()
+                .table("company_settings")
+                .select("value")
+                .eq("key", "email")
+                .limit(1)
+                .execute()
+            )
+            return result.data[0]["value"] if result.data else None
+        except Exception as e:
+            logger.warning(f"admin_email_fetch_failed: {e!r}")
+            return None

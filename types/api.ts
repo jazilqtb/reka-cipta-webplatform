@@ -43,8 +43,6 @@ export interface PaginatedResponse<T> {
 }
 
 // ── Placeholders (akan diisi per Epic) ─────────────────────
-// Epic 4: RFQLead, LeadStatus, LeadStatusUpdate, WaTemplate
-// Epic 5: SupplierRegistration, SupplierStatus
 // Epic 6: Article, ArticleCreate, ArticleUpdate
 
 // === Epic 2: Company Settings (E2-S1-CONT-01) ===
@@ -342,4 +340,27 @@ export interface WATemplateSetting {
 
 export interface WATemplateSettingUpdateRequest {
   template_text: string
+}
+
+// === Epic 5 CF: Supplier Registration (E5-CF-CT-01) ===
+// Mirror dari backend/schemas/supplier.py — jaga sinkron (ARCHITECTURE.md §16).
+// Enum salt_types_available juga sync manual ke lib/constants/supplier-salt-types.ts
+// dan lib/validation/supplier-schema.ts.
+
+export interface SupplierRegisterRequest {
+  business_name: string
+  location_city: string
+  location_province: string
+  salt_types_available: string[]
+  capacity_per_month: number
+  capacity_unit: 'ton' | 'kwintal' | 'kg'
+  whatsapp: string
+  email: string | null
+  additional_notes: string | null
+}
+
+export interface SupplierRegisterResponse {
+  success: boolean
+  supplier_id: string
+  message: string
 }

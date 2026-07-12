@@ -70,6 +70,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${BASE_URL}/jadi-supplier`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     ...productDetailUrls,
   ]
 }

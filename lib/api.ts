@@ -35,6 +35,8 @@ import type {
   EmailTemplateUpdateRequest,
   WATemplateSetting,
   WATemplateSettingUpdateRequest,
+  SupplierRegisterRequest,
+  SupplierRegisterResponse,
 } from '@/types/api'
 
 export const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
@@ -420,5 +422,16 @@ export async function resetWATemplateAdminToDefault(statusKey: LeadStatus): Prom
   return apiFetch<WATemplateSetting>(`/templates/wa-templates/${statusKey}/reset-to-default`, {
     method: 'POST',
     auth: true,
+  })
+}
+
+// === Epic 5 Customer-Facing: Supplier Registration (E5-CF-CT-01) ===
+// Public, tanpa auth. Dipakai SupplierRegistrationForm ('use client') di /jadi-supplier.
+
+export async function registerSupplier(payload: SupplierRegisterRequest): Promise<SupplierRegisterResponse> {
+  return apiFetch<SupplierRegisterResponse>('/supplier/register', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify(payload),
   })
 }
