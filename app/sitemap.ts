@@ -11,6 +11,7 @@
 
 import type { MetadataRoute } from 'next'
 import { createPublic } from '@/lib/supabase/public'
+import { getAllPublishedSlugsForSitemap } from '@/lib/data/articles'
 
 const BASE_URL = 'https://rekaciptaindonesia.com'
 
@@ -34,10 +35,23 @@ async function getProductDetailUrls(): Promise<MetadataRoute.Sitemap> {
   }))
 }
 
+// Epic 6 Slice 1 (E6-S1-FE-09)
+async function getArticleDetailUrls(): Promise<MetadataRoute.Sitemap> {
+  const rows = await getAllPublishedSlugsForSitemap()
+
+  return rows.map((article) => ({
+    url: `${BASE_URL}/artikel/${article.slug}`,
+    lastModified: article.published_at ? new Date(article.published_at) : new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Tanggal terakhir update Beranda — sesuai dgn ISR revalidate 3600
   const lastModified = new Date()
   const productDetailUrls = await getProductDetailUrls()
+  const articleDetailUrls = await getArticleDetailUrls()
 
   return [
     {
@@ -76,6 +90,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/artikel`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/kalkulator`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.7,
+    },
     ...productDetailUrls,
+    ...articleDetailUrls,
   ]
 }
