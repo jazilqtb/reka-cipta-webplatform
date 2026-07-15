@@ -43,6 +43,10 @@ import type {
   SupplierUpdateRequest,
   SupplierWATemplateRequest,
   SupplierWATemplateResponse,
+  ArticleCreateRequest,
+  ArticleUpdateRequest,
+  ArticlePublishRequest,
+  ArticleDetailResponse,
 } from '@/types/api'
 
 export const BASE_URL = publicEnv.apiUrl // NEXT_PUBLIC_API_URL — type-safe via lib/env.ts
@@ -477,4 +481,44 @@ export async function generateSupplierWATemplate(
     auth: true,
     body: JSON.stringify(payload),
   })
+}
+
+// === Epic 6 Admin Slice 1: Article CRUD (E6-ADM-S1-CT-02) ===
+// [AUTH] Dipakai Client Component saja — lihat komentar apiFetch di atas.
+// Tidak ada listArticlesAdmin/getArticleAdmin di sini — list dan detail-
+// untuk-edit fetch langsung dari Supabase di Server Component (AR-02),
+// bukan lewat apiFetch. FastAPI cuma untuk operasi tulis.
+
+export async function createArticle(payload: ArticleCreateRequest): Promise<ArticleDetailResponse> {
+  return apiFetch<ArticleDetailResponse>('/articles', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateArticle(
+  id: string,
+  payload: ArticleUpdateRequest
+): Promise<ArticleDetailResponse> {
+  return apiFetch<ArticleDetailResponse>(`/articles/${id}`, {
+    method: 'PUT',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function toggleArticlePublish(
+  id: string,
+  payload: ArticlePublishRequest
+): Promise<ArticleDetailResponse> {
+  return apiFetch<ArticleDetailResponse>(`/articles/${id}/publish`, {
+    method: 'PATCH',
+    auth: true,
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteArticle(id: string): Promise<void> {
+  await apiFetch<void>(`/articles/${id}`, { method: 'DELETE', auth: true })
 }
