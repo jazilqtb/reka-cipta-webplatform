@@ -16,6 +16,7 @@ from routers.rfq import router as rfq_router
 from routers.proposal_settings import router as proposal_settings_router
 from routers.templates import router as templates_router
 from routers.supplier import router as supplier_router
+from routers.articles import router as articles_router
 
 # ── Logging ──────────────────────────────────────────────────
 # Tanpa ini, root logger default level WARNING — logger.info(...)
@@ -68,6 +69,7 @@ app.include_router(rfq_router, prefix="/api/v1")
 app.include_router(proposal_settings_router, prefix="/api/v1")
 app.include_router(templates_router, prefix="/api/v1")
 app.include_router(supplier_router, prefix="/api/v1")
+app.include_router(articles_router, prefix="/api/v1")
 
 # ── Rate limit login endpoint ─────────────────────────────────
 @app.middleware("http")

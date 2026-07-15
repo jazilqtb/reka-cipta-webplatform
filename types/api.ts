@@ -436,3 +436,46 @@ export interface ArticleRow extends Omit<Article, 'thumbnail_url'> {
   created_at: string
   updated_at: string
 }
+
+// === Epic 6 Admin Slice 1: Article CRUD (E6-ADM-S1-CT-01) ===
+// Mirror dari backend/schemas/article.py — jaga sinkron (ARCHITECTURE.md §16).
+
+export interface ArticleAdmin {
+  id: string
+  title: string
+  slug: string
+  category: ArticleCategory
+  content: string
+  thumbnail_url: string | null
+  meta_description: string | null
+  view_count: number
+  is_published: boolean
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ArticleCreateRequest {
+  title: string
+  slug?: string
+  category: ArticleCategory
+  content: string
+  meta_description: string | null
+  is_published: boolean
+}
+
+export interface ArticleUpdateRequest {
+  title: string
+  slug: string
+  category: ArticleCategory
+  content: string
+  meta_description: string | null
+}
+
+export interface ArticlePublishRequest {
+  is_published: boolean
+}
+
+export interface ArticleDetailResponse {
+  article: ArticleAdmin
+}
