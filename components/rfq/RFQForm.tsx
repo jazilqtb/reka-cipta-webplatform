@@ -61,6 +61,12 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
   const prefilledSlug = params.get('produk')
   const prefilledSaltTypes =
     prefilledSlug && availableProducts.some((p) => p.slug === prefilledSlug) ? [prefilledSlug] : []
+  // Epic 6 Slice 2 (E6-S2-FE-06) — prefill volume dari Kalkulator Garam
+  // (?volume=). Aditif murni: kalau param tidak ada/tidak valid, behavior
+  // lama (volume_per_month default 0) tidak berubah sama sekali.
+  const prefilledVolumeRaw = params.get('volume')
+  const prefilledVolume =
+    prefilledVolumeRaw && Number(prefilledVolumeRaw) > 0 ? Number(prefilledVolumeRaw) : null
 
   const {
     register,
@@ -91,8 +97,8 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
   // sekali per slug terkait, sama pola dengan ContactForm appliedPrefillFor.
   const appliedPrefillFor = useRef<string | null>(null)
   useEffect(() => {
-    if (prefilledSaltTypes.length === 0) return
-    const key = prefilledSaltTypes.join(',')
+    if (prefilledSaltTypes.length === 0 && prefilledVolume === null) return
+    const key = `${prefilledSaltTypes.join(',')}|${prefilledVolume ?? ''}`
     if (appliedPrefillFor.current === key) return
     appliedPrefillFor.current = key
     reset({
@@ -101,7 +107,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       position: null,
       industry_type: 'makanan-minuman',
       salt_types: prefilledSaltTypes,
-      volume_per_month: 0,
+      volume_per_month: prefilledVolume ?? 0,
       delivery_frequency: 'monthly',
       delivery_city: '',
       email: '',
@@ -109,7 +115,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       notes: null,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefilledSaltTypes.join(',')])
+  }, [prefilledSaltTypes.join(','), prefilledVolume])
 
   const notesLength = watch('notes')?.length ?? 0
 
