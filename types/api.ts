@@ -43,7 +43,6 @@ export interface PaginatedResponse<T> {
 }
 
 // ── Placeholders (akan diisi per Epic) ─────────────────────
-// Epic 6: Article, ArticleCreate, ArticleUpdate
 
 // === Epic 2: Company Settings (E2-S1-CONT-01) ===
 // Mirror dari backend/schemas/settings.py — jaga sinkron (ARCHITECTURE.md §16)
@@ -407,4 +406,33 @@ export interface SupplierWATemplateRequest {
 export interface SupplierWATemplateResponse {
   template: string
   whatsapp_number: string
+}
+
+// === Epic 6 Slice 1: Artikel & Berita (E6-S1-CT-01) ===
+// Direct-Supabase read (AR-01) — bukan mirror Pydantic schema, karena tidak
+// ada endpoint FastAPI publik untuk artikel. Sinkron dengan
+// supabase/migrations/20260715190000_create_articles_table.sql.
+
+export type ArticleCategory = 'education' | 'company_news'
+
+export interface Article {
+  id: string
+  title: string
+  slug: string
+  category: ArticleCategory
+  content: string
+  thumbnail_url: string | null
+  meta_description: string | null
+  view_count: number
+  published_at: string | null
+}
+
+// Bentuk mentah row Supabase — thumbnail_path (path relatif bucket), bukan
+// thumbnail_url. Dipetakan ke Article via lib/article-mapper.ts, pola sama
+// dengan ProductRow/Product (photo_path → photo_url).
+export interface ArticleRow extends Omit<Article, 'thumbnail_url'> {
+  thumbnail_path: string | null
+  is_published: boolean
+  created_at: string
+  updated_at: string
 }
