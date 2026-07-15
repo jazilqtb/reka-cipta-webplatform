@@ -19,6 +19,8 @@ import { CTASection } from '@/components/sections/CTASection'
 import { ProductsPreview } from '@/components/sections/ProductsPreview'
 import { CredibilitySection } from '@/components/sections/CredibilitySection'
 import HowItWorks from '@/components/sections/HowItWorks'
+import { ArticlesPreview } from '@/components/sections/ArticlesPreview'
+import { getLatestArticles, getMostViewedArticles } from '@/lib/data/articles'
 
 // Semua placeholder Fase 6–7 sudah diganti komponen asli.
 // File _sections-placeholder.tsx akan dihapus di Fase 8 (E2-S1-FE-09).
@@ -111,12 +113,18 @@ async function getProductsPreview(): Promise<Product[]> {
 // Catatan struktur: <main> sudah disediakan layout (E1-ENG-24)
 // — di sini fragment saja agar tidak nested <main>.
 export default async function BerandaPage() {
-  const [settings, products] = await Promise.all([getCompanySettings(), getProductsPreview()])
+  const [settings, products, latestArticles, mostViewedArticles] = await Promise.all([
+    getCompanySettings(),
+    getProductsPreview(),
+    getLatestArticles(3),
+    getMostViewedArticles(3),
+  ])
 
   return (
     <>
       <HeroSection />
       <StatsBar settings={settings} />
+      <ArticlesPreview latestArticles={latestArticles} mostViewedArticles={mostViewedArticles} />
       <ProductsPreview products={products} />
       <HowItWorks />
       <IndustriesGrid />
