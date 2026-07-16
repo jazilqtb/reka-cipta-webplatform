@@ -1,25 +1,33 @@
 # backend/routers/articles.py
 # Epic 6 Admin Slice 1 (E6-ADM-S1-BE-03..06) — Router CRUD artikel admin.
+# Epic 6 Admin Slice 2 (E6-ADM-S2-BE-01..03) — Upload thumbnail & gambar
+# konten, cleanup storage saat delete.
 #
-# POST /articles                  → [AUTH] buat artikel baru
-# PUT /articles/{id}               → [AUTH] update artikel (tidak sentuh is_published)
-# PATCH /articles/{id}/publish     → [AUTH] toggle publish/unpublish
-# DELETE /articles/{id}            → [AUTH] hapus artikel
+# POST /articles                          → [AUTH] buat artikel baru
+# PUT /articles/{id}                       → [AUTH] update artikel (tidak sentuh is_published)
+# PATCH /articles/{id}/publish             → [AUTH] toggle publish/unpublish
+# DELETE /articles/{id}                    → [AUTH] hapus artikel + cleanup thumbnail (S2)
+# POST /articles/upload-content-image      → [AUTH] upload gambar konten editor (S2)
+# POST /articles/{id}/upload-thumbnail     → [AUTH] upload cover artikel (S2)
 #
 # Tidak ada endpoint GET di sini — list (/admin/articles) dan detail-untuk-
 # edit (/admin/articles/[id]/edit) fetch langsung dari Supabase di Server
 # Component (pola Products Admin, lihat AR-02 task breakdown). FastAPI
 # cuma untuk operasi tulis, konsisten pola itu.
 #
-# Konten dari textarea polos (Slice 1) ditransformasi jadi HTML sederhana
-# via _plain_text_to_html — lihat AR-01. Endpoint upload thumbnail/gambar
-# konten datang di Epic 6 Admin Slice 2.
+# Konten sejak Slice 2 datang sebagai HTML mentah dari Tiptap (ProseMirror
+# output standar) — dikirim apa adanya, TIDAK disanitasi di write-time.
+# Sanitasi ada di render-time publik (sanitizeArticleContent, Epic 6 CF
+# Slice 1 AR-05) — HTML dari admin tidak pernah dipercaya blind oleh sisi
+# publik terlepas dari siapa yang menulisnya.
 
-import html
 import logging
+import random
+import string
+import time
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from dependencies.auth import get_current_user
 from core.supabase import get_supabase
 from core.storage import get_public_storage_url
@@ -30,18 +38,18 @@ from schemas.article import (
     ArticlePublishRequest,
     ArticleUpdateRequest,
 )
+from services.storage_service import delete_from_storage, upload_to_storage
 from utils.slugify import slugify_title
 
 router = APIRouter(prefix="/articles", tags=["articles"])
 logger = logging.getLogger(__name__)
 
-
-def _plain_text_to_html(text: str) -> str:
-    """Textarea polos (Slice 1, lihat AR-01) -> HTML paragraf sederhana.
-    Escape dulu supaya admin tidak bisa inject tag manual dari sini."""
-    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-    escaped = [html.escape(p).replace("\n", "<br>") for p in paragraphs]
-    return "".join(f"<p>{p}</p>" for p in escaped)
+ALLOWED_IMAGE_MIME = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB, konsisten products.py (AR-05 Slice 2)
 
 
 def _row_to_article_admin(row: dict) -> ArticleAdmin:
@@ -75,7 +83,7 @@ async def create_article(payload: ArticleCreateRequest):
         "title": payload.title,
         "slug": slug,
         "category": payload.category,
-        "content": _plain_text_to_html(payload.content),
+        "content": payload.content,
         "meta_description": payload.meta_description,
         "is_published": payload.is_published,
         "published_at": datetime.now(timezone.utc).isoformat() if payload.is_published else None,
@@ -108,7 +116,7 @@ async def update_article(article_id: str, payload: ArticleUpdateRequest):
         "title": payload.title,
         "slug": slug,
         "category": payload.category,
-        "content": _plain_text_to_html(payload.content),
+        "content": payload.content,
         "meta_description": payload.meta_description,
     }
 
@@ -151,16 +159,101 @@ async def toggle_publish_article(article_id: str, payload: ArticlePublishRequest
 @router.delete("/{article_id}", status_code=204, dependencies=[Depends(get_current_user)])
 async def delete_article(article_id: str):
     """[AUTH] Hapus artikel (hard delete — endpoint DELETE pertama di
-    codebase ini, lihat AR-03). Cleanup thumbnail storage: Epic 6 Admin
-    Slice 2 (belum ada thumbnail yang bisa diupload di slice ini)."""
+    codebase ini, lihat AR-03). Cleanup thumbnail storage best-effort
+    (R-17, Epic 6 Admin Slice 2 AR-03) — gambar konten tertanam di HTML
+    TIDAK ikut dibersihkan (orphan disadari, lihat AR-01 Slice 2)."""
     supabase = get_supabase()
 
-    existing = supabase.table("articles").select("id").eq("id", article_id).limit(1).execute()
+    existing = supabase.table("articles").select("thumbnail_path").eq("id", article_id).limit(1).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Artikel tidak ditemukan")
+
+    thumbnail_path = existing.data[0].get("thumbnail_path")
 
     try:
         supabase.table("articles").delete().eq("id", article_id).execute()
     except Exception as e:
         logger.error(f"articles_delete_failed: id={article_id} error={e!r}")
         raise HTTPException(status_code=500, detail="Gagal menghapus artikel")
+
+    if thumbnail_path:
+        try:
+            delete_from_storage("article-thumbnails", thumbnail_path)
+        except Exception as e:
+            logger.warning(f"articles_thumbnail_delete_on_article_delete_failed: path={thumbnail_path} error={e!r}")
+
+
+@router.post(
+    "/upload-content-image",
+    dependencies=[Depends(get_current_user)],
+)
+async def upload_article_content_image(file: UploadFile = File(...)) -> dict:
+    """[AUTH] Upload gambar untuk disisipkan di konten editor. TIDAK terikat
+    article_id (Epic 6 Admin Slice 2 AR-02) — artikel baru yang belum
+    disimpan tetap bisa upload gambar konten. Return { url } untuk disisip
+    Tiptap. Deklarasi di atas /{article_id}/upload-thumbnail sebagai
+    kebiasaan aman terhadap route-order (konsisten products.py)."""
+    if file.content_type not in ALLOWED_IMAGE_MIME:
+        raise HTTPException(status_code=422, detail="Format tidak didukung. Pakai JPG, PNG, atau WebP.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=422, detail="File terlalu besar. Maks 5 MB.")
+
+    ext = ALLOWED_IMAGE_MIME[file.content_type]
+    rand_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
+    filename = f"content-{int(time.time())}-{rand_suffix}.{ext}"
+
+    try:
+        path = upload_to_storage("article-thumbnails", filename, file_bytes, file.content_type)
+    except Exception as e:
+        logger.error(f"articles_content_image_upload_failed: error={e!r}")
+        raise HTTPException(status_code=500, detail="Gagal mengunggah gambar")
+
+    return {"url": get_public_storage_url("article-thumbnails", path)}
+
+
+@router.post(
+    "/{article_id}/upload-thumbnail",
+    response_model=ArticleDetailResponse,
+    dependencies=[Depends(get_current_user)],
+)
+async def upload_article_thumbnail(article_id: str, file: UploadFile = File(...)):
+    """[AUTH] Upload/replace thumbnail cover artikel. Validasi MIME + size,
+    cleanup file lama best-effort (R-17, pola sama upload_product_photo)."""
+    if file.content_type not in ALLOWED_IMAGE_MIME:
+        raise HTTPException(status_code=422, detail="Format tidak didukung. Pakai JPG, PNG, atau WebP.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=422, detail="File terlalu besar. Maks 5 MB.")
+
+    supabase = get_supabase()
+    existing = supabase.table("articles").select("*").eq("id", article_id).limit(1).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Artikel tidak ditemukan")
+    article = existing.data[0]
+
+    ext = ALLOWED_IMAGE_MIME[file.content_type]
+    filename = f"{article['slug']}-{int(time.time())}.{ext}"
+
+    try:
+        new_path = upload_to_storage("article-thumbnails", filename, file_bytes, file.content_type)
+    except Exception as e:
+        logger.error(f"articles_thumbnail_upload_failed: id={article_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Gagal mengunggah thumbnail")
+
+    try:
+        result = supabase.table("articles").update({"thumbnail_path": new_path}).eq("id", article_id).execute()
+    except Exception as e:
+        logger.error(f"articles_thumbnail_db_update_failed: id={article_id} error={e!r}")
+        raise HTTPException(status_code=500, detail="Thumbnail terunggah, tapi gagal menyimpan referensi artikel")
+
+    old_path = article.get("thumbnail_path")
+    if old_path and old_path != new_path:
+        try:
+            delete_from_storage("article-thumbnails", old_path)
+        except Exception as e:
+            logger.warning(f"articles_old_thumbnail_delete_failed: path={old_path} error={e!r}")
+
+    return ArticleDetailResponse(article=_row_to_article_admin(result.data[0]))
