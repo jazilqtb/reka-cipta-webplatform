@@ -2,11 +2,12 @@
 
 // components/admin/article/ArticleForm.tsx
 // Epic 6 Admin Slice 1 (E6-ADM-S1-FE-06) — form create & edit artikel.
-// Konten pakai <textarea> polos (lihat AR-01 task breakdown) — Rich Text
-// Editor menyusul Epic 6 Admin Slice 2.
+// Epic 6 Admin Slice 2 (E6-ADM-S2-FE-04) — content sekarang Tiptap
+// RichTextEditor (HTML langsung, bukan textarea+_plain_text_to_html lagi),
+// plus ThumbnailUploader (hanya mode edit, lihat AR-02 Slice 2).
 
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -19,6 +20,8 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { RichTextEditor } from '@/components/admin/article/RichTextEditor'
+import { ThumbnailUploader } from '@/components/admin/article/ThumbnailUploader'
 import type { ArticleAdmin } from '@/types/api'
 
 const META_MAX = 300
@@ -28,21 +31,10 @@ interface ArticleFormProps {
   initialData?: ArticleAdmin
 }
 
-// Kebalikan _plain_text_to_html backend — dipakai saat load form edit
-// supaya admin lihat teks polos lagi, bukan tag <p> mentah.
-function stripHtmlToPlainText(html: string): string {
-  return html
-    .replace(/<\/p>\s*<p>/g, '\n\n')
-    .replace(/<br\s*\/?>/g, '\n')
-    .replace(/<\/?p>/g, '')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-}
-
 export function ArticleForm({ mode, initialData }: ArticleFormProps) {
   const router = useRouter()
   const [isPublishChecked, setIsPublishChecked] = useState(initialData?.is_published ?? false)
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialData?.thumbnail_url ?? null)
   const slugManuallyEdited = useRef(mode === 'edit') // edit: jangan auto-overwrite slug existing
 
   const {
@@ -50,6 +42,7 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ArticleFormData>({
     resolver: zodResolver(articleFormSchema),
@@ -58,7 +51,7 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
       slug: initialData?.slug ?? '',
       category: initialData?.category ?? 'education',
       meta_description: initialData?.meta_description ?? null,
-      content: initialData ? stripHtmlToPlainText(initialData.content) : '',
+      content: initialData?.content ?? '',
     },
   })
 
@@ -152,12 +145,27 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
         <Label htmlFor="content">
           Konten <span className="text-danger-600">*</span>
         </Label>
-        <Textarea id="content" {...register('content')} disabled={isSubmitting} rows={12} />
+        <Controller
+          name="content"
+          control={control}
+          render={({ field }) => (
+            <RichTextEditor value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+          )}
+        />
         {errors.content && <p className="text-sm text-danger-600">{errors.content.message}</p>}
-        <p className="text-xs text-neutral-400">
-          Pisahkan paragraf dengan baris kosong. Editor teks lengkap segera hadir.
-        </p>
       </div>
+
+      {mode === 'edit' && initialData && (
+        <div className="space-y-1.5">
+          <Label>Thumbnail</Label>
+          <ThumbnailUploader
+            articleId={initialData.id}
+            articleSlug={initialData.slug}
+            currentThumbnailUrl={thumbnailUrl}
+            onUploadSuccess={(newUrl) => setThumbnailUrl(newUrl)}
+          />
+        </div>
+      )}
 
       {mode === 'create' && (
         <label className="flex items-center gap-2 text-sm">

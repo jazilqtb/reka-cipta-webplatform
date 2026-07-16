@@ -231,6 +231,31 @@ export async function uploadProductLabDoc(
   })
 }
 
+// === Epic 6 Admin Slice 2: Article Upload (E6-ADM-S2-CT-01) ===
+
+export async function uploadArticleThumbnail(
+  id: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<ArticleDetailResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiFetchMultipart<ArticleDetailResponse>(`/articles/${id}/upload-thumbnail`, formData, {
+    onProgress,
+  })
+}
+
+export async function uploadArticleContentImage(
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<{ url: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiFetchMultipart<{ url: string }>('/articles/upload-content-image', formData, {
+    onProgress,
+  })
+}
+
 // === Epic 4 Customer-Facing: RFQ (E4-CF-CT-01) ===
 // Public, tanpa auth. Dipakai RFQForm ('use client') di /minta-penawaran.
 
