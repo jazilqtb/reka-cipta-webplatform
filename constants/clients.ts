@@ -18,6 +18,15 @@ export interface ClientEntry {
   industry: string
   /** Volume referensi internal — TIDAK ditampilkan di publik */
   volumePerMonth?: string
+  /**
+   * RONDE 6 (2026-08) — path logo resmi klien (mis. /images/clients/{slug}.png),
+   * PNG/SVG latar transparan. Kalau kosong, marquee CredibilitySection.tsx
+   * fallback ke wordmark tipografis (nama perusahaan sebagai teks besar),
+   * BUKAN ikon generik + keterangan industri seperti sebelumnya — logo
+   * asli baru bisa dipasang setelah klien menyediakan filenya (lihat
+   * catatan aset di laporan akhir Ronde 6).
+   */
+  logoUrl?: string
 }
 
 export const ACTIVE_CLIENTS: ClientEntry[] = [

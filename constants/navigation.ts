@@ -4,6 +4,7 @@ import {
   Info,
   BookOpen,
   Calculator,
+  Mail,
   Sprout,
   ArrowRight,
   type LucideIcon,
@@ -16,12 +17,26 @@ export interface NavItem {
   matchExact: boolean
 }
 
+// RONDE Tahap 9 (2026-08): "Kontak" ditambahkan — sebelumnya halaman
+// /kontak TIDAK punya trigger navigasi sama sekali (bukan cuma tidak
+// menonjol — benar-benar tidak ada di NAV_ITEMS/Footer/Navbar manapun).
+// Satu-satunya jalan masuk sebelumnya adalah tile Sektor Industri di
+// Beranda yang tidak relevan (link produk → kontak, sudah dihapus, lihat
+// IndustriesGrid.tsx) dan tombol "Hubungi Kami"/"Minta Sampel" di dalam
+// CTA halaman /produk/[slug] & /tentang-kami — keduanya baru ketemu
+// setelah user menavigasi cukup dalam, bukan discoverable dari mana pun.
+// Ditambah di sini (bukan komponen terpisah) supaya SATU perubahan data
+// otomatis muncul di 3 tempat sekaligus: Navbar desktop, drawer mobile,
+// DAN kolom "Navigasi" Footer (ketiganya me-map NAV_ITEMS yang sama) —
+// tidak perlu sentuh kode komponen, tidak ada elemen visual baru yang
+// dikarang, murni reuse pola yang sudah ada.
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Beranda',      href: '/',              icon: Home,       matchExact: true  },
   { label: 'Produk',       href: '/produk',        icon: Package,    matchExact: false },
   { label: 'Tentang Kami', href: '/tentang-kami',  icon: Info,       matchExact: true  },
   { label: 'Artikel',      href: '/artikel',       icon: BookOpen,   matchExact: false },
   { label: 'Kalkulator',   href: '/kalkulator',    icon: Calculator, matchExact: true  },
+  { label: 'Kontak',       href: '/kontak',        icon: Mail,       matchExact: true  },
 ] as const
 
 export const SUPPLIER_LINK: NavItem = {

@@ -11,7 +11,7 @@
 import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import type { CompanySettingsMap } from '@/types/api'
-import { InnerPageHero } from '@/components/sections/InnerPageHero'
+import { ContactHero } from '@/components/sections/ContactHero'
 import { ContactInfo } from '@/components/sections/ContactInfo'
 import { WhatsAppButtons } from '@/components/sections/WhatsAppButtons'
 import { ContactForm } from '@/components/forms/ContactForm'
@@ -123,14 +123,10 @@ export default async function KontakPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
       />
-      <InnerPageHero
-        title="Hubungi Kami"
-        subtitle="Tim kami siap membantu kebutuhan distribusi garam industri Anda. Hubungi via WhatsApp, email, atau kirim pesan langsung dari halaman ini."
-        breadcrumb={[{ label: 'Beranda', href: '/' }, { label: 'Hubungi Kami' }]}
-      />
+      <ContactHero />
 
-      <section className="max-w-6xl mx-auto px-4 py-16 md:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      <section className="bg-white px-4 py-14 md:py-20">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-5">
           <div className="md:col-span-2">
             <ContactInfo address={settings.address} email={settings.email} />
             <WhatsAppButtons
@@ -148,9 +144,14 @@ export default async function KontakPage() {
         </div>
       </section>
 
-      <RevealWrapper variant="reveal-up">
-        <GMapsEmbed embedUrl={settings.gmaps_embed_url} address={settings.address} />
-      </RevealWrapper>
+      {/* RONDE Tahap 10: TIDAK dibungkus <RevealWrapper> lagi di sini —
+          GMapsEmbed.tsx sekarang me-return Fragment (<section> +
+          <SectionDivider> sbg sibling, pola sama dgn Hero lain) dan
+          sudah punya RevealWrapper sendiri di dalamnya. Membungkusnya
+          lagi dgn <div> di sini akan memaksa divider ikut ter-nest di
+          dalam section (merusak posisi sibling yg dibutuhkan utk
+          transisi seamless ke Footer), plus reveal dobel. */}
+      <GMapsEmbed embedUrl={settings.gmaps_embed_url} address={settings.address} />
     </>
   )
 }

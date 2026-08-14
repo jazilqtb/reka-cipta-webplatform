@@ -1,54 +1,142 @@
+// components/product/ProductHero.tsx
+// RONDE Tahap 6 (2026-08) — "samakan DNA desain /produk/[slug] dengan
+// Beranda & /produk". Rewrite total dari section putih polos
+// (container mx-auto grid md:grid-cols-12) ke Hero gelap yg konsisten
+// dgn ProductCatalogHero.tsx: gradient VERTIKAL murni (bukan diagonal —
+// pelajaran seam Tahap 5, lihat catatan panjang di ProductCatalogHero),
+// mesh-gradient diklaster di atas, ParallaxBlob, breadcrumb DIGABUNG ke
+// sini (ProductBreadcrumb.tsx terpisah DIHAPUS — dulu section putih
+// sendiri di atas Hero, sekarang breadcrumb duduk natural di dalam Hero
+// gelap yg sama, pola identik dgn ProductCatalogHero.tsx).
+//
+// Jadi Client Component — panel foto pakai .spotlight-card (mouse-
+// tracking, DNA yg sama dgn ProductCard katalog & Beranda), sisanya
+// tetap presentasi statis.
+'use client'
+
+import { useRef } from 'react'
 import Image from 'next/image'
-import type { Product } from '@/types/api'
+import Link from 'next/link'
+import { CaretRightIcon, PackageIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
+import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
+import { SectionDivider } from '@/components/decorative/SectionDivider'
+import type { Product, ProductCategory } from '@/types/api'
 
 interface ProductHeroProps {
   product: Product
 }
 
+const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  halus: 'Garam Halus',
+  kasar: 'Garam Kasar',
+  industri: 'Garam Industri',
+}
+
 export function ProductHero({ product }: ProductHeroProps) {
   const paragraphs = product.description?.split('\n\n') ?? []
+  const photoRef = useRef<HTMLDivElement>(null)
+
+  function handlePhotoMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const el = photoRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100
+    const yPct = ((e.clientY - rect.top) / rect.height) * 100
+    el.style.setProperty('--spot-x', `${xPct}%`)
+    el.style.setProperty('--spot-y', `${yPct}%`)
+  }
 
   return (
-    <section className="container mx-auto grid gap-8 px-4 py-8 md:grid-cols-12 md:py-12">
-      <div className="md:col-span-5">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-neutral-50">
-          {product.photo_url ? (
-            <Image
-              src={product.photo_url}
-              alt={product.name}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 40vw"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-neutral-400">
-              Tidak ada foto
+    <>
+    <section className="relative overflow-hidden bg-gradient-to-b from-ink-950 to-ink-900 px-4 pb-14 pt-8 md:pb-20 md:pt-10">
+      {/* Mesh gradient + blob — pola & alasan IDENTIK dgn
+          ProductCatalogHero.tsx: diklaster di area ATAS saja supaya
+          tepi BAWAH section tetap flat ink-900 murni, match 1:1 dgn
+          fill-ink-900 di SectionDivider (lihat catatan panjang di
+          ProductCatalogHero soal bug seam Tahap 5). */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle 320px at 85% -10%, rgba(15,158,139,0.24), transparent), ' +
+            'radial-gradient(circle 260px at 10% -6%, rgba(27,191,170,0.14), transparent)',
+        }}
+        aria-hidden="true"
+      />
+      <ParallaxBlob range={26} className="right-[14%] top-[-12%] h-60 w-60 bg-brand-teal-400/12" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">
+          <Link href="/" className="link-animated transition-colors hover:text-brand-teal-200">Beranda</Link>
+          <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+          <Link href="/produk" className="link-animated transition-colors hover:text-brand-teal-200">Produk</Link>
+          <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+          <span aria-current="page" className="text-white/90">{product.name}</span>
+        </nav>
+
+        <div className="grid gap-8 md:grid-cols-12 md:gap-10">
+          {/* Panel foto — spotlight mouse-tracking, sama DNA dgn kartu
+              produk (Beranda & katalog). Frame gelap translusen, bukan
+              putih (photo panel di atas Hero gelap). */}
+          <div className="md:col-span-5">
+            <div
+              ref={photoRef}
+              onMouseMove={handlePhotoMouseMove}
+              className="spotlight-card relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm"
+            >
+              {product.photo_url ? (
+                <Image
+                  src={product.photo_url}
+                  alt={product.name}
+                  fill
+                  priority
+                  className="relative z-0 object-cover transition-transform duration-500 hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                />
+              ) : (
+                <div className="relative z-0 flex h-full w-full items-center justify-center">
+                  <PackageIcon size={64} weight="duotone" className="text-brand-teal-400/40" aria-hidden="true" />
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          <div className="flex flex-col gap-4 md:col-span-7">
+            <p className="rule-index font-ui text-brand-teal-300">{CATEGORY_LABELS[product.category]}</p>
+
+            <h1 className="text-balance font-ui text-[clamp(1.9rem,3vw+1rem,3rem)] font-semibold leading-[1.1] tracking-tight text-white">
+              {product.name}
+            </h1>
+            <p className="mono-tech text-sm text-white/50">{product.code}</p>
+
+            {paragraphs.length > 0 && (
+              <div className="space-y-3">
+                {paragraphs.map((paragraph, i) => (
+                  <p key={i} className="text-pretty text-base leading-relaxed text-white/70">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/10 pt-5">
+              <div className="flex items-center gap-1.5">
+                <SealCheckIcon size={16} weight="fill" className={product.is_sni ? 'text-brand-teal-300' : 'text-white/25'} aria-hidden="true" />
+                <span className="font-ui text-xs font-medium text-white/50">
+                  {product.is_sni ? 'Bersertifikat SNI' : 'Non-SNI'}
+                </span>
+              </div>
+              {product.lab_doc_url && (
+                <div className="flex items-center gap-1.5">
+                  <span className="font-ui text-xs font-medium text-white/50">Hasil uji laboratorium tersedia untuk diunduh</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="flex flex-col gap-4 md:col-span-7">
-        {product.is_sni && (
-          <span className="inline-flex w-fit items-center rounded bg-brand-teal-50 px-3 py-1 text-sm font-medium text-brand-teal-700">
-            Bersertifikat SNI
-          </span>
-        )}
-
-        <h1 className="text-3xl font-bold text-ink-700 md:text-4xl">{product.name}</h1>
-        <p className="font-mono text-lg text-neutral-500">{product.code}</p>
-
-        {paragraphs.length > 0 && (
-          <div className="space-y-3">
-            {paragraphs.map((paragraph, i) => (
-              <p key={i} className="text-base leading-relaxed text-neutral-700">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-        )}
-      </div>
     </section>
+    <SectionDivider variant="curve" fromClassName="fill-ink-900" toClassName="bg-white" flip />
+    </>
   )
 }

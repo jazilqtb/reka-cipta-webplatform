@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 
 from core.supabase import get_supabase
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from schemas.proposal_settings import (
     ProposalLayoutPreviewRequest,
     ProposalSettings,
@@ -51,7 +51,7 @@ preview layout PDF.</p>
 @router.post("/layout-preview")
 async def layout_preview(
     payload: ProposalLayoutPreviewRequest,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> Response:
     """[AUTH] R-43: render 1 PDF sample dengan layout BELUM disimpan,
     pakai data fixture (bukan lead/settings DB real) — supaya admin bisa
@@ -80,7 +80,7 @@ async def layout_preview(
 
 
 @router.get("", response_model=ProposalSettings)
-async def get_settings(user: dict = Depends(get_current_user)) -> ProposalSettings:
+async def get_settings(user: dict = Depends(require_admin)) -> ProposalSettings:
     """[AUTH] Ambil proposal prompt + Advanced Mode defaults saat ini."""
     return ProposalSettingsService(get_supabase()).get()
 
@@ -88,7 +88,7 @@ async def get_settings(user: dict = Depends(get_current_user)) -> ProposalSettin
 @router.put("", response_model=ProposalSettings)
 async def update_settings(
     payload: ProposalSettingsUpdateRequest,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> ProposalSettings:
     """[AUTH] Update prompt/Advanced Mode defaults. Versi lama otomatis
     ter-snapshot ke history (trigger DB) sebelum overwrite."""
@@ -99,7 +99,7 @@ async def update_settings(
 
 
 @router.get("/history", response_model=list[ProposalSettingsHistoryEntry])
-async def get_history(user: dict = Depends(get_current_user)) -> list[ProposalSettingsHistoryEntry]:
+async def get_history(user: dict = Depends(require_admin)) -> list[ProposalSettingsHistoryEntry]:
     """[AUTH] 10 snapshot terakhir untuk rollback UI (R-41)."""
     return ProposalSettingsService(get_supabase()).get_history()
 
@@ -107,7 +107,7 @@ async def get_history(user: dict = Depends(get_current_user)) -> list[ProposalSe
 @router.post("/rollback/{history_id}", response_model=ProposalSettings)
 async def rollback_settings(
     history_id: int,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> ProposalSettings:
     """[AUTH] Restore settings dari 1 snapshot history."""
     try:
@@ -117,7 +117,7 @@ async def rollback_settings(
 
 
 @router.post("/reset-to-default", response_model=ProposalSettings)
-async def reset_to_default(user: dict = Depends(get_current_user)) -> ProposalSettings:
+async def reset_to_default(user: dict = Depends(require_admin)) -> ProposalSettings:
     """[AUTH] Emergency rollback ke hardcoded default (R-41)."""
     try:
         return ProposalSettingsService(get_supabase()).reset_to_default(user.get("sub", ""))

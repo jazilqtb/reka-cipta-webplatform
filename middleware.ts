@@ -18,7 +18,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // RULE 2: /admin/login + session aktif → redirect ke dashboard
-  if (isLoginPath && user) {
+  //
+  // CHECKPOINT 1 (2026-08-15) — pengecualian `denied`.
+  // app/admin/layout.tsx menolak user yang PUNYA sesi valid tapi TIDAK
+  // terdaftar di public.admin_users, lalu mengarahkannya ke
+  // /admin/login?denied=1. Tanpa pengecualian ini, RULE 2 akan
+  // memantulkannya kembali ke /admin/dashboard, layout menolak lagi,
+  // dan seterusnya — INFINITE REDIRECT LOOP (persis kelas bug yang
+  // diperingatkan CLAUDE.md soal isolasi route group (auth)/admin).
+  // Dengan `denied=1`, halaman login boleh dirender meski ada sesi,
+  // supaya user bisa membaca pesan penolakan dan keluar dari akunnya.
+  const isDenied = request.nextUrl.searchParams.get('denied') === '1'
+  if (isLoginPath && user && !isDenied) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 

@@ -2,7 +2,6 @@ import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createPublic } from '@/lib/supabase/public'
-import { ProductBreadcrumb } from '@/components/product/ProductBreadcrumb'
 import { ProductHero } from '@/components/product/ProductHero'
 import { SpecTable } from '@/components/product/SpecTable'
 import { IndustryList } from '@/components/product/IndustryList'
@@ -108,7 +107,6 @@ export default async function ProductDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductBreadcrumb productName={product.name} />
       <ProductHero product={product} />
       <SpecTable specs={product.specs} />
       <IndustryList industries={product.industries} />

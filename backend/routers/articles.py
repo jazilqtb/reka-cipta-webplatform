@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from core.supabase import get_supabase
 from core.storage import get_public_storage_url
 from schemas.article import (
@@ -69,7 +69,7 @@ def _ensure_unique_slug(supabase, slug: str, exclude_id: str | None = None) -> N
         raise HTTPException(status_code=409, detail=f"Slug '{slug}' sudah dipakai artikel lain")
 
 
-@router.post("", response_model=ArticleDetailResponse, dependencies=[Depends(get_current_user)])
+@router.post("", response_model=ArticleDetailResponse, dependencies=[Depends(require_admin)])
 async def create_article(payload: ArticleCreateRequest):
     """[AUTH] Buat artikel baru. Slug auto dari judul kalau tidak dikirim."""
     supabase = get_supabase()
@@ -98,7 +98,7 @@ async def create_article(payload: ArticleCreateRequest):
     return ArticleDetailResponse(article=_row_to_article_admin(result.data[0]))
 
 
-@router.put("/{article_id}", response_model=ArticleDetailResponse, dependencies=[Depends(get_current_user)])
+@router.put("/{article_id}", response_model=ArticleDetailResponse, dependencies=[Depends(require_admin)])
 async def update_article(article_id: str, payload: ArticleUpdateRequest):
     """[AUTH] Update artikel. TIDAK menyentuh is_published/published_at —
     itu tugas endpoint publish terpisah (lihat toggle_publish_article)."""
@@ -132,7 +132,7 @@ async def update_article(article_id: str, payload: ArticleUpdateRequest):
 @router.patch(
     "/{article_id}/publish",
     response_model=ArticleDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def toggle_publish_article(article_id: str, payload: ArticlePublishRequest):
     """[AUTH] Toggle publish/unpublish. published_at hanya di-set SEKALI
@@ -156,7 +156,7 @@ async def toggle_publish_article(article_id: str, payload: ArticlePublishRequest
     return ArticleDetailResponse(article=_row_to_article_admin(result.data[0]))
 
 
-@router.delete("/{article_id}", status_code=204, dependencies=[Depends(get_current_user)])
+@router.delete("/{article_id}", status_code=204, dependencies=[Depends(require_admin)])
 async def delete_article(article_id: str):
     """[AUTH] Hapus artikel (hard delete — endpoint DELETE pertama di
     codebase ini, lihat AR-03). Cleanup thumbnail storage best-effort
@@ -185,7 +185,7 @@ async def delete_article(article_id: str):
 
 @router.post(
     "/upload-content-image",
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def upload_article_content_image(file: UploadFile = File(...)) -> dict:
     """[AUTH] Upload gambar untuk disisipkan di konten editor. TIDAK terikat
@@ -216,7 +216,7 @@ async def upload_article_content_image(file: UploadFile = File(...)) -> dict:
 @router.post(
     "/{article_id}/upload-thumbnail",
     response_model=ArticleDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def upload_article_thumbnail(article_id: str, file: UploadFile = File(...)):
     """[AUTH] Upload/replace thumbnail cover artikel. Validasi MIME + size,

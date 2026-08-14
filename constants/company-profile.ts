@@ -104,41 +104,12 @@ export const TEAM_MEMBERS: TeamMember[] = [
 ]
 
 // ─── Dokumen Legalitas ────────────────────────────────────────────────────
-export interface LegalDocument {
-  id: string           // unique key, dipakai sebagai filename di bucket
-  title: string        // nama tampil di UI
-  subtitle?: string    // nomor dokumen jika ada
-  filename: string     // nama file di Supabase Storage bucket 'legal-docs'
-  thumbnailPath?: string  // path ke thumbnail di public/ (opsional)
-}
-
-export const LEGAL_DOCUMENTS: LegalDocument[] = [
-  {
-    id: 'akta-notaris',
-    title: 'Akta Notaris',
-    subtitle: 'Pendirian CV',
-    filename: 'akta-notaris.pdf',
-    thumbnailPath: '/images/legal-thumbnails/akta-notaris.png',
-  },
-  {
-    id: 'nib',
-    title: 'NIB',
-    subtitle: 'No. 0280010102479',
-    filename: 'nib.pdf',
-    thumbnailPath: '/images/legal-thumbnails/nib.png',
-  },
-  {
-    id: 'npwp',
-    title: 'NPWP Perusahaan',
-    subtitle: '96.674.473.2-609.000',
-    filename: 'npwp.pdf',
-    thumbnailPath: '/images/legal-thumbnails/npwp.png',
-  },
-  {
-    id: 'kemenkumham',
-    title: 'Status Hukum Kemenkumham',
-    subtitle: 'Legalitas Penuh',
-    filename: 'kemenkumham.pdf',
-    thumbnailPath: '/images/legal-thumbnails/kemenkumham.png',
-  },
-]
+// RONDE Tahap 8 (2026-08): LEGAL_DOCUMENTS & LegalDocument DIHAPUS —
+// satu-satunya pemakainya (LegalDocsGrid.tsx, LegalDocCard.tsx,
+// LegalDocModal.tsx, kolom "Legalitas" di Footer.tsx) sudah dihapus
+// total dari repo (klien: dokumen resmi tidak perlu tampil di antarmuka
+// publik). File PDF & bucket Supabase Storage 'legal-docs' TIDAK
+// disentuh — itu data/infra, bukan konten frontend, di luar wewenang
+// perombakan ini. Route API app/api/legal-docs/[filename]/route.ts juga
+// sengaja dibiarkan (tidak lagi dipanggil UI manapun, tapi menghapus
+// route API termasuk cakupan "backend" yang tidak diminta).

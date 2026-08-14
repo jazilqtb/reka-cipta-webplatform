@@ -50,3 +50,12 @@ next-env.d.ts
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Graphify knowledge graph — 17MB artefak GENERATED, bisa dibuat ulang
+# kapan saja dengan `graphify update .` (AST-only, tanpa biaya API).
+# Meng-commit-nya membengkakkan repo permanen & berubah tiap commit.
+graphify-out/
+
+# Izin/permission Claude Code spesifik mesin lokal (settings.json yang
+# dibagi tim TETAP ikut ter-commit).
+.claude/settings.local.json

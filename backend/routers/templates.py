@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.supabase import get_supabase
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from schemas.templates import (
     EmailTemplate,
     EmailTemplateUpdateRequest,
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/email-templates", response_model=list[EmailTemplate])
-async def list_email_templates(user: dict = Depends(get_current_user)) -> list[EmailTemplate]:
+async def list_email_templates(user: dict = Depends(require_admin)) -> list[EmailTemplate]:
     """[AUTH] Semua email template (saat ini hanya 'rfq_confirmation')."""
     return EmailTemplatesService(get_supabase()).list_all()
 
@@ -35,7 +35,7 @@ async def list_email_templates(user: dict = Depends(get_current_user)) -> list[E
 async def update_email_template(
     template_type: str,
     payload: EmailTemplateUpdateRequest,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> EmailTemplate:
     try:
         return EmailTemplatesService(get_supabase()).update(
@@ -48,7 +48,7 @@ async def update_email_template(
 @router.post("/email-templates/{template_type}/reset-to-default", response_model=EmailTemplate)
 async def reset_email_template(
     template_type: str,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> EmailTemplate:
     try:
         return EmailTemplatesService(get_supabase()).reset_to_default(
@@ -62,7 +62,7 @@ async def reset_email_template(
 
 
 @router.get("/wa-templates", response_model=list[WATemplateSetting])
-async def list_wa_templates(user: dict = Depends(get_current_user)) -> list[WATemplateSetting]:
+async def list_wa_templates(user: dict = Depends(require_admin)) -> list[WATemplateSetting]:
     """[AUTH] Semua WA template, 1 per status lead."""
     return WATemplatesService(get_supabase()).list_all()
 
@@ -71,7 +71,7 @@ async def list_wa_templates(user: dict = Depends(get_current_user)) -> list[WATe
 async def update_wa_template(
     status_key: str,
     payload: WATemplateSettingUpdateRequest,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> WATemplateSetting:
     if status_key not in WA_STATUS_KEYS:
         raise HTTPException(status_code=422, detail=f"Status tidak valid: {status_key}")
@@ -84,7 +84,7 @@ async def update_wa_template(
 @router.post("/wa-templates/{status_key}/reset-to-default", response_model=WATemplateSetting)
 async def reset_wa_template(
     status_key: str,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_admin),
 ) -> WATemplateSetting:
     if status_key not in WA_STATUS_KEYS:
         raise HTTPException(status_code=422, detail=f"Status tidak valid: {status_key}")

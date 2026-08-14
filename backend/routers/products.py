@@ -8,7 +8,7 @@
 # POST /products/{id}/upload-photo   → [AUTH] upload foto produk (Epic 3B S2)
 # POST /products/{id}/upload-lab-doc → [AUTH] upload PDF lab produk (Epic 3B S2)
 #
-# Public — TIDAK ada Depends(get_current_user). Halaman /produk & /produk/[slug]
+# Public — TIDAK ada Depends(require_admin). Halaman /produk & /produk/[slug]
 # sendiri fetch langsung dari Supabase via anon key (ARCHITECTURE.md §6.6);
 # endpoint ini untuk konsumen lain (curl/OpenAPI, future admin/API clients).
 #
@@ -19,7 +19,7 @@
 import logging
 import time
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from core.supabase import get_supabase
 from core.storage import get_public_storage_url
 from schemas.product import (
@@ -87,7 +87,7 @@ async def list_products():
 @router.get(
     "/admin",
     response_model=ProductAdminListResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def list_products_admin():
     """[AUTH] List semua produk (termasuk is_active=false), urut sort_order ASC."""
@@ -142,7 +142,7 @@ async def get_product_by_slug(slug: str):
 @router.put(
     "/{product_id}",
     response_model=ProductDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def update_product(product_id: str, payload: ProductUpdateRequest):
     """[AUTH] Update produk. Whitelist field di-enforce oleh ProductUpdateRequest."""
@@ -199,7 +199,7 @@ async def _fetch_product_row(supabase, product_id: str) -> dict:
 @router.post(
     "/{product_id}/upload-photo",
     response_model=ProductDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def upload_product_photo(product_id: str, file: UploadFile = File(...)):
     """[AUTH] Upload/replace foto produk. Validasi MIME + size, cleanup file lama best-effort (R-17)."""
@@ -249,7 +249,7 @@ async def upload_product_photo(product_id: str, file: UploadFile = File(...)):
 @router.post(
     "/{product_id}/upload-lab-doc",
     response_model=ProductDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def upload_product_lab_doc(product_id: str, file: UploadFile = File(...)):
     """[AUTH] Upload/replace PDF hasil uji lab. Validasi MIME + size, cleanup file lama best-effort (R-17)."""

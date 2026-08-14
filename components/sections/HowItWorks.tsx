@@ -1,38 +1,31 @@
 // components/sections/HowItWorks.tsx
 // Epic 2 Slice 1 (E2-S1-FE-05) — Wireframe v1.0 §4.
+// RONDE 4 (2026-08), revisi 11 poin klien:
+// - Bentuk: tab button (.notch) & panel (.notch-both/.notch-lg) balik ke
+//   rounded-xl/rounded-2xl. Badge ikon (.facet-frame/-lg) → .icon-hex
+//   (satu-satunya bentuk potong tersisa di beranda).
+// - Latar panel: .bg-dot-grid (dot generik) → .bg-salt-texture (kisi
+//   garis terfaset, konsisten dgn seluruh beranda).
+// - Ikon: Lucide → Phosphor duotone.
+// - Tipografi: H2 & H3 pindah ke font-ui (Fraunces kini hanya H1 hero).
 //
-// Scroll-driven sticky section yang menampilkan 4 langkah proses
-// distribusi. Saat user scroll melewati section ini, panel teks
-// tetap di tempat (sticky) sementara background image juga diam.
-// Step aktif berubah berdasarkan scrollYProgress.
-//
-// KEPUTUSAN DESAIN (lihat panduan Fase 7.3 lengkap):
-// - useScroll + useTransform (bukan IO berlapis) — interpolasi mulus
-// - Sticky strategy: outer 400vh + inner 100vh sticky
-// - Step activation via useMotionValueEvent (4× re-render, bukan
-//   interpolasi opacity per frame — lebih efisien)
-// - Desktop: panel dari kiri 50%; Mobile: dari bawah 50%
-// - Reduced motion: fallback static 4-step grid
-// - Foto background pending (Fase 0) — fallback gradient teal gelap
+// Interaksi TIDAK berubah dari sebelumnya: tablist interaktif, klik
+// langkah mana pun untuk lompat, auto-cycle saat idle, berhenti saat
+// interaksi/reduced-motion/tab tersembunyi.
 'use client'
 
-import { useRef, useState } from 'react'
-import Image from 'next/image'
-import {
-  motion,
-  useScroll,
-  useMotionValueEvent,
-  useReducedMotion,
-} from 'framer-motion'
-import { MessageSquare, ListChecks, FlaskConical, Truck } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
+import { ChatTextIcon, ListChecksIcon, FlaskIcon, TruckIcon } from '@phosphor-icons/react/ssr'
+import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { cn } from '@/lib/utils'
 
-// ─── Data 4 langkah proses ────────────────────────────────────
 interface Step {
   num: number
   title: string
   desc: string
-  icon: typeof MessageSquare
+  icon: PhosphorIcon
 }
 
 const STEPS: Step[] = [
@@ -40,232 +33,208 @@ const STEPS: Step[] = [
     num: 1,
     title: 'Hubungi Kami',
     desc: 'Sampaikan kebutuhan garam industri Anda melalui WhatsApp atau form kontak. Tim kami merespons dalam 1×24 jam.',
-    icon: MessageSquare,
+    icon: ChatTextIcon,
   },
   {
     num: 2,
     title: 'Konsultasi Kebutuhan',
     desc: 'Diskusi mendalam tentang spesifikasi (NaCl%, granulasi), volume bulanan, dan jadwal pengiriman yang sesuai.',
-    icon: ListChecks,
+    icon: ListChecksIcon,
   },
   {
     num: 3,
     title: 'Pengiriman Sampel',
     desc: 'Kami kirimkan sampel produk untuk diuji di laboratorium Anda. Pastikan kualitas sebelum kontrak.',
-    icon: FlaskConical,
+    icon: FlaskIcon,
   },
   {
     num: 4,
     title: 'Distribusi Rutin',
     desc: 'Setelah deal, kami atur jadwal distribusi berkala dengan dokumentasi lengkap dan tepat waktu.',
-    icon: Truck,
+    icon: TruckIcon,
   },
 ]
 
-// ─── Fallback layout — reduced motion atau SSR ────────────────
-function HowItWorksStatic() {
-  return (
-    <section className="bg-ink-900 px-4 py-20 text-white md:py-28" aria-labelledby="howitworks-heading">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-12 text-center md:mb-16">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand-teal-300">
-            Proses Kerja Kami
-          </p>
-          <h2 id="howitworks-heading" className="text-3xl font-bold md:text-4xl">
-            Cara Kami Bekerja
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/70">
-            Empat langkah sederhana, transparan, dan terukur untuk membangun
-            kemitraan distribusi jangka panjang.
-          </p>
-        </div>
+const AUTOPLAY_MS = 4800
+const EASE = [0.25, 0.46, 0.45, 0.94] as const
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step) => {
-            const Icon = step.icon
-            return (
-              <div
-                key={step.num}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
-              >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-teal-600/20 text-brand-teal-300">
-                  <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
-                </div>
-                <p className="mb-1 text-xs font-bold text-brand-teal-300">
-                  LANGKAH {step.num}
-                </p>
-                <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
-                <p className="text-sm text-white/70">{step.desc}</p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Komponen utama: scroll-driven sticky ─────────────────────
 export default function HowItWorks() {
   const prefersReduced = useReducedMotion()
   const [activeStep, setActiveStep] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [isPaused, setIsPaused] = useState(false)
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  })
+  // Auto-cycle — sama pola dengan HeroCarousel (autoplay + pause on
+  // interaction/hidden-tab/reduced-motion) demi konsistensi UX.
+  useEffect(() => {
+    if (isPaused || prefersReduced) return
 
-  // Update activeStep berdasarkan scrollYProgress
-  // 0.000–0.249 → step 0, 0.250–0.499 → step 1, dst.
-  useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    const next = Math.min(Math.floor(latest * STEPS.length), STEPS.length - 1)
-    setActiveStep(next)
-  })
+    const tick = () => setActiveStep((s) => (s + 1) % STEPS.length)
+    let id = setInterval(tick, AUTOPLAY_MS)
 
-  // Reduced motion → fallback static layout
-  if (prefersReduced) {
-    return <HowItWorksStatic />
-  }
+    const onVisibility = () => {
+      clearInterval(id)
+      if (document.visibilityState === 'visible') id = setInterval(tick, AUTOPLAY_MS)
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [isPaused, prefersReduced])
+
+  const selectStep = useCallback((index: number) => {
+    setActiveStep(index)
+    setIsPaused(true)
+    if (resumeTimer.current) clearTimeout(resumeTimer.current)
+    resumeTimer.current = setTimeout(() => setIsPaused(false), 9000)
+  }, [])
+
+  useEffect(() => () => { if (resumeTimer.current) clearTimeout(resumeTimer.current) }, [])
+
+  const active = STEPS[activeStep]
+  const ActiveIcon = active.icon
 
   return (
-    <>
-      {/* SR-only daftar lengkap utk screen reader — selalu terbaca,
-          tidak bergantung pada scroll position */}
-      <div className="sr-only">
-        <h2>Cara Kami Bekerja — 4 Langkah</h2>
-        <ol>
-          {STEPS.map((s) => (
-            <li key={s.num}>
-              <strong>Langkah {s.num} — {s.title}:</strong> {s.desc}
-            </li>
-          ))}
-        </ol>
-      </div>
+    <section
+      className="bg-ink-900 px-4 py-14 md:py-20"
+      aria-labelledby="howitworks-heading"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="mx-auto max-w-6xl">
+        <RevealWrapper>
+          <div className="mb-8 text-center md:mb-12">
+            <p className="rule-index font-ui justify-center text-brand-teal-300">
+              Proses Kerja Kami
+            </p>
+            <h2
+              id="howitworks-heading"
+              className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-white"
+            >
+              Cara Kami <span className="italic font-medium text-brand-teal-300">Bekerja</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-pretty text-white/70">
+              Empat langkah sederhana, transparan, dan terukur — klik tiap langkah
+              untuk lihat detailnya.
+            </p>
+          </div>
+        </RevealWrapper>
 
-      {/* Outer container — tinggi = jumlah step × 100vh.
-          Pakai aria-hidden krn isinya dekoratif (SR sudah baca ol di atas). */}
-      <section
-        ref={containerRef}
-        className="relative bg-ink-900"
-        style={{ height: `${STEPS.length * 100}vh` }}
-        aria-hidden="true"
-      >
-        {/* Inner sticky — diam saat outer di-scroll */}
-        <div className="sticky top-0 flex h-screen w-full overflow-hidden">
-          {/* ── Background image layer ─────────────────────── */}
-          <div className="absolute inset-0">
-            {/* Foto background — TODO klien sediakan how-it-works-bg.jpg.
-                Jika file tidak ada, onError tidak relevan untuk fill mode
-                Next/Image — sebagai gantinya, gradient di belakang. */}
-            <div className="absolute inset-0 bg-gradient-to-br from-ink-900 via-brand-teal-900 to-ink-900" />
-            <Image
-              src="/images/how-it-works-bg.jpg"
-              alt=""
-              fill
-              sizes="100vw"
-              className="object-cover opacity-40"
-              priority={false}
-              // Saat file tidak ada, Next/Image diam-diam fail; gradient
-              // di div di atasnya tetap menjadi background visual.
-            />
-            {/* Overlay gelap utk kontras teks */}
-            <div className="absolute inset-0 bg-gradient-to-r from-ink-900/95 via-ink-900/70 to-ink-900/40 md:from-ink-900/95 md:via-ink-900/85 md:to-transparent" />
+        <div className="grid gap-5 md:grid-cols-[minmax(0,340px)_1fr] md:gap-10 lg:gap-14">
+          {/* Tablist langkah */}
+          <div role="tablist" aria-label="4 langkah proses kerja" className="flex flex-col gap-2">
+            {STEPS.map((step, i) => {
+              const Icon = step.icon
+              const isActive = i === activeStep
+              return (
+                <button
+                  key={step.num}
+                  id={`howitworks-tab-${step.num}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={isActive}
+                  aria-controls="howitworks-panel"
+                  onClick={() => selectStep(i)}
+                  className={cn(
+                    'group rounded-xl border px-4 py-3 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus-dark',
+                    isActive
+                      ? 'border-brand-teal-400/30 bg-white/[0.06]'
+                      : 'border-white/[0.06] hover:bg-white/[0.03]'
+                  )}
+                >
+                  <div className="flex items-center gap-3.5">
+                    {/* RONDE 6: badge .icon-hex dihapus — ikon aktif dapat
+                        wash lingkaran lembut (bukan frame bersudut) +
+                        pulse-ring, ikon nonaktif polos tanpa latar sama
+                        sekali (lebih organik, bukan "tempelan" generik). */}
+                    <span
+                      className={cn(
+                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300',
+                        isActive
+                          ? 'step-pulse-ring bg-brand-teal-500 text-white'
+                          : 'text-white/45 group-hover:text-white/70'
+                      )}
+                    >
+                      <Icon size={22} weight="duotone" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={cn(
+                          'font-ui text-[11px] font-bold uppercase tracking-wide transition-colors duration-300',
+                          isActive ? 'text-brand-teal-300' : 'text-white/35'
+                        )}
+                      >
+                        Langkah {step.num}
+                      </p>
+                      <p
+                        className={cn(
+                          'font-ui truncate font-semibold transition-colors duration-300',
+                          isActive ? 'text-[15px] text-white' : 'text-sm text-white/55'
+                        )}
+                      >
+                        {step.title}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress bar — hanya saat aktif & autoplay berjalan */}
+                  {isActive && !prefersReduced && !isPaused && (
+                    <div className="mt-2.5 h-0.5 w-full overflow-hidden rounded-full bg-white/10">
+                      <motion.div
+                        key={activeStep}
+                        className="h-full bg-brand-teal-400"
+                        initial={{ width: '0%' }}
+                        animate={{ width: '100%' }}
+                        transition={{ duration: AUTOPLAY_MS / 1000, ease: 'linear' }}
+                      />
+                    </div>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
-          {/* ── Panel konten ───────────────────────────────── */}
-          {/* Desktop: kiri 50%, Mobile: bawah 50% */}
-          <div className="relative z-10 flex h-full w-full flex-col justify-end md:w-1/2 md:justify-center md:p-12 lg:p-16">
-            <div className="bg-ink-900/80 p-6 backdrop-blur-md md:rounded-2xl md:bg-ink-900/60 md:p-10">
-              {/* Header section */}
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand-teal-300">
-                Proses Kerja Kami
-              </p>
-              <h2 className="mb-6 text-3xl font-bold text-white md:text-4xl">
-                Cara Kami Bekerja
-              </h2>
-
-              {/* Step list dengan progress line */}
-              <div className="relative flex gap-4">
-                {/* Progress line — vertikal di kiri step list */}
-                <div className="relative flex w-1 shrink-0 flex-col">
-                  <div className="absolute inset-0 rounded-full bg-white/15" />
-                  <motion.div
-                    className="absolute left-0 right-0 top-0 rounded-full bg-brand-teal-400"
-                    style={{
-                      scaleY: scrollYProgress,
-                      transformOrigin: 'top',
-                      height: '100%',
-                    }}
-                  />
-                </div>
-
-                {/* Steps */}
-                <ol className="flex w-full flex-col gap-4 md:gap-5">
-                  {STEPS.map((step, i) => {
-                    const Icon = step.icon
-                    const isActive = i === activeStep
-                    return (
-                      <motion.li
-                        key={step.num}
-                        animate={{
-                          opacity: isActive ? 1 : 0.35,
-                          scale: isActive ? 1 : 0.96,
-                        }}
-                        transition={{ duration: 0.4, ease: 'easeOut' }}
-                        className="flex gap-3"
-                      >
-                        <div
-                          className={cn(
-                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-colors duration-300',
-                            isActive
-                              ? 'bg-brand-teal-500 text-white'
-                              : 'bg-white/10 text-white/60'
-                          )}
-                        >
-                          <Icon className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                        </div>
-                        <div className="flex-1">
-                          <p className={cn(
-                            'text-xs font-bold uppercase tracking-wide transition-colors duration-300',
-                            isActive ? 'text-brand-teal-300' : 'text-white/40'
-                          )}>
-                            Langkah {step.num}
-                          </p>
-                          <h3 className={cn(
-                            'mt-0.5 font-semibold transition-all duration-300',
-                            isActive ? 'text-lg text-white md:text-xl' : 'text-base text-white/70'
-                          )}>
-                            {step.title}
-                          </h3>
-                          {/* Description hanya muncul saat aktif */}
-                          <motion.p
-                            initial={false}
-                            animate={{
-                              height: isActive ? 'auto' : 0,
-                              opacity: isActive ? 1 : 0,
-                              marginTop: isActive ? 8 : 0,
-                            }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="overflow-hidden text-sm leading-relaxed text-white/70"
-                          >
-                            {step.desc}
-                          </motion.p>
-                        </div>
-                      </motion.li>
-                    )
-                  })}
-                </ol>
-              </div>
-
-              {/* Step counter — kanan bawah */}
-              <p className="mt-6 text-right text-xs font-mono text-white/40">
-                {String(activeStep + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
-              </p>
-            </div>
+          {/* Panel konten aktif — RONDE 7: motif garis-garis silang
+              (.bg-salt-texture) dihapus (dinilai tidak profesional oleh
+              klien), diganti radial glow sangat lembut (gradasi, bukan
+              garis) + panel solid tipis. */}
+          <div
+            id="howitworks-panel"
+            role="tabpanel"
+            aria-labelledby={`howitworks-tab-${active.num}`}
+            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-8 md:p-12"
+            style={{
+              // Radius FIXED (px) — lihat catatan di StagedCTASection.tsx,
+              // stop persen bisa membengkak & "mencuci" konten di section lebar.
+              backgroundImage: 'radial-gradient(circle 260px at 85% 10%, rgba(95,225,203,0.12), transparent)',
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeStep}
+                initial={prefersReduced ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={prefersReduced ? undefined : { opacity: 0, y: -14 }}
+                transition={{ duration: 0.35, ease: EASE }}
+                className="relative z-10"
+              >
+                {/* RONDE 6: badge .icon-hex dihapus — ikon polos & besar */}
+                <ActiveIcon size={48} weight="duotone" className="mb-6 text-brand-teal-400" aria-hidden="true" />
+                <p className="mono-tech text-xs text-white/40">
+                  Langkah {String(active.num).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
+                </p>
+                <h3 className="mt-2 font-ui text-2xl font-semibold text-white md:text-3xl">
+                  {active.title}
+                </h3>
+                <p className="mt-4 max-w-xl text-pretty text-base leading-relaxed text-white/75">
+                  {active.desc}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   )
 }

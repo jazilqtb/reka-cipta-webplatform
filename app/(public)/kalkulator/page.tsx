@@ -5,7 +5,9 @@
 // logic only").
 
 import type { Metadata } from 'next'
-import { InnerPageHero } from '@/components/sections/InnerPageHero'
+import { LightningIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
+import { PageHero } from '@/components/sections/PageHero'
+import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { CalculatorIntro } from '@/components/calculator/CalculatorIntro'
 import { CalculatorForm } from '@/components/calculator/CalculatorForm'
 
@@ -28,16 +30,35 @@ export const metadata: Metadata = {
 export default function KalkulatorPage() {
   return (
     <main>
-      <InnerPageHero
-        title="Kalkulator Kebutuhan Garam"
-        subtitle="Estimasi kebutuhan garam industri Anda dalam hitungan detik"
+      <PageHero
+        eyebrow="Kalkulator Kebutuhan"
+        title="Perkirakan Kebutuhan Garam Anda"
+        titleAccent="Sebelum Meminta Penawaran"
+        subtitle="Masukkan jenis industri dan kapasitas produksi — kami hitungkan estimasi volume beserta produk yang sesuai."
+        breadcrumbLabel="Kalkulator"
+        credentials={[
+          {
+            icon: <LightningIcon size={16} weight="duotone" className="text-brand-teal-300" aria-hidden="true" />,
+            label: 'Hasil Instan, Tanpa Perlu Isi Data Diri',
+          },
+          {
+            icon: <SealCheckIcon size={16} weight="duotone" className="text-brand-teal-300" aria-hidden="true" />,
+            label: 'Rekomendasi Produk Bersertifikat SNI',
+          },
+        ]}
       />
-      <section className="px-4 py-12">
+
+      <section className="bg-white px-4 py-14 md:py-20">
         <CalculatorIntro />
-        <div className="mt-10">
-          <CalculatorForm />
-        </div>
       </section>
+
+      {/* Form + hasil — latar salt-50 memisahkan "alat hitung" dari
+          penjelasan di atasnya tanpa perlu garis pembatas. */}
+      <section className="bg-salt-50 px-4 py-14 md:py-20">
+        <CalculatorForm />
+      </section>
+
+      <SectionDivider variant="curve" fromClassName="fill-salt-50" toClassName="bg-ink-900" />
     </main>
   )
 }

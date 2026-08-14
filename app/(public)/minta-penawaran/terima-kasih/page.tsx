@@ -6,12 +6,14 @@
 //             leak data apapun — cuma static content — jadi TIDAK ada
 //             access control (sessionStorage/cookie/referrer check).
 //             robots noindex supaya tidak muncul di Google search.
+//
+// RONDE Tahap 11 (2026-08) — Design System Rollout (T8): <main> putih
+// polos + ikon Lucide statis diganti <ThankYouPanel> (Hero gelap +
+// checkmark beranimasi + Next Steps eksplisit). Rendering/robots/access
+// policy di atas TIDAK berubah.
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { CheckCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/components/ui/button'
+import { ThankYouPanel, type NextStep } from '@/components/sections/ThankYouPanel'
 
 export const revalidate = false
 
@@ -20,26 +22,33 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// Langkah nyata sesuai alur RFQ yang ada (bukan janji yang dikarang):
+// submit → tim menyiapkan proposal → dihubungi via WA 1x24 jam.
+const STEPS: NextStep[] = [
+  {
+    title: 'Permintaan Diterima',
+    desc: 'Detail kebutuhan Anda sudah masuk ke sistem kami dan diteruskan ke tim penawaran.',
+  },
+  {
+    title: 'Proposal Disiapkan',
+    desc: 'Tim menyusun penawaran harga sesuai jenis garam dan volume yang Anda cantumkan.',
+  },
+  {
+    title: 'Kami Menghubungi Anda',
+    desc: 'Penawaran dikirim via WhatsApp dalam 1×24 jam. Konfirmasi juga masuk ke email Anda.',
+  },
+]
+
 export default function TerimaKasihPage() {
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-16 text-center md:py-24">
-      <CheckCircle className="mx-auto mb-6 h-20 w-20 text-brand-teal-600" strokeWidth={1.5} aria-hidden="true" />
-      <h1 className="mb-4 text-3xl font-bold text-ink-700 md:text-4xl">
-        Permintaan Penawaran Anda Berhasil Dikirim!
-      </h1>
-      <p className="mb-2 text-lg text-neutral-700">Proposal khusus sedang disiapkan tim kami.</p>
-      <p className="mb-8 text-lg text-neutral-700">
-        Anda akan dihubungi via WhatsApp dalam <strong>1×24 jam</strong>.
-      </p>
-      <p className="mb-10 text-sm text-neutral-500">Cek juga inbox email Anda untuk konfirmasi.</p>
-      <div className="flex flex-col justify-center gap-3 sm:flex-row">
-        <Link href="/" className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}>
-          Kembali ke Beranda
-        </Link>
-        <Link href="/produk" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
-          Lihat Produk Lainnya
-        </Link>
-      </div>
-    </main>
+    <ThankYouPanel
+      eyebrow="Permintaan Terkirim"
+      title="Permintaan Penawaran Anda"
+      titleAccent="Berhasil Dikirim"
+      subtitle="Terima kasih. Tim kami sedang menyiapkan penawaran yang sesuai dengan kebutuhan Anda."
+      steps={STEPS}
+      primaryCta={{ label: 'Lihat Katalog Produk', href: '/produk' }}
+      secondaryCta={{ label: 'Kembali ke Beranda', href: '/' }}
+    />
   )
 }

@@ -8,12 +8,14 @@
 //             data apapun, cuma static content, jadi TIDAK ada access
 //             control (sessionStorage/cookie/referrer check). robots
 //             noindex supaya tidak muncul di Google search.
+//
+// RONDE Tahap 11 (2026-08) — Design System Rollout (T5): diganti
+// <ThankYouPanel> bersama dgn /minta-penawaran/terima-kasih. Copy &
+// langkah berbeda (alur supplier: verifikasi 2-3 hari kerja, bukan
+// penawaran 1x24 jam) — komponennya sama, isinya spesifik per alur.
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { CheckCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/components/ui/button'
+import { ThankYouPanel, type NextStep } from '@/components/sections/ThankYouPanel'
 
 export const revalidate = false
 
@@ -22,27 +24,31 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+const STEPS: NextStep[] = [
+  {
+    title: 'Pendaftaran Diterima',
+    desc: 'Data usaha garam Anda sudah masuk dan akan ditinjau oleh tim kemitraan kami.',
+  },
+  {
+    title: 'Proses Verifikasi',
+    desc: 'Kami memeriksa kesesuaian kapasitas produksi dan jenis garam dengan kebutuhan distribusi.',
+  },
+  {
+    title: 'Tim Menghubungi Anda',
+    desc: 'Hasil verifikasi disampaikan via WhatsApp dalam 2–3 hari kerja, beserta langkah kerja sama.',
+  },
+]
+
 export default function TerimaKasihSupplierPage() {
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-16 text-center md:py-24">
-      <CheckCircle className="mx-auto mb-6 h-20 w-20 text-brand-teal-600" strokeWidth={1.5} aria-hidden="true" />
-      <h1 className="mb-4 text-3xl font-bold text-ink-700 md:text-4xl">
-        Pendaftaran Berhasil Dikirim!
-      </h1>
-      <p className="mb-2 text-lg text-neutral-700">
-        Terima kasih atas ketertarikan Anda menjadi mitra supplier CV Reka Cipta.
-      </p>
-      <p className="mb-8 text-lg text-neutral-700">
-        Tim kami akan menghubungi Anda via WhatsApp dalam <strong>2–3 hari kerja</strong> untuk proses verifikasi.
-      </p>
-      <div className="flex flex-col justify-center gap-3 sm:flex-row">
-        <Link href="/" className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}>
-          Kembali ke Beranda
-        </Link>
-        <Link href="/tentang-kami" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
-          Lihat Tentang Kami
-        </Link>
-      </div>
-    </main>
+    <ThankYouPanel
+      eyebrow="Pendaftaran Terkirim"
+      title="Pendaftaran Mitra Supplier"
+      titleAccent="Berhasil Dikirim"
+      subtitle="Terima kasih atas ketertarikan Anda menjadi mitra supplier CV Reka Cipta Indonesia."
+      steps={STEPS}
+      primaryCta={{ label: 'Kenali Perusahaan Kami', href: '/tentang-kami' }}
+      secondaryCta={{ label: 'Kembali ke Beranda', href: '/' }}
+    />
   )
 }

@@ -4,6 +4,19 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fraunces — display serif, dipakai SANGAT terbatas: hanya H1 hero. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+/* Space Grotesk — Ronde 4 (2026-08), revisi klien: "font terlalu simpel/
+   generic" + "typografi terlalu standard". Plus Jakarta Sans (humanis,
+   rounded) dipakai HAMPIR di mana saja pada Ronde 1-3, jadi tampilannya
+   tak beda dari template SaaS lain yang juga pakai humanist sans generik.
+   Space Grotesk — grotesk geometris dgn karakter teknis/presisi — sekarang
+   jadi suara UI utama (heading H2-H6, eyebrow, tombol, nav, angka statistik)
+   sehingga 3 typeface punya peran jelas & berbeda: Fraunces (headline
+   editorial, sangat terbatas) + Space Grotesk (struktur/UI, presisi teknis
+   yg cocok utk distributor industri) + Plus Jakarta Sans (badan paragraf
+   saja, tetap perlu keterbacaan humanis) + JetBrains Mono (data/sertifikat). */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tw-animate-css";
 @import "tailwindcss";
 
@@ -13,6 +26,10 @@
 @theme {
   --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-display: 'Fraunces', 'Plus Jakarta Sans', 'Inter', system-ui, serif;
+  /* --font-ui — Ronde 4: suara struktural (heading, eyebrow, tombol, nav,
+     angka statistik). Lihat catatan @import Space Grotesk di atas. */
+  --font-ui: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
 
   --color-brand-teal-950: #011210;
   --color-brand-teal-900: #042B26;
@@ -50,6 +67,23 @@
   --color-sand-100: #F6EFE1;
   --color-sand-50:  #FAF6EF;
 
+  /* --color-salt-* — Ronde 4: ganti total dari --color-paper-* (kraft/cream
+     hangat). Revisi klien: "background masih generic" + "warna tidak cocok
+     dgn karakter brand" + "palette kurang cocok" — kraft/cream + terracotta
+     Ronde 3 justru persis salah satu dari 3 pola default AI yg disebutkan
+     skill /frontend-design sendiri (cream bg + serif + terracotta accent).
+     Diganti netral MINERAL — abu-putih sejuk dgn undertone teal samar,
+     literal warna garam kristal, bukan kraft-paper artisanal. Rukun dgn
+     teal (sama-sama sejuk), tidak lagi berebut suhu warna dgn sand/terracotta. */
+  --color-salt-200: #E2E8E6;
+  --color-salt-100: #EFF3F1;
+  --color-salt-50:  #F8FAF9;
+
+  /* --color-crystal-400 — aksen kilau kristal, dipakai SANGAT sedikit
+     (glint/highlight, bukan bidang besar) — bukan warna baru di luar
+     keluarga teal, hanya titik terang di ujung terang ramp teal. */
+  --color-crystal-400: #5FE1CB;
+
   --color-neutral-950: #0A0B0D;
   --color-neutral-900: #111827;
   --color-neutral-800: #1F2937;
@@ -62,20 +96,54 @@
   --color-neutral-100: #F3F4F6;
   --color-neutral-50:  #F9FAFB;
 
-  --color-success-600: #16A34A;
+  /* Skala semantik.
+     BATCH 1 (2026-08-15) — dilengkapi dari 2 stop (100/600) jadi 6.
+     TEMUAN: kelas seperti `bg-danger-50`, `text-danger-700`,
+     `text-danger-500`, `border-danger-200` SUDAH dipakai di ~10 file
+     (login page, admin/error.tsx, dashboard, PromptEditor, AdminSidebar)
+     padahal tokennya TIDAK PERNAH ADA. Di Tailwind v4 kelas tanpa token
+     tidak menghasilkan CSS apa pun — jadi seluruh alert error di admin
+     selama ini tampil TANPA warna latar, diam-diam. Ditemukan saat
+     memverifikasi token untuk StatusPill.
+     Menambah stop = ADDITIVE murni; nilai 100/600 yang lama TIDAK
+     diubah, jadi tidak ada tampilan lama yang bergeser. */
+  --color-success-50:  #F0FDF4;
   --color-success-100: #DCFCE7;
-  --color-warning-600: #D97706;
+  --color-success-200: #BBF7D0;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
+
+  --color-warning-50:  #FFFBEB;
   --color-warning-100: #FEF3C7;
-  --color-danger-600:  #DC2626;
+  --color-warning-200: #FDE68A;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+
+  --color-danger-50:   #FEF2F2;
   --color-danger-100:  #FEE2E2;
-  --color-info-600:    #3B82F6;
+  --color-danger-200:  #FECACA;
+  --color-danger-500:  #EF4444;
+  --color-danger-600:  #DC2626;
+  --color-danger-700:  #B91C1C;
+
+  --color-info-50:     #EFF6FF;
   --color-info-100:    #DBEAFE;
+  --color-info-200:    #BFDBFE;
+  --color-info-500:    #3B82F6;
+  --color-info-600:    #3B82F6;
+  --color-info-700:    #1D4ED8;
 
   --shadow-sm:      0 2px 4px rgba(11,125,110,0.06), 0 1px 2px rgba(11,125,110,0.04);
   --shadow-md:      0 4px 8px rgba(11,125,110,0.08), 0 2px 4px rgba(11,125,110,0.05);
   --shadow-lg:      0 8px 16px rgba(11,125,110,0.10), 0 4px 8px rgba(11,125,110,0.06);
   --shadow-xl:      0 16px 32px rgba(11,125,110,0.12), 0 8px 16px rgba(11,125,110,0.08);
   --shadow-focus:   0 0 0 2px #FFFFFF, 0 0 0 4px #0B7D6E;
+  /* Gap pre-existing yang sudah dirujuk di AdminSidebar.tsx (2×) & kini
+     HowItWorks.tsx tapi belum pernah didefinisikan — Design System §2.9
+     ring-focus-dark. Diisi di sini, bukan token baru. */
+  --shadow-focus-dark: 0 0 0 2px rgba(255,255,255,0.15), 0 0 0 4px #52D6C4;
   --shadow-glow-md: 0 0 0 6px rgba(11,125,110,0.12), 0 4px 16px rgba(11,125,110,0.15);
 
   --ease-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -127,6 +195,7 @@
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth; /* utk anchor #main-content (skip-link & footer "Kembali ke Atas") */
   }
   body {
     background: #FFFFFF;
@@ -248,6 +317,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
@@ -325,3 +395,480 @@
 .photo-teal-hover:hover img { transform: scale(1.04); filter: grayscale(20%); }
 .photo-teal-hover:hover::after { opacity: 0.3; }
 /* ─── End Tambahan Slice 2 ─── */
+
+/* ═══ Tambahan — Homepage Redesign (2026-08) ═══
+   Pengecualian frozen-file terdokumentasi, mengikuti preseden di atas
+   (marquee, cta-hero-pulse, photo-teal-hover): mengisi gap kelas yang
+   SUDAH dirujuk di komponen tapi tidak pernah didefinisikan
+   (.card-hover-lift, .link-arrow/.arrow-icon — lihat catatan gap di
+   ProductCard.tsx, ArticleCard.tsx, IndustriesGrid.tsx,
+   ArticlesPreview.tsx, ArticlePagination.tsx), plus motif visual baru
+   ("faceted crystal" — signature garam) dan tekstur brand ringan. */
+
+/* .card-hover-lift — affordance klik utk kartu produk/artikel/industri.
+   translateY halus + shadow teal-tinted (token §5.2 Design System). */
+.card-hover-lift {
+  transition: transform 220ms var(--ease-decelerate), box-shadow 220ms var(--ease-decelerate);
+}
+.card-hover-lift:hover,
+.card-hover-lift:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover-lift:hover, .card-hover-lift:focus-visible { transform: none; }
+}
+
+/* .link-arrow / .arrow-icon — Design System §11.3, dipakai untuk semua
+   link "Lihat Semua ..." bergaya arrow-slide-on-hover. */
+.link-arrow { display: inline-flex; align-items: center; gap: 0.375rem; }
+.link-arrow .arrow-icon { transition: transform 180ms var(--ease-decelerate); }
+.link-arrow:hover .arrow-icon,
+.link-arrow:focus-visible .arrow-icon { transform: translateX(4px); }
+
+/* .facet-frame/.facet-frame-lg — DIHAPUS di Ronde 4 (lihat blok "Total
+   Refactor Beranda — Ronde 4" di bawah). Delapan-titik cut-corner ini
+   salah satu penyebab keluhan "bentuk kotak2 tidak konsisten/seperti
+   kesalahan" — dipakai berdampingan dengan rounded-full/rounded-lg biasa
+   di elemen lain. Diganti .icon-hex, SATU bentuk badge ikon di seluruh
+   beranda, zero pengecualian. Jangan pakai class ini lagi. */
+
+/* .bg-salt-texture — butiran halus non-repeating utk background gelap
+   (footer, band trust-pillar) — alternatif .bg-dot-grid yang lebih
+   organik, murni CSS gradient, tanpa aset gambar. */
+.bg-salt-texture { position: relative; }
+.bg-salt-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0, transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(82,214,196,0.08) 0, transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(255,255,255,0.04) 0, transparent 50%),
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0);
+  background-size: auto, auto, auto, 22px 22px;
+  pointer-events: none;
+}
+
+/* .step-pulse-ring — penanda langkah aktif pada HowItWorks (interaktif,
+   bukan scroll-jacked). Pulse halus, berhenti di reduced-motion. */
+@keyframes step-pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11,125,110,0.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(11,125,110,0); }
+}
+.step-pulse-ring { animation: step-pulse-ring 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .step-pulse-ring { animation: none; }
+}
+
+/* .mono-tech — gap lain yang sama polanya (Catatan §11.4 Design System):
+   dipakai di 7 file (ProductCard, HeroCarousel, HowItWorks, LegalDocCard,
+   dst.) untuk nilai lab/legal/spesifikasi, tapi tidak pernah didefinisikan.
+   Angka tabular supaya kolom nomor sejajar rapi ala dokumen resmi. */
+.mono-tech {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+/* ─── End Tambahan Homepage Redesign ─── */
+
+/* ═══ Total Refactor Beranda — Ronde 4 (2026-08) ═══
+   Revisi 11 poin dari klien atas Ronde 3. Perubahan mendasar dari Ronde 3,
+   bukan tambahan di atasnya — kelas .notch/.notch-both/.notch-lg,
+   .ledger-card(-dark), .ledger-pill(-dark), .bg-paper-grain, dan
+   --color-paper-* SUDAH DIHAPUS (lihat token --color-salt-* dan
+   --color-crystal-400 di atas). Alasan tiap perubahan structural, per poin revisi:
+
+   (11) "Bentuk kotak2 kurang natural, seperti kesalahan tidak disengaja,
+        tidak konsisten" — sudut terpotong (notch) Ronde 3 dipakai TIDAK
+        konsisten (sebagian elemen notch, sebagian tetap rounded-full/
+        rounded-lg) → terbaca sebagai bug, bukan gaya. Diganti ATURAN BENTUK
+        TUNGGAL & KETAT, 3 bentuk saja, zero pengecualian di seluruh beranda:
+          1. Hexagon (.icon-hex)  → HANYA badge ikon.
+          2. Pil bulat penuh (.tag-pill/-dark) → HANYA label/badge teks kecil.
+          3. rounded-2xl (kartu/panel/foto) & rounded-xl (tombol) → sisanya.
+        Tidak ada elemen lain yang memotong sudut secara ad hoc.
+
+   (4)(6)(10) "Background/warna generic, tidak cocok karakter brand, palet
+        tidak serasi" — palet Ronde 3 (--color-paper-*, krem hangat +
+        aksen terracotta) ternyata PERSIS salah satu dari 3 pola default AI
+        yang diperingatkan skill /frontend-design sendiri (cream bg + serif
+        + terracotta accent) — sekaligus warna hangat itu berebut suhu
+        dengan teal (dingin), jadi terasa tidak serasi. Diganti netral
+        MINERAL (--color-salt-*, abu-putih sejuk bertone teal) yang
+        selaras dengan teal, dan literal warna garam kristal — bukan kraft
+        paper artisanal yang tidak relevan dengan bisnis garam industri.
+
+   (1) "Ikon generic" — Lucide (1px outline seragam) diganti Phosphor
+       duotone (@phosphor-icons/react/ssr) — layer isi transparan + stroke,
+       lebih berkarakter, dipilih AI dari riset npm registry (bukan asal
+       unduh file dari sembarang situs).
+
+   (2)(5) "Font/typografi generic/standard" — Space Grotesk (grotesk
+       geometris berkarakter teknis) sekarang jadi suara UI utama
+       (H2-H6/eyebrow/tombol/nav/angka), menggantikan Plus Jakarta Sans
+       yang sebelumnya dipakai di HAMPIR semua tempat (jadi tak beda dari
+       humanist sans generik situs lain). PJS disisakan HANYA untuk badan
+       paragraf. Fraunces disisakan HANYA untuk H1 hero.
+
+   (3)(8) "Jarak antar section/heading terlalu lebar, whitespace amburadul"
+       — Ronde 3 pakai nilai spacing ad hoc berbeda tiap section (mb-10/12/
+       14/16, gap-4/6/8). Ronde 4 pakai SATU skala tetap di semua section:
+       py-16 md:py-24 (section), mb-3 (eyebrow→judul), mt-4 (judul→sub),
+       mb-12 md:mb-16 (heading block→konten), gap-5 (grid kartu). Diterapkan
+       identik di tiap file section — lihat masing-masing komponen.
+
+   (9) Footer — lihat Footer.tsx, ditambah kolom Produk & Legalitas
+       (LEGAL_DOCUMENTS, data nyata, bukan dekorasi).
+   (7) Mobile — diverifikasi ulang di lebar 375-390px, lihat catatan di
+       tiap komponen untuk penyesuaian breakpoint. */
+
+/* .icon-hex — SATU-SATUNYA bentuk terpotong di seluruh beranda, dipakai
+   khusus utk badge ikon (flat-top hexagon, ± geometri kristal garam
+   heksagonal). Ukuran diatur via kelas h-/w- di JSX, bukan modifier. */
+.icon-hex {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* .panel-card(-dark) — border tipis + hover angkat halus. Radius diatur
+   via rounded-2xl di JSX (bukan di sini) supaya satu sumber kebenaran
+   radius untuk seluruh beranda. */
+.panel-card {
+  position: relative;
+  border: 1px solid rgba(10, 30, 28, 0.10);
+  background: #FFFFFF;
+  transition: border-color 200ms var(--ease-decelerate), transform 200ms var(--ease-decelerate), box-shadow 200ms var(--ease-decelerate);
+}
+/* RONDE 7 (2026-08): border yg menyala teal saat hover dinilai klien
+   "merusak estetika" — dihapus. Border tetap statis, hover kini murni
+   soft box-shadow (var(--shadow-lg), sudah bertone teal & lembut) + lift,
+   efek "cahaya halus" bukan garis tegas. */
+.panel-card:hover, .panel-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.panel-card-dark {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 200ms var(--ease-decelerate), transform 200ms var(--ease-decelerate);
+}
+.panel-card-dark:hover, .panel-card-dark:focus-visible {
+  border-color: rgba(95, 225, 203, 0.5);
+  transform: translateY(-3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-card:hover, .panel-card:focus-visible,
+  .panel-card-dark:hover, .panel-card-dark:focus-visible { transform: none; }
+}
+
+/* .tag-pill(-dark) — label/badge teks kecil (SNI, nomor lab, NIB, dst).
+   SELALU pil bulat penuh — satu-satunya bentuk badge teks di beranda. */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(10, 30, 28, 0.12);
+  background: #FFFFFF;
+  color: #173F3A;
+}
+/* RONDE Tahap 3 (2026-08): versi sebelumnya (fill teal tipis 10% +
+   teks #93E7DC) dinilai klien "tenggelam" — di atas foto produk yang
+   variatif (kadang terang/putih), kontrasnya tidak terjamin. Diganti
+   fill SOLID (bukan translucent) + shadow, supaya selalu terbaca
+   berapapun warna foto di belakangnya — badge tetap satu-satunya
+   bentuk pil bulat, tidak melanggar aturan bentuk tunggal Ronde 4. */
+.tag-pill-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.35rem 0.8rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #0B7D6E;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(10, 30, 28, 0.35);
+}
+
+/* .bg-salt-texture — DIDEFINISIKAN ULANG (bukan lagi bintik radial-gradient
+   generik ala "dot grid"). Sekarang kisi garis diagonal ±60° tipis, ala
+   permukaan kristal terfaset — dipakai di section gelap. */
+.bg-salt-texture { position: relative; }
+.bg-salt-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(60deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 30px),
+    repeating-linear-gradient(-60deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 30px),
+    radial-gradient(circle at 80% 15%, rgba(95,225,203,0.06) 0, transparent 42%);
+  pointer-events: none;
+}
+
+/* .bg-salt-grain — versi terang, kisi sama tapi garis ink tipis di atas
+   --color-salt-*. Pengganti .bg-paper-grain (dihapus). */
+.bg-salt-grain { position: relative; }
+.bg-salt-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(60deg, rgba(10,30,28,0.035) 0px, rgba(10,30,28,0.035) 1px, transparent 1px, transparent 30px),
+    repeating-linear-gradient(-60deg, rgba(10,30,28,0.035) 0px, rgba(10,30,28,0.035) 1px, transparent 1px, transparent 30px);
+  pointer-events: none;
+}
+
+/* .rule-index — eyebrow mono + garis pendek. Dipertahankan dari Ronde 3
+   (bukan bagian dari keluhan bentuk — ini treatment teks, bukan kotak). */
+.rule-index {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+.rule-index::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+/* ─── End Total Refactor Beranda — Ronde 4 ─── */
+
+/* ═══ Tambahan — Redesign Tahap 3 (2026-08): Micro-interactions,
+   Parallax & Mobile Overhaul ═══
+   Pengecualian frozen-file terdokumentasi (mengikuti preseden di atas).
+   Otorisasi klien eksplisit: "diizinkan install library eksternal
+   (GSAP/Framer Motion/Lottie/AOS) ... jangan buang waktu CSS manual jika
+   library kasih hasil lebih profesional". Framer Motion SUDAH terpasang
+   & dipakai luas di beranda (HeroCarousel, HowItWorks, StagedCTASection)
+   — dipilih sebagai satu-satunya library animasi (parallax scroll via
+   useScroll/useTransform, magnetic-hover via useMotionValue) ketimbang
+   menambah GSAP/AOS yang akan duplikasi kapabilitas yang sudah ada &
+   menambah bundle size tanpa manfaat baru. Lottie tidak dipakai — tidak
+   ada aset .json brand yang tersedia, dan efek blob/mesh-gradient yang
+   diminta klien lebih murah & lebih on-brand dicapai lewat CSS
+   gradient+blur (konsisten dgn pendekatan .bg-salt-texture yang sudah
+   "murni CSS gradient, tanpa aset gambar"). */
+
+/* .spotlight-card — highlight radial lembut yang mengikuti posisi
+   kursor (mouse-tracking, poin 1 UMUM). --spot-x/--spot-y di-set via
+   JS (onMouseMove) di komponen client yang memakainya. z-index rendah
+   supaya tidak menutupi konten asli kartu. */
+.spotlight-card { position: relative; }
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(circle 200px at var(--spot-x, 50%) var(--spot-y, 50%), rgba(11, 125, 110, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-decelerate);
+  pointer-events: none;
+}
+.spotlight-card:hover::before,
+.spotlight-card:focus-visible::before {
+  opacity: 1;
+}
+
+/* .no-scrollbar — utk carousel horizontal-swipe mobile (Sektor Industri,
+   Langkah Berikutnya) yang butuh scrollbar disembunyikan cross-browser;
+   pola scrollbarWidth:none inline sebelumnya (ArticlesPreview) hanya
+   menutupi Firefox, ini menambah -webkit- utk Chrome/Safari mobile. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ─── End Tambahan Redesign Tahap 3 ─── */
+
+/* ═══ Tambahan — Design System Rollout Tahap 11 (2026-08) ═══
+   Pengecualian frozen-file terdokumentasi, mengikuti preseden yang SAMA
+   dengan .card-hover-lift / .link-arrow / .mono-tech: mengisi gap kelas
+   yang SUDAH dirujuk komponen tapi TIDAK PERNAH didefinisikan.
+
+   TEMUAN: `.prose-brand` disebut di CLAUDE.md sbg "Tailwind Typography
+   override for articles" dan dipakai di DUA tempat —
+   app/(public)/artikel/[slug]/page.tsx (isi artikel publik) dan
+   components/admin/article/RichTextEditor.tsx (editor admin) — TAPI:
+     1. kelasnya tidak ada di globals.css, dan
+     2. plugin @tailwindcss/typography TIDAK terpasang di package.json.
+   Artinya selama ini `.prose-brand` adalah NO-OP total: seluruh isi
+   artikel (heading, paragraf, list, blockquote) dirender TANPA styling
+   apa pun — persis akar keluhan kenyamanan baca long-form.
+
+   Ditulis manual (bukan install plugin) supaya: tidak menambah
+   dependency utk satu halaman, dan tipografinya memakai token brand
+   yang sudah ada (ink-700, brand-teal-600, font-ui) alih-alih skala
+   default plugin yang generik. */
+.prose-brand {
+  /* ~68ch = panjang baris optimal utk keterbacaan (50-75 karakter) */
+  max-width: 68ch;
+  color: #374151;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-brand > * + * { margin-top: 1.25em; }
+
+.prose-brand h2,
+.prose-brand h3,
+.prose-brand h4 {
+  font-family: var(--font-ui);
+  color: #173F3A;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.prose-brand h2 { font-size: 1.6rem; margin-top: 2.2em; }
+.prose-brand h3 { font-size: 1.3rem; margin-top: 1.9em; }
+.prose-brand h4 { font-size: 1.1rem; margin-top: 1.7em; }
+
+.prose-brand p { text-wrap: pretty; }
+
+.prose-brand a {
+  color: #0B7D6E;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 150ms var(--ease-decelerate);
+}
+.prose-brand a:hover { color: #085E52; }
+
+.prose-brand strong { color: #173F3A; font-weight: 600; }
+
+.prose-brand ul,
+.prose-brand ol { padding-left: 1.4em; }
+.prose-brand ul { list-style: disc; }
+.prose-brand ol { list-style: decimal; }
+.prose-brand li { margin-top: 0.5em; padding-left: 0.2em; }
+.prose-brand li::marker { color: #0B7D6E; }
+
+.prose-brand blockquote {
+  border-left: 3px solid #0B7D6E;
+  padding-left: 1.1em;
+  font-style: italic;
+  color: #4B5563;
+}
+
+.prose-brand img {
+  border-radius: 1rem;
+  border: 1px solid rgba(10, 30, 28, 0.08);
+}
+
+.prose-brand code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: #F1F5F4;
+  padding: 0.15em 0.4em;
+  border-radius: 0.375rem;
+}
+
+.prose-brand hr {
+  border: 0;
+  border-top: 1px solid rgba(10, 30, 28, 0.10);
+  margin-top: 2.4em;
+}
+
+/* Mobile: turunkan sedikit ukuran & jarak supaya tidak boros tinggi */
+@media (max-width: 640px) {
+  .prose-brand { font-size: 1rem; line-height: 1.7; }
+  .prose-brand h2 { font-size: 1.4rem; }
+  .prose-brand h3 { font-size: 1.2rem; }
+}
+
+/* .form-brand — styling field terpusat utk SELURUH form publik
+   (/minta-penawaran, /jadi-supplier, /kontak, /kalkulator).
+
+   Kenapa satu kelas induk, bukan className per-<Input>: form-form itu
+   total punya 30+ field. Menyisipkan className satu per satu berarti
+   menyentuh 30+ baris di dalam file yang berisi logika react-hook-form
+   + Zod — risiko tinggi (preseden nyata: directive 'use client' pernah
+   tidak sengaja terhapus saat mengedit file form), padahal yang diubah
+   cuma tampilan. Dgn descendant selector, satu kelas di <form>
+   pembungkus sudah cukup dan konsisten di semua halaman.
+
+   CATATAN PARSER (bug nyata yang ditemukan saat QA ronde ini): versi
+   pertama blok ini memakai denylist `input:not([type='checkbox'])`.
+   Lightning CSS (compiler CSS Tailwind v4) DIAM-DIAM MEMBUANG seluruh
+   sisa file mulai dari aturan itu — `.form-brand` tidak pernah muncul
+   di CSS hasil build, tanpa pesan error apa pun di terminal. Diganti
+   ALLOWLIST eksplisit per [type=...] di bawah: lebih aman terhadap
+   parser, sekaligus lebih jelas field mana yang memang disasar.
+
+   Primitif components/ui/* tetap TIDAK diedit (aturan CLAUDE.md) —
+   ini override dari luar, bukan modifikasi primitifnya. */
+.form-brand input[type="text"],
+.form-brand input[type="email"],
+.form-brand input[type="tel"],
+.form-brand input[type="number"],
+.form-brand input[type="search"],
+.form-brand input[type="url"],
+.form-brand input:not([type]),
+.form-brand textarea,
+.form-brand select {
+  border-radius: 0.75rem;
+  border-color: rgba(10, 30, 28, 0.15);
+  transition: border-color 180ms var(--ease-decelerate),
+              box-shadow 180ms var(--ease-decelerate);
+}
+
+/* Tinggi & padding lebih lega — default primitif (h-8/h-9) terlalu
+   rapat untuk form publik yang banyak diisi lewat HP. */
+.form-brand input[type="text"],
+.form-brand input[type="email"],
+.form-brand input[type="tel"],
+.form-brand input[type="number"],
+.form-brand input[type="search"],
+.form-brand input[type="url"],
+.form-brand input:not([type]),
+.form-brand select {
+  height: 2.75rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+.form-brand textarea {
+  padding: 0.75rem 0.875rem;
+}
+
+.form-brand input[type="text"]:hover,
+.form-brand input[type="email"]:hover,
+.form-brand input[type="tel"]:hover,
+.form-brand input[type="number"]:hover,
+.form-brand textarea:hover,
+.form-brand select:hover {
+  border-color: rgba(11, 125, 110, 0.35);
+}
+
+/* Focus = glow lembut bertone brand, bukan ring default browser */
+.form-brand input:focus-visible,
+.form-brand textarea:focus-visible,
+.form-brand select:focus-visible {
+  border-color: #0F9E8B;
+  box-shadow: 0 0 0 3px rgba(15, 158, 139, 0.18);
+  outline: none;
+}
+
+.form-brand [aria-invalid="true"] {
+  border-color: rgba(220, 38, 38, 0.55);
+}
+.form-brand [aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.form-brand label {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: #173F3A;
+}
+
+/* ─── End Tambahan Design System Rollout Tahap 11 ─── */

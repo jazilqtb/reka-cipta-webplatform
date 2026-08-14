@@ -1,60 +1,94 @@
 // components/sections/ArticlesPreview.tsx
 // Epic 6 Slice 3 (E6-S3-FE-01) — section homepage "Wawasan & Kabar
-// Terbaru", disisipkan tepat di bawah <StatsBar> (lihat app/(public)/page.tsx).
+// Terbaru".
 //
-// AR-03: return null total kalau 0 artikel published (bukan empty state
-// eksplisit seperti /artikel) — homepage tidak boleh terasa "kosong/rusak"
-// untuk section yang murni tambahan.
+// RONDE 6 (2026-08) — evaluasi & eksekusi 2 keluhan klien:
+// (a) "Tab filter tidak relevan" — DISETUJUI. Toggle Terbaru/Terbanyak
+//     Dilihat (ArticlesPreviewTabs.tsx, kini dihapus) dievaluasi: ini
+//     preview homepage, bukan halaman /artikel penuh — pengunjung baru
+//     tidak datang dengan preferensi sorting, dan 2 tab utk 3 kartu
+//     adalah overhead keputusan yang tidak perlu di titik ini. Preview
+//     kini tampilkan `articles` (3 artikel terbaru) langsung, tanpa
+//     toggle. Konsekuensi: page.tsx tidak lagi memanggil
+//     getMostViewedArticles() untuk homepage (fetch yang datanya tidak
+//     dipakai dihapus — bukan "menyentuh data layer", murni page.tsx
+//     memilih fetch mana yang dipanggil).
+// (b) "Mobile: daftar vertikal memakan tempat" — DISETUJUI. Grid
+//     vertikal 1-kolom diganti horizontal scroll/swipe (pola sama dgn
+//     ProductsPreview sebelum Ronde 6 — di sini kebalikannya cocok
+//     karena ArticleCard punya thumbnail 16:9 yang lebih enak di-scan
+//     berjajar horizontal daripada digrid 2-kolom sempit).
 //
-// CTA "Lihat Semua Artikel": Design System §11.3 mendefinisikan class
-// `.link-arrow`/`.arrow-icon`, tapi class ini TIDAK ada di globals.css
-// (frozen file, gap yang sama dengan `.card-hover-lift` — lihat Catatan
-// Penutup epic6_task_breakdown_slice1_artikel-berita.md). Dipakai `group` +
-// `group-hover:translate-x-*` Tailwind langsung supaya arrow slide
-// benar-benar berfungsi.
+// AR-03: return null total kalau 0 artikel published — homepage tidak
+// boleh terasa "kosong/rusak" untuk section yang murni tambahan.
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { ArticlesPreviewTabs } from './ArticlesPreviewTabs'
+import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
+import { ArticleCard } from '@/components/blocks/ArticleCard'
+import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import type { Article } from '@/types/api'
 
 interface Props {
-  latestArticles: Article[]
-  mostViewedArticles: Article[]
+  articles: Article[]
 }
 
-export function ArticlesPreview({ latestArticles, mostViewedArticles }: Props) {
-  if (latestArticles.length === 0 && mostViewedArticles.length === 0) {
+export function ArticlesPreview({ articles }: Props) {
+  if (articles.length === 0) {
     return null
   }
 
+  // RONDE Tahap 8: .bg-salt-grain (kisi garis tipis) dicabut — klien
+  // tidak suka motif garis apa pun di Beranda. bg-salt-50 solid saja.
   return (
-    <section className="bg-white py-16 md:py-24" aria-label="Artikel dan berita terbaru">
+    <section className="bg-salt-50 py-14 md:py-20" aria-label="Artikel dan berita terbaru">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-2xs font-semibold uppercase tracking-wide text-brand-teal-600">
+          <p className="rule-index font-ui justify-center text-brand-teal-600">
             Artikel &amp; Berita
           </p>
-          <h2 className="mt-2 text-3xl font-bold text-ink-700">Wawasan &amp; Kabar Terbaru</h2>
-          <p className="mt-3 text-base text-neutral-600">
-            Edukasi seputar garam industri dan kabar terbaru dari CV Reka Cipta Indonesia.
+          <h2 className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-ink-700">
+            Wawasan &amp; Kabar <span className="italic font-medium text-brand-teal-600">Terbaru</span>
+          </h2>
+          {/* RONDE Tahap 8: "bukan sekadar mengisi halaman" — frasa
+              reaktif/defensif, pola yg sama dgn keluhan copywriting
+              /produk sebelumnya. Diganti pernyataan positif langsung. */}
+          <p className="mt-3 text-pretty text-base text-neutral-600">
+            Edukasi seputar garam industri, disusun untuk membantu Anda mengambil
+            keputusan yang tepat.
           </p>
         </div>
 
-        <div className="mt-10">
-          <ArticlesPreviewTabs latestArticles={latestArticles} mostViewedArticles={mostViewedArticles} />
+        {/* Desktop: grid 3-kolom statis */}
+        <div className="mt-8 hidden gap-6 md:mt-12 md:grid md:grid-cols-3">
+          {articles.map((article, i) => (
+            <RevealWrapper key={article.id} variant="reveal-up" delay={i * 80}>
+              <ArticleCard article={article} />
+            </RevealWrapper>
+          ))}
         </div>
 
-        <div className="mt-10 text-center">
+        {/* Mobile (RONDE 6): horizontal scroll/swipe, bukan stack
+            vertikal yang memakan tinggi halaman. */}
+        <div
+          className="-mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 md:hidden"
+          style={{ scrollbarWidth: 'none' }}
+          aria-label="Geser untuk lihat artikel lain"
+        >
+          {articles.map((article) => (
+            <div key={article.id} className="w-[82vw] shrink-0 snap-start">
+              <ArticleCard article={article} />
+            </div>
+          ))}
+          <div className="w-2 shrink-0" aria-hidden="true" />
+        </div>
+
+        <div className="mt-8 text-center md:mt-10">
           <Link
             href="/artikel"
-            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-600 hover:text-brand-teal-700"
+            className="link-arrow font-ui text-sm font-semibold text-brand-teal-600 hover:text-brand-teal-700"
           >
             Lihat Semua Artikel
-            <ArrowRight
-              className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1"
-              aria-hidden="true"
-            />
+            <ArrowRightIcon weight="bold" className="arrow-icon h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       </div>

@@ -14,13 +14,16 @@ import { useForm } from 'react-hook-form'
 import { INDUSTRY_OPTIONS } from '@/lib/validation/rfq-schema'
 import { CALCULATOR_RULES, CAPACITY_UNITS, type CapacityUnit, type IndustryValue } from '@/lib/constants/salt-calculator'
 import { calculateSaltNeeds, type CalculatorOutput } from '@/lib/calculator'
+import { CalculatorIcon } from '@phosphor-icons/react/ssr'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { CalculatorResult } from './CalculatorResult'
 
+// RONDE Tahap 11: radius/tinggi/focus-ring dilepas dari sini — sekarang
+// diatur terpusat oleh `.form-brand` di globals.css (lihat catatan di
+// sana). Sisanya cuma reset appearance <select> bawaan browser.
 const selectClassName =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
+  'w-full border border-input bg-transparent text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
 
 interface FormValues {
   industry: IndustryValue
@@ -53,7 +56,14 @@ export function CalculatorForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-5">
+    // RONDE Tahap 11: `form-brand` (globals.css) memberi radius, tinggi,
+    // & focus-glow teal ke seluruh field sekaligus — tidak perlu
+    // className per-<Input>/<select>. Panel putih supaya form terbaca
+    // sbg satu unit di atas latar salt-50 halaman.
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="form-brand mx-auto max-w-2xl space-y-5 rounded-2xl border border-ink-900/10 bg-white p-6 shadow-sm md:p-8"
+    >
       <div className="space-y-1.5">
         <Label htmlFor="industry">Jenis Industri</Label>
         <select id="industry" {...register('industry')} className={selectClassName}>
@@ -102,9 +112,18 @@ export function CalculatorForm() {
         </div>
       </div>
 
-      <Button type="submit" size="lg" className="w-full">
+      <button
+        type="submit"
+        className="font-ui group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-teal-600 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-teal-500 active:translate-y-0 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus"
+      >
         Hitung Kebutuhan
-      </Button>
+        <CalculatorIcon
+          size={16}
+          weight="bold"
+          className="transition-transform duration-300 group-hover:scale-110"
+          aria-hidden="true"
+        />
+      </button>
     </form>
   )
 }

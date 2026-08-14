@@ -1,21 +1,34 @@
+'use client'
+
 // components/forms/ContactForm.tsx
 // Epic 2 Slice 3 (E2-S3-FE-04) — Form kontak publik.
 // 'use client' — react-hook-form + Zod, submit ke FastAPI POST /contact/send.
-
-'use client'
-
+//
+// RONDE Tahap 10 (2026-08) — "samakan DNA desain /kontak": styling saja
+// (className override di Input/Label/Textarea via cn() — primitif
+// components/ui/ TIDAK diedit langsung, sesuai CLAUDE.md), logika form
+// (validasi, submit, prefill dari query string) TIDAK disentuh sama
+// sekali. BUG SENDIRI ditemukan saat QA ronde ini: directive 'use
+// client' ASLI sempat tidak sengaja terhapus saat mengedit blok komentar
+// di atas file (komentar "'use client' — react-hook-form..." di baris
+// bawah ini HANYA teks penjelas, BUKAN directive-nya) — Next.js langsung
+// gagal build (RSC mencoba import useForm/useSyncExternalStore yg cuma
+// valid di Client Component). Sudah dikembalikan sbg baris literal
+// pertama file, sesuai syarat Next.js (harus statement pertama).
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { PackageIcon, PaperPlaneTiltIcon, CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { apiFetch, ApiFetchError } from '@/lib/api'
 import type { ContactRequest, ContactResponse } from '@/types/api'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+
+const FIELD_CLASS = 'rounded-xl border-ink-900/15 focus-visible:border-brand-teal-500 focus-visible:ring-brand-teal-500/30'
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter').max(100),
@@ -132,12 +145,13 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
   }
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
-      <h2 className="text-2xl font-bold text-ink-700">Kirim Pesan</h2>
+    <div className="rounded-2xl border border-ink-900/10 bg-white p-6 shadow-sm md:p-8">
+      <h2 className="font-ui text-2xl font-semibold text-ink-700">Kirim Pesan</h2>
 
       {linkedProduct && (
-        <div className="mt-4 rounded bg-brand-teal-50 p-3 text-sm text-ink-700">
-          Terkait produk: <strong>{linkedProduct.name}</strong>
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-brand-teal-600/15 bg-brand-teal-50 p-3.5 text-sm text-ink-700">
+          <PackageIcon size={16} weight="duotone" className="shrink-0 text-brand-teal-600" aria-hidden="true" />
+          Terkait produk: <strong className="font-semibold">{linkedProduct.name}</strong>
         </div>
       )}
 
@@ -158,6 +172,7 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
             disabled={isSubmitting}
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'name-error' : undefined}
+            className={FIELD_CLASS}
           />
           {errors.name && (
             <p id="name-error" className="text-sm text-danger-600">
@@ -177,6 +192,7 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
             disabled={isSubmitting}
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
+            className={FIELD_CLASS}
           />
           {errors.email && (
             <p id="email-error" className="text-sm text-danger-600">
@@ -195,6 +211,7 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
             disabled={isSubmitting}
             aria-invalid={!!errors.phone}
             aria-describedby={errors.phone ? 'phone-error' : undefined}
+            className={FIELD_CLASS}
           />
           {errors.phone && (
             <p id="phone-error" className="text-sm text-danger-600">
@@ -215,6 +232,7 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
             disabled={isSubmitting}
             aria-invalid={!!errors.message}
             aria-describedby={errors.message ? 'message-error' : undefined}
+            className={FIELD_CLASS}
           />
           <div className="flex items-center justify-between">
             {errors.message ? (
@@ -234,19 +252,22 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
           type="submit"
           disabled={isSubmitting}
           className={cn(
-            'w-full md:w-auto md:ml-auto md:flex flex justify-center items-center gap-2',
-            'h-11 px-6 bg-brand-teal-600 text-white text-sm font-semibold rounded-md',
-            'hover:bg-brand-teal-500 active:bg-brand-teal-700 transition-colors duration-100',
-            'disabled:opacity-60 disabled:cursor-not-allowed'
+            'font-ui group flex w-full items-center justify-center gap-2 md:ml-auto md:w-auto',
+            'h-11 rounded-xl bg-brand-teal-600 px-6 text-sm font-semibold text-white',
+            'transition-colors duration-100 hover:bg-brand-teal-500 active:bg-brand-teal-700',
+            'focus-visible:outline-none focus-visible:shadow-focus disabled:cursor-not-allowed disabled:opacity-60'
           )}
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              <CircleNotchIcon size={16} weight="bold" className="animate-spin" aria-hidden="true" />
               Mengirim...
             </>
           ) : (
-            'Kirim Pesan'
+            <>
+              Kirim Pesan
+              <PaperPlaneTiltIcon size={16} weight="bold" className="transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden="true" />
+            </>
           )}
         </button>
       </form>

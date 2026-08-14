@@ -1,28 +1,49 @@
 // components/sections/HeroCarousel.tsx
 // Epic 2 Slice 1 (E2-S1-FE-02) — Client leaf dari HeroSection.
 //
-// Tanggung jawab: carousel crossfade + autoplay + pagination dots
-// + stagger Framer Motion untuk teks (wireframe §1).
-// - Autoplay 5s; pause saat hover, dot diklik, reduced-motion,
-//   atau tab tidak terlihat (visibilitychange).
-// - Foto absen (keputusan Fase 0): onError per slide → layer
-//   bg-brand-teal-900 di belakang selalu jadi fallback.
+// RONDE 6 (2026-08) — evaluasi & eksekusi atas 7 problem statement klien,
+// otoritas desain penuh diberikan (lihat pesan klien: "jika kamu punya
+// solusi lebih baik, abaikan saran saya"). Untuk Hero, 3 keluhan:
 //
-// Catatan refactor: CTA Link memakai class `buttonVariants(...)`
-// langsung, bukan `<Button asChild>`. Alasan: proyek pakai Base UI
-// (`@base-ui/react`) yang tidak punya pattern asChild seperti Radix.
-// Menambahkan asChild = melanggar aturan frozen components/ui/.
-// Pattern ini juga idiomatik shadcn untuk anchor (lihat dokumentasi
-// shadcn → "Using as a Link").
+// (a) "Statistik angka tidak menambah trust" — DIEVALUASI, TIDAK dihapus
+//     total: Fondasi Brand v1.0 Nilai 2 (Keandalan yang Dibuktikan)
+//     eksplisit mewajibkan klaim didukung angka spesifik, bukan dihapus.
+//     Yang salah bukan datanya, tapi presentasinya (kotak grid 4-sel
+//     terasa seperti "modul metrik" terpisah dari narasi). Diganti garis
+//     kredensial inline tipis di bawah CTA — tetap ada, tidak lagi berupa
+//     blok kartu berat.
+// (b) "Gambar terkesan amatir" — DISETUJUI, solusi lebih baik: bukan
+//     rombak foto (tidak punya foto baru), tapi ganti ART DIRECTION.
+//     Foto floating-panel dgn 2 badge bertumpuk (sticker-bombed) diganti
+//     foto full-bleed + gradient overlay menyatu ke layout — pola hero
+//     modern yang menutupi kelemahan komposisi foto individual, bukan
+//     menonjolkannya. Badge PackageIcon/SealCheckIcon floating dihapus
+//     (klaim SNI sudah ada di eyebrow, tidak perlu duplikat).
+// (c) "Dark tone kurang cocok" — DISETUJUI: Hero balik ke LIGHT mode
+//     (bg-white/salt-50), motion sebelumnya menumpuk 4 section gelap
+//     (Hero+Industries+HowItWorks+StagedCTA+Footer) di 8 section total —
+//     kini modal disebar: Hero cerah, hanya HowItWorks/Footer tetap gelap
+//     utk ritme, StagedCTA juga dicerahkan (lihat StagedCTASection.tsx).
+//
+// Overlay foto: bg-white/95 solid di mobile (foto nyaris tak terlihat,
+// tekstur halus saja) → bg-gradient-to-r di lg+ (teks tetap terbaca,
+// foto terlihat penuh di sisi kanan). Satu DOM, murni Tailwind responsive,
+// bukan dua struktur berbeda per breakpoint.
+//
+// Logic TIDAK berubah: autoplay 5s, pause on hover/dot-click/
+// reduced-motion/tab-hidden, fallback per-slide on image error.
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { buttonVariants } from '@/components/ui/button'
+import { AnimatedCounter } from '@/components/animations/AnimatedCounter'
+import { Magnetic } from '@/components/interactive/Magnetic'
 import { cn } from '@/lib/utils'
+import type { CompanySettingsMap } from '@/types/api'
 
 export interface HeroSlide {
   src: string
@@ -31,29 +52,50 @@ export interface HeroSlide {
 
 interface HeroCarouselProps {
   slides: HeroSlide[]
+  settings: CompanySettingsMap
   autoPlayMs?: number
 }
 
-// Stagger sesuai wireframe: badge → headline → sub → CTA,
-// easing cubic-bezier(0.25, 0.46, 0.45, 0.94)
+const FALLBACK = { partner_count: 6, cities_served: 9, total_distribution_tons: 353 }
+
+function toNumber(raw: string | undefined, fallback: number): number {
+  const n = Number.parseInt((raw ?? '').trim(), 10)
+  return Number.isFinite(n) && n >= 0 ? n : fallback
+}
+
 const EASE = [0.25, 0.46, 0.45, 0.94] as const
 const container = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 }
 const item = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
 }
 
-export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
+export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarouselProps) {
   const [current, setCurrent] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [failed, setFailed] = useState<Set<number>>(new Set())
   const prefersReduced = useReducedMotion()
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sectionRef = useRef<HTMLElement>(null)
 
-  // Autoplay — berhenti saat paused / reduced motion / tab hidden
+  // RONDE Tahap 3 — poin UMUM "Parallax & Scroll Tracking". Hanya layer
+  // FOTO yang bergerak (bukan overlay/teks), section sudah
+  // `overflow-hidden` jadi celah di tepi saat tergeser otomatis
+  // tertutup/menyatu ke bg-salt-50. Rentang kecil (±26px) — elegan,
+  // bukan "scroll-jacking" yang mengganggu.
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] })
+  const photoY = useTransform(scrollYProgress, [0, 1], [-26, 26])
+
+  const stats = [
+    { label: 'Jenis Garam', value: 5, suffix: '', isStatic: true, delay: 0 },
+    { label: 'Mitra Aktif', value: toNumber(settings.partner_count, FALLBACK.partner_count), suffix: '+', isStatic: false, delay: 100 },
+    { label: 'Kota Dilayani', value: toNumber(settings.cities_served, FALLBACK.cities_served), suffix: '+', isStatic: false, delay: 200 },
+    { label: 'Ton Distribusi', value: toNumber(settings.total_distribution_tons, FALLBACK.total_distribution_tons), suffix: '', isStatic: false, delay: 300 },
+  ]
+
   useEffect(() => {
     if (isPaused || prefersReduced || slides.length <= 1) return
 
@@ -71,7 +113,6 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
     }
   }, [isPaused, prefersReduced, slides.length, autoPlayMs])
 
-  // Klik dot: pindah slide + jeda autoplay 6 detik
   const goTo = useCallback((index: number) => {
     setCurrent(index)
     setIsPaused(true)
@@ -87,107 +128,186 @@ export function HeroCarousel({ slides, autoPlayMs = 5000 }: HeroCarouselProps) {
 
   return (
     <section
-      className="relative flex min-h-[75vh] flex-col items-center justify-center overflow-hidden px-4 py-16 md:min-h-[80vh] md:py-20"
+      ref={sectionRef}
+      className="relative overflow-hidden bg-salt-50"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Hero"
     >
-      {/* Background gradient base */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-teal-900 via-ink-900 to-brand-teal-800" aria-hidden="true" />
-
-      {slides.map((slide, i) =>
-        failed.has(i) ? null : (
-          <div
-            key={slide.src}
-            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-            style={{ opacity: i === current ? 1 : 0 }}
-            aria-hidden={i !== current}
-          >
-            <Image
-              src={slide.src}
-              alt={i === current ? slide.alt : ''}
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover"
-              onError={() => markFailed(i)}
-            />
-          </div>
-        )
-      )}
-
-      {/* Overlay gelap diperkuat untuk kontras teks */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink-900/90 via-ink-900/65 to-ink-900/45" aria-hidden="true" />
-
-      {/* Konten — stagger fadeInUp */}
-      <motion.div
-        className="relative z-10 flex max-w-3xl flex-col items-center text-center"
-        variants={container}
-        initial={prefersReduced ? 'visible' : 'hidden'}
-        animate="visible"
-      >
-        <motion.div variants={item}>
-          <span className="inline-block rounded-full border border-brand-teal-300/50 bg-brand-teal-50/15 px-4 py-1.5 text-sm font-semibold text-brand-teal-100 backdrop-blur-sm">
-            Tersertifikasi SNI
-          </span>
+      {/* Foto full-bleed — background penuh section, bukan panel mengambang.
+          Overlay: solid di mobile, gradient reveal di lg+ (lihat catatan
+          atas file). Layer foto dibungkus motion.div terpisah dari overlay
+          supaya HANYA foto yang parallax, overlay/fade tetap diam. */}
+      <div className="absolute inset-0" aria-hidden="true">
+        <motion.div className="absolute inset-0" style={prefersReduced ? undefined : { y: photoY }}>
+          {slides.map((slide, i) =>
+            failed.has(i) ? null : (
+              <div
+                key={slide.src}
+                className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                style={{ opacity: i === current ? 1 : 0 }}
+              >
+                <Image
+                  src={slide.src}
+                  alt=""
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  className="object-cover"
+                  onError={() => markFailed(i)}
+                />
+              </div>
+            )
+          )}
         </motion.div>
+        {/* RONDE 7: overlay sebelumnya terlalu kuat (foto nyaris hilang).
+            Dikurangi — zona teks (0–35%) tetap solid utk keterbacaan,
+            tapi meluruh jauh lebih cepat sehingga foto jelas terlihat di
+            sisi kanan & tengah. Mobile: /95 → /55 (foto lebih terlihat,
+            teks tetap aman krn latar section sendiri sudah terang).
+            RONDE Tahap 3: di mobile foto ternyata JADI terlalu dominan
+            lagi & menelan teks (keluhan baru, potret 9:16) — overlay flat
+            TIDAK dinaikkan lagi (sudah pernah "terlalu kuat" sebelumnya),
+            solusinya glass panel khusus mobile di sekitar blok teks (lihat
+            di bawah) — legibility datang dari blur lokal, bukan menutup
+            foto secara global lagi. */}
+        <div className="absolute inset-0 bg-white/55 lg:bg-gradient-to-r lg:from-white lg:from-35% lg:via-white/45 lg:via-55% lg:to-white/5" />
+        {/* Fade bawah — batas Hero jangan garis lurus, foto meluruh halus
+            ke warna dasar section (salt-50) di 3 baris terakhir. */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-salt-50 to-transparent md:h-36" />
+      </div>
 
-        <motion.h1
-          variants={item}
-          className="mt-6 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
+      <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16 lg:py-20">
+        {/* RONDE Tahap 3 (poin HERO): panel kaca KHUSUS mobile/potret —
+            fix legibility tanpa menaikkan overlay foto secara global lagi
+            (sudah pernah kebalikannya jadi keluhan di Ronde 7). rounded-3xl
+            + backdrop-blur-md + bg-white/60 memberi kontras terjamin apa
+            pun kecerahan foto di baliknya, sekaligus tetap "nuansa cerah"
+            (bukan overlay gelap). Netral di sm+ (bg/blur/padding dilepas),
+            layout desktop 100% tidak berubah. */}
+        <div className="rounded-3xl bg-white/60 p-5 backdrop-blur-md sm:rounded-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <motion.div
+          variants={container}
+          initial={prefersReduced ? 'visible' : 'hidden'}
+          animate="visible"
+          className="max-w-2xl"
         >
-          Mitra Distribusi Garam SNI Anda: Transparan, Cepat, dan Terverifikasi
-        </motion.h1>
+          <motion.div variants={item} className="rule-index font-ui inline-flex items-center gap-1.5 text-brand-teal-600">
+            <SealCheckIcon size={14} weight="fill" aria-hidden="true" className="text-brand-teal-600" />
+            Distributor Bersertifikasi SNI
+          </motion.div>
 
-        <motion.p
-          variants={item}
-          className="mt-5 max-w-2xl text-base text-white/95 md:text-lg"
-        >
-          Kami menyediakan 5 pilihan garam bersertifikasi untuk kelancaran
-          produksi industri Anda. Mulai dari dokumentasi uji laboratorium hingga
-          legalitas perusahaan, semuanya terbuka untuk Anda. Dapatkan penawaran
-          harga kurang dari 2 menit.
-        </motion.p>
+          {/* RONDE 7: filosofi tipografi "Katalog Produk" (aksen italic
+              berwarna pada kata kunci, dalam typeface yang sama) diterapkan
+              di sini juga — Fraunces italic utk H1 (satu-satunya section
+              yang memang memakai Fraunces), bukan menambah font baru.
+              RONDE Tahap 8: "tanpa ribet" (register kasual/slang) diganti
+              — copywriting Beranda dinilai klien "terlalu AI-generated,
+              kaku/hiperbolis". Diksi B2B yang lebih berwibawa, konsisten
+              dgn tone "Standar yang Konsisten" yg sudah dipakai di Hero
+              /produk. */}
+          <motion.h1
+            variants={item}
+            className="mt-5 text-balance font-display text-[clamp(2.1rem,4.6vw+0.6rem,3.9rem)] font-semibold leading-[1.06] tracking-tight text-ink-900"
+          >
+            Distributor garam SNI untuk industri — transparan dalam proses,{' '}
+            <span className="italic font-medium text-brand-teal-600">konsisten</span> dalam kualitas.
+          </motion.h1>
 
-        <motion.div variants={item} className="mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
-          <Link
-            href="/minta-penawaran"
-            aria-label="Minta penawaran harga sekarang"
-            className={cn(
-              buttonVariants({ size: 'lg' }),
-              'cta-hero-pulse bg-brand-teal-600 text-white hover:bg-brand-teal-500'
-            )}
+          <motion.p
+            variants={item}
+            className="font-ui mt-2 text-sm font-semibold uppercase tracking-wide text-brand-teal-600"
           >
-            Minta Penawaran Sekarang
-            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-          </Link>
-          <Link
-            href="/produk"
-            aria-label="Lihat katalog produk kami"
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'lg' }),
-              'border-white/70 bg-transparent text-white hover:bg-white/10 hover:text-white'
-            )}
+            Garam Lokal, Standar Industri
+          </motion.p>
+
+          <motion.p
+            variants={item}
+            className="mt-5 max-w-xl text-pretty text-[clamp(0.95rem,0.4vw+0.85rem,1.125rem)] leading-relaxed text-ink-700/80"
           >
-            Lihat Produk Kami
-          </Link>
+            Satu mitra untuk lima jenis garam bersertifikasi SNI — lengkap dengan hasil uji
+            laboratorium dan legalitas yang bisa Anda periksa kapan saja. Penawaran harga
+            kami kirimkan dalam hitungan menit, bukan hari.
+          </motion.p>
+
+          <motion.div variants={item} className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+            {/* RONDE Tahap 3 — poin UMUM "Mouse Tracking/Hover": CTA
+                utama bereaksi mengikuti kursor (magnetic-hover), elemen
+                paling sering disorot pengunjung di seluruh beranda. */}
+            <Magnetic strength={10} className="inline-block">
+              <Link
+                href="/minta-penawaran"
+                aria-label="Minta penawaran harga sekarang"
+                className={cn(
+                  buttonVariants({ size: 'lg' }),
+                  'font-ui rounded-xl cta-hero-pulse bg-brand-teal-600 text-white hover:bg-brand-teal-500'
+                )}
+              >
+                Minta Penawaran Sekarang
+                <ArrowRightIcon weight="bold" className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Magnetic>
+            <Link
+              href="/produk"
+              aria-label="Lihat lima produk garam kami"
+              className={cn(
+                buttonVariants({ variant: 'outline', size: 'lg' }),
+                'font-ui rounded-xl border-ink-900/20 bg-white/70 text-ink-900 hover:bg-white hover:text-ink-900'
+              )}
+            >
+              Lihat 5 Produk Garam
+            </Link>
+          </motion.div>
+
+          {/* Garis kredensial — pengganti kotak statistik 4-sel. Data sama
+              (angka tetap ada, Fondasi Brand Nilai 2 wajib spesifik &
+              terverifikasi), tapi disajikan sebagai satu baris tipis
+              beraksen mono, bukan blok kartu terpisah dari narasi. */}
+          <motion.div
+            variants={item}
+            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink-900/10 pt-5"
+            aria-label="Statistik perusahaan"
+          >
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-baseline gap-1.5">
+                {s.isStatic ? (
+                  <span className="mono-tech text-base font-bold text-brand-teal-700">
+                    {s.value}{s.suffix}
+                  </span>
+                ) : (
+                  <AnimatedCounter
+                    target={s.value}
+                    suffix={s.suffix}
+                    staggerDelay={s.delay}
+                    className="mono-tech text-base font-bold text-brand-teal-700"
+                  />
+                )}
+                <span className="font-ui text-xs font-medium text-ink-900/50">{s.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
-      {/* Pagination dots */}
+      {/* Pagination — pojok kanan bawah, kecil & tidak mengganggu foto */}
       {slides.length > 1 && (
-        <div className="absolute bottom-6 z-10 flex gap-2" role="tablist" aria-label="Pilih slide hero">
+        <div
+          className="relative z-10 mx-auto flex max-w-7xl justify-end gap-2 px-4 pb-6 lg:absolute lg:bottom-6 lg:right-8 lg:justify-start lg:pb-0"
+          role="tablist"
+          aria-label="Pilih foto hero"
+        >
           {slides.map((_, i) => (
             <button
               key={i}
               role="tab"
               aria-selected={i === current}
-              aria-label={`Slide ${i + 1} dari ${slides.length}`}
+              aria-label={`Foto ${i + 1} dari ${slides.length}`}
               onClick={() => goTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === current
-                  ? 'w-6 bg-brand-teal-400'
-                  : 'w-2 bg-white/40 hover:bg-white/60'
+                  ? 'w-7 bg-brand-teal-600'
+                  : 'w-1.5 bg-ink-900/20 hover:bg-ink-900/40'
               }`}
             />
           ))}

@@ -425,13 +425,26 @@ export interface Article {
   meta_description: string | null
   view_count: number
   published_at: string | null
+  // Checkpoint 3 (2026-08-15) — field SEO per-artikel.
+  // Migrasi 20260815091000. SEMUANYA nullable dengan fallback di
+  // application layer (lihat komentar kolom di file migrasi):
+  //   meta_title    -> null = pakai `title`
+  //   og_image_url  -> null = pakai `thumbnail_url`
+  //   canonical_url -> null = susun dari `slug`
+  // Karena nullable + fallback, artikel lama tidak perlu di-backfill.
+  meta_title: string | null
+  og_image_url: string | null
+  canonical_url: string | null
 }
 
 // Bentuk mentah row Supabase — thumbnail_path (path relatif bucket), bukan
 // thumbnail_url. Dipetakan ke Article via lib/article-mapper.ts, pola sama
 // dengan ProductRow/Product (photo_path → photo_url).
-export interface ArticleRow extends Omit<Article, 'thumbnail_url'> {
+export interface ArticleRow extends Omit<Article, 'thumbnail_url' | 'og_image_url'> {
   thumbnail_path: string | null
+  // Checkpoint 3: kolom DB menyimpan PATH relatif bucket, bukan URL —
+  // pola sama dgn thumbnail_path. Dikonversi ke og_image_url di mapper.
+  og_image_path: string | null
   is_published: boolean
   created_at: string
   updated_at: string

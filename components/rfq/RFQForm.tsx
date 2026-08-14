@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { submitRFQ, ApiFetchError } from '@/lib/api'
 import { rfqSubmitSchema, type RFQSubmitFormData, INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
 import type { RFQSubmitRequest } from '@/types/api'
@@ -138,7 +138,10 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="space-y-6">
+    // RONDE Tahap 11: `form-brand` — radius, tinggi, & focus-glow teal
+    // seluruh field diatur terpusat di globals.css. Logika RFQ (Zod,
+    // prefill dari /kalkulator, submit ke FastAPI) tidak disentuh.
+    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="form-brand space-y-6">
       <FormSection title="Informasi Perusahaan">
         <div className="space-y-1.5">
           <Label htmlFor="full_name">
@@ -344,11 +347,11 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-teal-600 text-sm font-semibold text-white transition-colors duration-100 hover:bg-brand-teal-500 active:bg-brand-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="font-ui flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-teal-600 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-teal-500 active:translate-y-0 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <CircleNotchIcon size={16} weight="bold" className="animate-spin" aria-hidden="true" />
             Mengirim...
           </>
         ) : (

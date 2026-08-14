@@ -8,8 +8,10 @@
 //             supaya halaman tetap Static (○), bukan Dynamic (ƒ).
 
 import type { Metadata } from 'next'
+import { LightningIcon, ChatCircleIcon } from '@phosphor-icons/react/ssr'
 import { createPublic } from '@/lib/supabase/public'
-import { InnerPageHero } from '@/components/sections/InnerPageHero'
+import { PageHero } from '@/components/sections/PageHero'
+import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { RFQForm } from '@/components/rfq/RFQForm'
 
 export const revalidate = 3600
@@ -55,17 +57,32 @@ export default async function MintaPenawaranPage() {
 
   return (
     <main>
-      <InnerPageHero
-        title="Minta Penawaran Sekarang"
-        subtitle="Dapatkan proposal khusus sesuai kebutuhan bisnis Anda"
-        breadcrumb={[
-          { label: 'Beranda', href: '/' },
-          { label: 'Minta Penawaran' },
+      <PageHero
+        eyebrow="Permintaan Penawaran"
+        title="Dapatkan Penawaran Harga"
+        titleAccent="Sesuai Kebutuhan Anda"
+        subtitle="Sampaikan jenis garam dan volume yang Anda butuhkan. Tim kami menyiapkan penawaran dan menghubungi Anda langsung."
+        breadcrumbLabel="Minta Penawaran"
+        dividerTo="bg-salt-50"
+        credentials={[
+          {
+            icon: <LightningIcon size={16} weight="duotone" className="text-brand-teal-300" aria-hidden="true" />,
+            label: 'Direspons dalam 1×24 Jam',
+          },
+          {
+            icon: <ChatCircleIcon size={16} weight="duotone" className="text-brand-teal-300" aria-hidden="true" />,
+            label: 'Tindak Lanjut via WhatsApp',
+          },
         ]}
       />
-      <section className="container mx-auto max-w-3xl px-4 py-12 md:py-16">
-        <RFQForm availableProducts={availableProducts} />
+
+      <section className="bg-salt-50 px-4 py-14 md:py-20">
+        <div className="mx-auto max-w-3xl">
+          <RFQForm availableProducts={availableProducts} />
+        </div>
       </section>
+
+      <SectionDivider variant="curve" fromClassName="fill-salt-50" toClassName="bg-ink-900" />
     </main>
   )
 }

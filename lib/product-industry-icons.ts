@@ -2,41 +2,44 @@
 // Epic 3 Slice 2 (E3-S2-FE-06 support) — Registry icon per nama industri
 // untuk IndustryList di halaman detail produk. Cover semua nilai
 // `products.industries` yang ada di supabase/seeds/products_seed.sql.
-// Icon dipilih konsisten dengan components/sections/IndustriesGrid.tsx
-// (Epic 2) untuk nama industri yang overlap (Water Treatment, Pakan
-// Ternak, Penyamakan Kulit, industri perikanan).
+//
+// RONDE Tahap 6 (2026-08) — "samakan DNA desain /produk/[slug] dengan
+// Beranda": Lucide (1px outline seragam) diganti Phosphor duotone —
+// sama alasan & sama library dengan migrasi IndustriesGrid.tsx Ronde 4
+// (lihat catatan di sana), supaya TIDAK ADA lagi ikon Lucide tersisa di
+// halaman produk manapun.
 
 import {
-  UtensilsCrossed,
-  Pill,
-  Home,
-  FlaskConical,
-  Shirt,
-  Fish,
-  PawPrint,
-  Sprout,
-  Droplets,
-  Layers,
-  Store,
-  Factory,
-  type LucideIcon,
-} from 'lucide-react'
+  ForkKnifeIcon,
+  PillIcon,
+  HouseIcon,
+  FlaskIcon,
+  TShirtIcon,
+  FishIcon,
+  PawPrintIcon,
+  PlantIcon,
+  DropIcon,
+  StackIcon,
+  StorefrontIcon,
+  FactoryIcon,
+} from '@phosphor-icons/react/ssr'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 
-export const INDUSTRY_ICON_REGISTRY: Record<string, LucideIcon> = {
-  'Makanan & Minuman': UtensilsCrossed,
-  Farmasi: Pill,
-  'Rumah Tangga': Home,
-  Kimia: FlaskConical,
-  Tekstil: Shirt,
-  'Pengolahan Ikan': Fish,
-  'Budidaya Ikan': Fish,
-  Peternakan: PawPrint,
-  'Pakan Ternak': Sprout,
-  'Water Treatment': Droplets,
-  'Penyamakan Kulit': Layers,
-  'Distributor Retail': Store,
+export const INDUSTRY_ICON_REGISTRY: Record<string, PhosphorIcon> = {
+  'Makanan & Minuman': ForkKnifeIcon,
+  Farmasi: PillIcon,
+  'Rumah Tangga': HouseIcon,
+  Kimia: FlaskIcon,
+  Tekstil: TShirtIcon,
+  'Pengolahan Ikan': FishIcon,
+  'Budidaya Ikan': FishIcon,
+  Peternakan: PawPrintIcon,
+  'Pakan Ternak': PlantIcon,
+  'Water Treatment': DropIcon,
+  'Penyamakan Kulit': StackIcon,
+  'Distributor Retail': StorefrontIcon,
 }
 
-export function getIndustryIcon(name: string): LucideIcon {
-  return INDUSTRY_ICON_REGISTRY[name] ?? Factory
+export function getIndustryIcon(name: string): PhosphorIcon {
+  return INDUSTRY_ICON_REGISTRY[name] ?? FactoryIcon
 }

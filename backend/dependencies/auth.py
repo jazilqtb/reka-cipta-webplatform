@@ -70,3 +70,71 @@ def get_current_user(
             detail="Token tidak valid atau sudah expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+# ─────────────────────────────────────────────────────────────────
+# CHECKPOINT 1 (2026-08-15) — Otorisasi, bukan sekadar autentikasi.
+#
+# MASALAH YANG DITUTUP:
+# get_current_user() di atas hanya membuktikan "token ini ditandatangani
+# Supabase dan belum expired" — TIDAK membuktikan pemiliknya berhak
+# masuk admin. Sementara itu backend memakai SERVICE ROLE key
+# (core/supabase.py) yang MEM-BYPASS RLS sepenuhnya. Kombinasinya:
+# siapa pun yang punya akun Supabase valid bisa memanggil endpoint
+# admin dan menembus semua proteksi baris.
+# Signup publik terverifikasi AKTIF (GET /auth/v1/settings ->
+# disable_signup=false), jadi ini bukan risiko teoretis.
+#
+# Sumber kebenaran otorisasi = tabel public.admin_users
+# (migrasi 20260815090000). Dicek di sini via service-role client,
+# jadi tidak bergantung pada RLS maupun custom claim di JWT.
+# ─────────────────────────────────────────────────────────────────
+def require_admin(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """
+    FastAPI dependency — token valid DAN pemiliknya terdaftar sebagai admin.
+    Pakai ini di SEMUA endpoint admin; get_current_user saja tidak cukup.
+
+    Usage:
+        @router.post("/admin-only", dependencies=[Depends(require_admin)])
+    """
+    user_id = current_user.get("sub")
+    if not user_id:
+        logger.error("require_admin: klaim 'sub' tidak ada di token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token tidak valid",
+        )
+
+    # Import lokal — hindari circular import (core.supabase -> core.config)
+    # dan biarkan modul ini tetap bisa di-import saat unit test tanpa
+    # koneksi Supabase.
+    from core.supabase import get_supabase
+
+    try:
+        result = (
+            get_supabase()
+            .table("admin_users")
+            .select("user_id")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as e:
+        # Gagal memverifikasi != boleh masuk. Fail CLOSED.
+        logger.error(f"require_admin: gagal cek admin_users: {e!r}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Verifikasi otorisasi gagal, coba lagi",
+        )
+
+    if not result.data:
+        # Sengaja TIDAK membocorkan bahwa akunnya valid tapi bukan admin.
+        logger.warning(f"require_admin: akses ditolak untuk sub={user_id[:8]}...")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses ditolak",
+        )
+
+    return current_user

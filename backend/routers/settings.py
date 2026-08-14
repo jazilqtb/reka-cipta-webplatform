@@ -9,7 +9,7 @@
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from core.supabase import get_supabase
 from schemas.settings import (
     CompanySettingsResponse,
@@ -34,7 +34,7 @@ EDITABLE_KEYS = {
 
 
 @router.get("/", response_model=CompanySettingsResponse)
-async def get_all_settings(user=Depends(get_current_user)):
+async def get_all_settings(user=Depends(require_admin)):
     """
     [AUTH] Ambil semua company_settings, urut by key.
     Dipakai /admin/settings (Slice 3) untuk populate form.
@@ -66,7 +66,7 @@ async def get_all_settings(user=Depends(get_current_user)):
 @router.patch("/", response_model=CompanySettingsResponse)
 async def update_settings(
     payload: CompanySettingsBulkUpdate,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin),
 ):
     """
     [AUTH] Update satu atau lebih field di company_settings.

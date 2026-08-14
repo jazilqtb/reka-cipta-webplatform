@@ -29,7 +29,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from core.supabase import get_supabase
-from dependencies.auth import get_current_user
+from dependencies.auth import get_current_user, require_admin
 from schemas.proposal_settings import GenerateProposalRequest
 from schemas.rfq import (
     RFQLead,
@@ -151,7 +151,7 @@ async def submit_rfq(
 @router.get(
     "/leads",
     response_model=RFQLeadListResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def list_leads(
     status: str | None = Query(None),
@@ -188,7 +188,7 @@ async def list_leads(
 @router.get(
     "/leads/{lead_id}",
     response_model=RFQLeadDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def get_lead_detail(lead_id: str) -> RFQLeadDetailResponse:
     """[AUTH] Detail 1 lead + histori status (sorted terbaru dulu)."""
@@ -226,7 +226,7 @@ async def get_lead_detail(lead_id: str) -> RFQLeadDetailResponse:
 @router.patch(
     "/leads/{lead_id}",
     response_model=RFQLeadDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def update_lead(lead_id: str, payload: RFQLeadUpdateRequest) -> RFQLeadDetailResponse:
     """[AUTH] Update status dan/atau admin_notes. Whitelist di-enforce oleh
@@ -258,7 +258,7 @@ async def update_lead(lead_id: str, payload: RFQLeadUpdateRequest) -> RFQLeadDet
 @router.post(
     "/wa-template",
     response_model=WATemplateResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def generate_wa_template_endpoint(payload: WATemplateRequest) -> WATemplateResponse:
     """[AUTH] Generate template pesan WA berdasarkan status lead saat ini."""
@@ -307,7 +307,7 @@ async def _fetch_lead_or_404(supabase, lead_id: str) -> dict:
 @router.post(
     "/leads/{lead_id}/generate-proposal",
     response_model=RFQLeadDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def generate_proposal(
     lead_id: str,
@@ -368,7 +368,7 @@ async def generate_proposal(
 @router.post(
     "/leads/{lead_id}/send-proposal",
     response_model=RFQLeadDetailResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def send_proposal_endpoint(lead_id: str) -> RFQLeadDetailResponse:
     """[AUTH] Generate PDF dari proposal_html tersimpan + kirim ke email
@@ -417,7 +417,7 @@ async def send_proposal_endpoint(lead_id: str) -> RFQLeadDetailResponse:
 
 @router.get(
     "/leads/{lead_id}/proposal.pdf",
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def download_proposal_pdf(lead_id: str) -> Response:
     """[AUTH] Download PDF on-demand (AR-03 — tidak di-cache/persist)."""

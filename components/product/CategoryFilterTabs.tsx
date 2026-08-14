@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tabs } from '@base-ui/react/tabs'
+import { motion } from 'framer-motion'
 import { ProductGrid } from './ProductGrid'
 import type { Product, ProductCategory } from '@/types/api'
 
@@ -75,19 +76,56 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
     return products.filter((product) => product.category === activeTab)
   }, [products, activeTab])
 
+  // RONDE Tahap 4: jumlah per kategori — sentuhan mono-tech kecil yang
+  // sama bahasanya dgn angka statistik di seluruh beranda (mono-tech,
+  // tabular-nums), bukan cuma label teks polos.
+  const counts = useMemo(() => {
+    const map: Record<TabValue, number> = { all: products.length, halus: 0, kasar: 0, industri: 0 }
+    for (const p of products) map[p.category]++
+    return map
+  }, [products])
+
   return (
     <Tabs.Root value={activeTab} onValueChange={(value) => setOverrideTab(value as TabValue)}>
-      <Tabs.List className="mb-8 flex gap-2 overflow-x-auto border-b border-neutral-200">
-        {TAB_VALUES.map((value) => (
-          <Tabs.Tab
-            key={value}
-            value={value}
-            className="whitespace-nowrap border-b-2 border-transparent px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:text-ink-700 data-[active]:border-brand-teal-600 data-[active]:font-semibold data-[active]:text-brand-teal-700"
-          >
-            {TAB_LABELS[value]}
-          </Tabs.Tab>
-        ))}
-      </Tabs.List>
+      {/* RONDE Tahap 4 — poin UMUM "interaksi": underline tab lama diganti
+          segmented pill control (bahasa bentuk sama dgn .tag-pill di
+          seluruh beranda) + indikator aktif yg SLIDE animasi (Framer
+          Motion layoutId — bukan snap instan), konsisten dgn level
+          interaksi Beranda baru. */}
+      <div className="overflow-x-auto">
+        <Tabs.List className="mb-8 inline-flex gap-1 rounded-full border border-ink-900/10 bg-white p-1 font-ui md:mb-12">
+          {TAB_VALUES.map((value) => (
+            <Tabs.Tab
+              key={value}
+              value={value}
+              className="relative whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-ink-700/60 transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus data-[active]:text-white"
+            >
+              {/* BUG (ditemukan & diperbaiki saat QA visual): `-z-10` di
+                  sini bukan cuma menaruh indikator di belakang LABEL
+                  (tujuan semula) — karena tombol tab (`position:relative`
+                  TANPA z-index sendiri) tidak membentuk stacking context
+                  baru, z-index NEGATIF pada child-nya "bocor" ke stacking
+                  context PARENT (Tabs.List, `bg-white`), jadi pil teal
+                  tenggelam total di BALIK background putih list-nya —
+                  bukan sekadar di belakang teks. Fix: hapus z-index
+                  negatif (urutan DOM — indikator dulu, baru label —
+                  sudah cukup menaruhnya di bawah), label diberi
+                  `relative z-10` eksplisit sbg jaminan. */}
+              {activeTab === value && (
+                <motion.span
+                  layoutId="category-tab-pill"
+                  className="absolute inset-0 rounded-full bg-brand-teal-600"
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )}
+              <span className="relative z-10 inline-flex items-center gap-1.5">
+                {TAB_LABELS[value]}
+                <span className="mono-tech text-[10px] opacity-70">{counts[value]}</span>
+              </span>
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </div>
 
       <Tabs.Panel value={activeTab}>
         {filteredProducts.length === 0 && activeTab !== 'all' ? (
@@ -96,7 +134,7 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
             <button
               type="button"
               onClick={() => setOverrideTab('all')}
-              className="text-sm font-medium text-brand-teal-600 underline-offset-4 hover:underline"
+              className="link-arrow font-ui inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-600 hover:text-brand-teal-700"
             >
               Lihat semua produk
             </button>

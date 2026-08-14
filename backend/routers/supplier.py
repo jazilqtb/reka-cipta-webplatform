@@ -19,7 +19,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from core.supabase import get_supabase
-from dependencies.auth import get_current_user
+from dependencies.auth import require_admin
 from schemas.supplier import (
     Supplier,
     SupplierListResponse,
@@ -100,7 +100,7 @@ async def register_supplier(
 @router.get(
     "",
     response_model=SupplierListResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def list_suppliers(
     status: str | None = Query(None),
@@ -136,7 +136,7 @@ async def list_suppliers(
 @router.get(
     "/{supplier_id}",
     response_model=Supplier,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def get_supplier_detail(supplier_id: str) -> Supplier:
     """[AUTH] Detail 1 supplier. R-56: tidak ada history — response Supplier
@@ -161,7 +161,7 @@ async def get_supplier_detail(supplier_id: str) -> Supplier:
 @router.patch(
     "/{supplier_id}",
     response_model=Supplier,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def update_supplier(supplier_id: str, payload: SupplierUpdateRequest) -> Supplier:
     """[AUTH] Update status dan/atau admin_notes. Whitelist di-enforce oleh
@@ -192,7 +192,7 @@ async def update_supplier(supplier_id: str, payload: SupplierUpdateRequest) -> S
 @router.post(
     "/wa-template",
     response_model=SupplierWATemplateResponse,
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],
 )
 async def generate_supplier_wa_template_endpoint(
     payload: SupplierWATemplateRequest,

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { InnerPageHero } from '@/components/sections/InnerPageHero'
+import { AboutHero } from '@/components/sections/AboutHero'
 import { CompanyTimeline } from '@/components/sections/CompanyTimeline'
 import { VisiMisi } from '@/components/sections/VisiMisi'
 import { OrgStructure } from '@/components/sections/OrgStructure'
-import { LegalDocsGrid } from '@/components/sections/LegalDocsGrid'
+import { AboutCTA } from '@/components/sections/AboutCTA'
 
 export const revalidate = 86400 // 24 jam
 
@@ -21,15 +21,16 @@ export const metadata: Metadata = {
 export default function TentangKamiPage() {
   return (
     <main>
-      <InnerPageHero
-        title="Tentang Kami"
-        subtitle="Distributor garam yang membangun kepercayaan melalui transparansi, konsistensi, dan dokumentasi."
-        breadcrumb={[{ label: 'Beranda', href: '/' }, { label: 'Tentang Kami' }]}
-      />
+      {/* RONDE Tahap 8: section Legalitas (LegalDocsGrid) DIHAPUS TOTAL —
+          klien: "tidak perlu menampilkan dokumen resmi perusahaan di
+          antarmuka publik". Komponen pendukungnya (LegalDocsGrid.tsx,
+          LegalDocCard.tsx, LegalDocModal.tsx) juga sudah dihapus dari
+          repo, bukan cuma disembunyikan dari sini. */}
+      <AboutHero />
       <CompanyTimeline />
       <VisiMisi />
       <OrgStructure />
-      <LegalDocsGrid />
+      <AboutCTA />
     </main>
   )
 }

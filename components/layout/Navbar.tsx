@@ -1,9 +1,29 @@
+// components/layout/Navbar.tsx
+// Epic 1 (E1-ENG-20) — Navbar desktop + mobile drawer.
+//
+// RONDE Tahap 3 (2026-08) — poin UMUM "Mobile Hamburger Menu": drawer
+// mobile lama (panel putih 280px di sisi kanan, list sederhana) dinilai
+// klien "terputus dari branding baru" — beranda sekarang bermodal
+// gelap (ink-900/teal-gradient) di banyak section (HowItWorks, Footer,
+// StagedCTASection) dgn tipografi ekspresif (aksen italic teal) dan
+// micro-interaction (stagger reveal). Drawer putih datar tanpa animasi
+// terasa seperti komponen dari desain lama yg ketinggalan.
+//
+// Rombak: full-screen overlay gelap (gradient ink-950→ink-900, +
+// .bg-salt-texture yg SAMA dipakai Footer/HowItWorks/StagedCTA —
+// bukan motif baru, demi kohesi), nav link tipografi besar dgn aksen
+// italic teal saat aktif (filosofi sama dgn H2 section lain), stagger
+// entrance via Framer Motion (bukan CSS transition polos), ikon
+// hamburger↔close morph animasi (bukan swap instan). Desktop nav TIDAK
+// disentuh — hanya cakupan <lg (poin ini murni "mobile hamburger
+// menu").
 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Menu, X, MessageCircle, Mail, ArrowRight, Sprout } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ListIcon, XIcon, ChatCircleIcon, EnvelopeSimpleIcon, ArrowRightIcon, PlantIcon } from '@phosphor-icons/react/ssr'
 import { NAV_ITEMS, SUPPLIER_LINK, CTA_LINK } from '@/constants/navigation'
 import { Logo } from '@/components/brand/Logo'
 import { generateWALink } from '@/lib/wa-link'
@@ -16,6 +36,16 @@ interface NavbarProps {
 function isNavActive(href: string, pathname: string, exact: boolean): boolean {
   if (exact) return pathname === href
   return pathname.startsWith(href)
+}
+
+const EASE = [0.25, 0.46, 0.45, 0.94] as const
+const drawerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.055, delayChildren: 0.12 } },
+}
+const drawerItem = {
+  hidden: { opacity: 0, x: 24 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: EASE } },
 }
 
 export function Navbar({ whatsapp1, email }: NavbarProps) {
@@ -63,14 +93,18 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
         Langsung ke konten
       </a>
 
+      {/* Strip aksen tipis — penanda "dokumen resmi", bukan navbar generik
+          flat. Garis, bukan shadow, sebagai unit pemisah utama. */}
+      <div className="sticky top-0 z-[1001] h-[3px] bg-gradient-to-r from-ink-950 via-brand-teal-600 to-ink-950" aria-hidden="true" />
+
       <header
         className={[
-          'sticky top-0 z-[1000] h-16',
-          'bg-white/95 backdrop-blur-sm',
-          'border-b transition-all duration-200',
+          'sticky top-[3px] z-[1000] h-[60px] md:h-[68px]',
+          'bg-white/97 backdrop-blur-sm',
+          'border-b transition-[border-color,box-shadow] duration-200',
           isScrolled
-            ? 'border-neutral-200 shadow-sm'
-            : 'border-neutral-100',
+            ? 'border-ink-900/12 shadow-[0_1px_0_rgba(10,30,28,0.05)]'
+            : 'border-ink-900/[0.06]',
         ].join(' ')}
       >
         <nav
@@ -78,11 +112,19 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
           role="navigation"
           aria-label="Navigasi utama"
         >
-          {/* Logo */}
-          <Logo variant="light" height={36} />
+          {/* Logo + tagline — tagline hanya muncul di desktop, penguat
+              brand recall bagi pengunjung yang datang langsung ke beranda */}
+          <div className="flex items-center gap-3">
+            <Logo variant="light" height={34} />
+            <div className="hidden xl:block h-8 w-px bg-ink-900/10" aria-hidden="true" />
+            <p className="hidden xl:block font-display text-[13px] italic leading-tight text-ink-700/60">
+              Garam Lokal,<br />Standar Industri
+            </p>
+          </div>
 
-          {/* Nav links — desktop */}
-          <ul className="hidden lg:flex items-center gap-1" role="list">
+          {/* Nav links — desktop. font-ui (Space Grotesk): suara struktural
+              navigasi, bukan lagi Plus Jakarta Sans yg sama dgn body text. */}
+          <ul className="hidden lg:flex items-center gap-0.5 font-ui" role="list">
             {NAV_ITEMS.map((item) => {
               const active = isNavActive(item.href, pathname, item.matchExact)
               return (
@@ -90,11 +132,11 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                   <Link
                     href={item.href}
                     className={[
-                      'nav-underline px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150',
+                      'nav-underline px-3 py-2 text-sm font-medium transition-colors duration-150',
                       'focus-visible:outline-none focus-visible:shadow-focus',
                       active
                         ? 'text-brand-teal-600 font-semibold'
-                        : 'text-neutral-600 hover:text-brand-teal-700',
+                        : 'text-ink-700/70 hover:text-brand-teal-700',
                     ].join(' ')}
                     aria-current={active ? 'page' : undefined}
                   >
@@ -103,137 +145,195 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                 </li>
               )
             })}
+            <li className="ml-1 flex items-center">
+              <span className="h-4 w-px bg-ink-900/10" aria-hidden="true" />
+            </li>
             <li>
               <Link
                 href={SUPPLIER_LINK.href}
-                className="px-3 py-2 rounded-md text-sm font-medium text-sand-700 hover:text-sand-600 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus flex items-center gap-1.5"
+                className="px-3 py-2 text-sm font-medium text-sand-700 hover:text-sand-600 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus flex items-center gap-1.5"
               >
-                <Sprout size={14} aria-hidden="true" />
+                <PlantIcon size={14} weight="duotone" aria-hidden="true" />
                 {SUPPLIER_LINK.label}
               </Link>
             </li>
           </ul>
 
           {/* CTA + Hamburger */}
-          <div className="flex items-center gap-2">
-            {/* CTA button — desktop */}
+          <div className="flex items-center gap-2.5">
+            {/* WhatsApp quick-chat — kanal paling familiar bagi mitra B2B
+                Indonesia (Fondasi Brand §7.3). Icon-only, desktop saja.
+                rounded-xl — satu-satunya radius tombol di beranda (lihat
+                aturan bentuk Ronde 4 di globals.css). */}
+            <a
+              href={generateWALink(whatsapp1, 'Halo, saya ingin bertanya tentang produk garam Reka Cipta Indonesia.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Chat via WhatsApp"
+              className="hidden rounded-xl lg:inline-flex items-center justify-center h-9 w-9 border border-ink-900/10 text-ink-700/60 hover:border-brand-teal-300 hover:bg-brand-teal-50 hover:text-brand-teal-600 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-150"
+            >
+              <ChatCircleIcon size={17} weight="duotone" aria-hidden="true" />
+            </a>
+
+            {/* CTA button — desktop. rounded-xl, arrow-slide on hover. */}
             <Link
               href={CTA_LINK.href}
-              className="hidden lg:inline-flex items-center gap-2 h-9 px-4 bg-brand-teal-600 text-white text-sm font-semibold rounded-md shadow-sm hover:bg-brand-teal-500 hover:-translate-y-0.5 hover:shadow-md active:bg-brand-teal-700 active:scale-[0.97] active:shadow-none focus-visible:outline-none focus-visible:shadow-focus transition-all duration-100"
+              className="link-arrow font-ui rounded-xl hidden lg:inline-flex items-center gap-2 h-9 px-4 bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-150"
             >
               {CTA_LINK.label}
-              <ArrowRight size={16} aria-hidden="true" />
+              <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
             </Link>
 
-            {/* Hamburger — mobile */}
+            {/* Hamburger — mobile. Ikon morph animasi (bukan swap instan). */}
             <button
-              className="lg:hidden flex items-center justify-center h-10 w-10 rounded-md text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-100"
+              className="lg:hidden relative flex items-center justify-center h-10 w-10 rounded-xl text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-100"
               onClick={() => setIsOpen((v) => !v)}
               aria-label={isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
               aria-expanded={isOpen}
               aria-controls="mobile-nav-drawer"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={isOpen ? 'close' : 'open'}
+                  initial={{ opacity: 0, rotate: -45, scale: 0.6 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 45, scale: 0.6 }}
+                  transition={{ duration: 0.2, ease: EASE }}
+                  className="flex items-center justify-center"
+                >
+                  {isOpen ? <XIcon size={24} weight="bold" /> : <ListIcon size={24} weight="bold" />}
+                </motion.span>
+              </AnimatePresence>
             </button>
           </div>
         </nav>
       </header>
 
-      {/* ── Mobile Drawer ──────────────────────────────── */}
-      {/* Backdrop */}
-      <div
-        className={[
-          'fixed inset-0 z-[999] bg-black/50 backdrop-blur-[2px] lg:hidden',
-          'transition-opacity duration-300',
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
-        ].join(' ')}
-        aria-hidden="true"
-        onClick={() => setIsOpen(false)}
-      />
-
-      {/* Drawer panel */}
-      <div
-        id="mobile-nav-drawer"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Menu navigasi"
-        className={[
-          'fixed top-16 right-0 bottom-0 z-[1001] w-[280px] max-w-[80vw]',
-          'bg-white border-l border-neutral-200 shadow-xl',
-          'overflow-y-auto lg:hidden',
-          'transition-transform duration-300 ease-[cubic-bezier(0,0,0.2,1)]',
-          isOpen ? 'translate-x-0' : 'translate-x-full',
-        ].join(' ')}
-      >
-        <div className="py-4 px-4">
-          {/* Nav items */}
-          <ul className="space-y-1" role="list">
-            {NAV_ITEMS.map((item) => {
-              const active = isNavActive(item.href, pathname, item.matchExact)
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={[
-                      'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-colors duration-100',
-                      'focus-visible:outline-none focus-visible:shadow-focus',
-                      active
-                        ? 'bg-brand-teal-50 text-brand-teal-700 font-semibold'
-                        : 'text-neutral-700 hover:bg-neutral-50',
-                    ].join(' ')}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    {item.icon && <item.icon size={20} aria-hidden="true" className="text-neutral-400" />}
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-
-          <hr className="my-3 border-neutral-200" />
-
-          {/* Supplier link */}
-          <Link
-            href={SUPPLIER_LINK.href}
-            className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-sand-700 hover:bg-sand-50 transition-colors duration-100 focus-visible:outline-none focus-visible:shadow-focus"
+      {/* ── Mobile Drawer — full-screen, gelap, menyatu dgn estetika
+          section StagedCTA/HowItWorks/Footer ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            id="mobile-nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu navigasi"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className="fixed inset-0 z-[1001] overflow-y-auto bg-gradient-to-br from-ink-950 via-ink-900 to-ink-900 lg:hidden"
           >
-            <Sprout size={20} aria-hidden="true" className="text-sand-500" />
-            {SUPPLIER_LINK.label}
-          </Link>
-
-          <hr className="my-3 border-neutral-200" />
-
-          {/* CTA button — mobile */}
-          <Link
-            href={CTA_LINK.href}
-            className="flex items-center justify-center gap-2 w-full h-11 px-4 bg-brand-teal-600 text-white text-base font-semibold rounded-lg shadow-sm hover:bg-brand-teal-500 active:bg-brand-teal-700 active:scale-[0.97] transition-all duration-100 focus-visible:outline-none focus-visible:shadow-focus"
-          >
-            {CTA_LINK.label}
-            <ArrowRight size={18} aria-hidden="true" />
-          </Link>
-
-          {/* Kontak mini */}
-          <div className="mt-6 pt-4 border-t border-neutral-100 space-y-2">
-            <a
-              href={generateWALink(whatsapp1)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-teal-600 transition-colors duration-150"
+            {/* RONDE Tahap 3: .bg-salt-texture sempat dipasang di sini,
+                sekaligus memicu bug cascade-layer (unlayered custom class
+                menang mutlak atas utility `fixed` — didiagnosis & di-fix
+                saat itu dgn memisah tekstur ke child <div> terpisah).
+                RONDE Tahap 8: tekstur itu sendiri DICABUT TOTAL — klien
+                tidak suka motif garis di section manapun. Diganti mesh
+                gradient lembut, pola sama dgn Hero /produk & /tentang-kami
+                (radial-gradient diklaster, bukan garis berulang). */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle 320px at 90% -10%, rgba(15,158,139,0.22), transparent), ' +
+                  'radial-gradient(circle 260px at 10% 100%, rgba(27,191,170,0.12), transparent)',
+              }}
+              aria-hidden="true"
+            />
+            <motion.div
+              initial={{ y: -16 }}
+              animate={{ y: 0 }}
+              exit={{ y: -16 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="flex min-h-full flex-col px-6 pb-8 pt-[76px] font-ui"
             >
-              <MessageCircle size={16} aria-hidden="true" />
-              {whatsapp1}
-            </a>
-            <a
-              href={`mailto:${email}`}
-              className="flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-teal-600 transition-colors duration-150"
-            >
-              <Mail size={16} aria-hidden="true" />
-              {email}
-            </a>
-          </div>
-        </div>
-      </div>
+              {/* Close — tap target besar, pojok kanan atas (ikon utama
+                  sudah morph di header, ini duplikat aksesibel di dalam
+                  overlay itu sendiri) */}
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Tutup menu navigasi"
+                className="absolute right-4 top-[15px] flex h-10 w-10 items-center justify-center rounded-xl text-white/70 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:shadow-focus-dark"
+              >
+                <XIcon size={24} weight="bold" aria-hidden="true" />
+              </button>
+
+              {/* Nav items — tipografi besar & ekspresif, aksen italic
+                  teal saat aktif (filosofi sama dgn H2 "Katalog Produk"
+                  dkk), stagger reveal saat drawer terbuka. */}
+              <motion.ul variants={drawerContainer} initial="hidden" animate="visible" className="mt-4 space-y-1" role="list">
+                {NAV_ITEMS.map((item) => {
+                  const active = isNavActive(item.href, pathname, item.matchExact)
+                  return (
+                    <motion.li key={item.href} variants={drawerItem}>
+                      <Link
+                        href={item.href}
+                        className={[
+                          'flex items-center gap-3 rounded-xl py-2.5 text-[28px] font-semibold leading-tight transition-colors duration-150',
+                          'focus-visible:outline-none focus-visible:shadow-focus-dark',
+                          active ? 'text-white' : 'text-white/55 hover:text-white/85',
+                        ].join(' ')}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        {active && <span className="italic font-medium text-brand-teal-300">/</span>}
+                        {item.label}
+                      </Link>
+                    </motion.li>
+                  )
+                })}
+              </motion.ul>
+
+              <motion.div variants={drawerItem} initial="hidden" animate="visible" className="mt-2">
+                <Link
+                  href={SUPPLIER_LINK.href}
+                  className="flex items-center gap-2.5 rounded-xl py-2.5 text-base font-medium text-sand-300 hover:text-sand-200 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus-dark"
+                >
+                  <PlantIcon size={18} weight="duotone" aria-hidden="true" />
+                  {SUPPLIER_LINK.label}
+                </Link>
+              </motion.div>
+
+              {/* Spacer dorong CTA + kontak ke bawah layar */}
+              <div className="flex-1" />
+
+              <motion.div variants={drawerItem} initial="hidden" animate="visible">
+                <Link
+                  href={CTA_LINK.href}
+                  className="link-arrow font-ui rounded-xl flex items-center justify-center gap-2 w-full h-12 px-4 bg-brand-teal-600 text-white text-base font-semibold hover:bg-brand-teal-500 active:bg-brand-teal-700 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus-dark"
+                >
+                  {CTA_LINK.label}
+                  <ArrowRightIcon size={18} weight="bold" className="arrow-icon" aria-hidden="true" />
+                </Link>
+              </motion.div>
+
+              <motion.div
+                variants={drawerItem}
+                initial="hidden"
+                animate="visible"
+                className="mt-6 flex flex-col gap-2.5 border-t border-white/10 pt-5 font-sans"
+              >
+                <a
+                  href={generateWALink(whatsapp1)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-white/50 hover:text-brand-teal-300 transition-colors duration-150"
+                >
+                  <ChatCircleIcon size={16} weight="duotone" aria-hidden="true" />
+                  {whatsapp1}
+                </a>
+                <a
+                  href={`mailto:${email}`}
+                  className="flex items-center gap-2 text-sm text-white/50 hover:text-brand-teal-300 transition-colors duration-150"
+                >
+                  <EnvelopeSimpleIcon size={16} weight="duotone" aria-hidden="true" />
+                  {email}
+                </a>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
