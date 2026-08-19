@@ -9,27 +9,26 @@
 
 import { Suspense } from 'react'
 import { AdminHeader } from '@/components/layout/AdminHeader'
-import { LeadsKanbanBoard } from '@/components/admin/lead/LeadsKanbanBoard'
+import { LeadsWorkspace } from '@/components/admin/lead/LeadsWorkspace'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Pipeline Leads',
+  title: 'Leads & RFQ',
 }
 
 export default function AdminLeadsPage() {
   return (
     <>
-      <AdminHeader title="Pipeline Leads" breadcrumb="Leads & RFQ" />
+      <AdminHeader title="Leads & RFQ" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-[1440px] mx-auto space-y-4 page-transition">
-          <p className="text-sm text-neutral-600">
-            Kelola leads dari form Minta Penawaran. Drag kartu antar kolom untuk update status.
-          </p>
-
-          <Suspense fallback={<p className="text-sm text-neutral-400">Memuat...</p>}>
-            <LeadsKanbanBoard />
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="page-transition mx-auto max-w-[1600px]">
+          {/* Kalimat pengantar lama ("Drag kartu antar kolom…") dihapus:
+              instruksinya sudah tidak benar sejak Kanban bukan tampilan
+              utama, dan toolbar di bawah sudah menjelaskan dirinya sendiri. */}
+          <Suspense fallback={<p className="text-sm text-neutral-400">Memuat…</p>}>
+            <LeadsWorkspace />
           </Suspense>
         </div>
       </main>
