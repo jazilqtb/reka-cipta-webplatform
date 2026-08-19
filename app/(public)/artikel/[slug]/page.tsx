@@ -19,6 +19,7 @@
 //   "Wawasan Industri", disamakan dgn ArticleCard & CategoryTabs.
 // Data fetching, sanitizer, view tracker, JSON-LD TIDAK disentuh.
 
+import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -35,11 +36,6 @@ import { RelatedArticles } from '@/components/article/RelatedArticles'
 import type { Article } from '@/types/api'
 
 export const revalidate = 3600
-
-const CATEGORY_LABEL: Record<Article['category'], string> = {
-  education: 'Wawasan Industri',
-  company_news: 'Berita Perusahaan',
-}
 
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const supabase = createPublic()
@@ -133,7 +129,7 @@ export default async function ArticleDetailPage({
       <ArticleViewTracker slug={article.slug} />
 
       <PageHero
-        eyebrow={CATEGORY_LABEL[article.category]}
+        eyebrow={ARTICLE_CATEGORY_LABEL[article.category]}
         title={article.title}
         breadcrumbLabel={article.title}
         breadcrumbParent={{ label: 'Artikel', href: '/artikel' }}

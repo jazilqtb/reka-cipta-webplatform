@@ -14,7 +14,7 @@ import { LeadsKanbanBoard } from '@/components/admin/lead/LeadsKanbanBoard'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Pipeline Leads — Admin RCI',
+  title: 'Pipeline Leads',
 }
 
 export default function AdminLeadsPage() {

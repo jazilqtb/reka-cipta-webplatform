@@ -12,7 +12,7 @@ import { LeadDetailView } from '@/components/admin/lead/LeadDetailView'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Detail Lead — Admin RCI',
+  title: 'Detail Lead',
 }
 
 export default async function LeadDetailPage({

@@ -4,7 +4,7 @@
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { ArticleForm } from '@/components/admin/article/ArticleForm'
 
-export const metadata = { title: 'Tambah Artikel — Admin RCI' }
+export const metadata = { title: 'Tambah Artikel' }
 
 export default function NewArticlePage() {
   return (

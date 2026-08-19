@@ -1,6 +1,7 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { AdminSidebar } from '@/components/layout/AdminSidebar'
+import { AdminShell } from '@/components/layout/AdminShell'
 
 export const metadata = {
   title: {
@@ -48,12 +49,15 @@ export default async function AdminLayout({
     redirect('/admin/login?denied=1')
   }
 
+  // CP1 — lebar sidebar dibaca dari cookie DI SERVER supaya render pertama
+  // sudah benar. Kalau state ini hanya hidup di localStorage, sidebar akan
+  // berkedip dari lebar ke sempit di setiap muat halaman.
+  const cookieStore = await cookies()
+  const initialCollapsed = cookieStore.get('admin_sidebar')?.value === 'collapsed'
+
   return (
-    <div className="flex min-h-dvh bg-neutral-50">
-      <AdminSidebar userEmail={user.email ?? ''} />
-      <div className="flex-1 flex flex-col lg:ml-[240px]">
-        {children}
-      </div>
-    </div>
+    <AdminShell userEmail={user.email ?? ''} initialCollapsed={initialCollapsed}>
+      {children}
+    </AdminShell>
   )
 }

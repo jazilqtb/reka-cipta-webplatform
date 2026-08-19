@@ -14,7 +14,7 @@ import { AdminHeader } from '@/components/layout/AdminHeader'
 import { PromptEditor } from '@/components/admin/settings/PromptEditor'
 
 export const metadata = {
-  title: 'Pengaturan Proposal — Admin RCI',
+  title: 'Pengaturan Proposal',
 }
 
 export default function AdminProposalSettingsPage() {

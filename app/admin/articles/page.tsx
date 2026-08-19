@@ -18,7 +18,7 @@ import type { ArticleRow } from '@/types/api'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Manajemen Artikel — Admin RCI',
+  title: 'Manajemen Artikel',
 }
 
 export default async function AdminArticlesPage() {

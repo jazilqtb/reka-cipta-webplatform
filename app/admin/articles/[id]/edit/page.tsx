@@ -8,7 +8,7 @@ import { AdminHeader } from '@/components/layout/AdminHeader'
 import { ArticleForm } from '@/components/admin/article/ArticleForm'
 import type { ArticleAdmin, ArticleRow } from '@/types/api'
 
-export const metadata = { title: 'Edit Artikel — Admin RCI' }
+export const metadata = { title: 'Edit Artikel' }
 
 export default async function EditArticlePage({
   params,

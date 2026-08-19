@@ -9,7 +9,7 @@ import { AdminHeader } from '@/components/layout/AdminHeader'
 import { SettingsForm } from '@/components/admin/SettingsForm'
 
 export const metadata = {
-  title: 'Pengaturan Kontak — Admin RCI',
+  title: 'Pengaturan Kontak',
 }
 
 export default function AdminSettingsPage() {

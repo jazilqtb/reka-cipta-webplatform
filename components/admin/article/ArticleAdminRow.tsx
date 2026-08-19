@@ -13,12 +13,8 @@ import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import { Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { toggleArticlePublish, deleteArticle, ApiFetchError } from '@/lib/api'
+import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import type { ArticleCategory } from '@/types/api'
-
-const CATEGORY_LABEL: Record<ArticleCategory, string> = {
-  education: 'Edukasi Garam',
-  company_news: 'Berita Perusahaan',
-}
 
 export interface ArticleAdminRowData {
   id: string
@@ -74,7 +70,7 @@ export function ArticleAdminRow({ article }: { article: ArticleAdminRowData }) {
       </td>
       <td className="px-4 py-3">
         <span className="inline-flex items-center rounded bg-brand-teal-50 px-2 py-0.5 text-xs font-medium text-brand-teal-700">
-          {CATEGORY_LABEL[article.category]}
+          {ARTICLE_CATEGORY_LABEL[article.category]}
         </span>
       </td>
       <td className="px-4 py-3">

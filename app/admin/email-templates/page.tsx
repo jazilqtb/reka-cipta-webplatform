@@ -7,7 +7,7 @@ import { AdminHeader } from '@/components/layout/AdminHeader'
 import { EmailTemplatesTabs } from '@/components/admin/settings/EmailTemplatesTabs'
 
 export const metadata = {
-  title: 'Template Pesan — Admin RCI',
+  title: 'Template Pesan',
 }
 
 export default function AdminEmailTemplatesPage() {

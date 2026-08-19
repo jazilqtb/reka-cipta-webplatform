@@ -45,7 +45,6 @@ interface StatCard {
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   // Semua count paralel — 4 round-trip berurutan akan membuat dashboard
   // terasa lambat tanpa alasan.
@@ -95,6 +94,15 @@ export default async function DashboardPage() {
     },
   ]
 
+  // Tanggal dihitung di zona Asia/Jakarta, BUKAN zona server. Server
+  // Vercel berjalan di UTC — tanpa timeZone eksplisit, dashboard akan
+  // menampilkan tanggal kemarin bagi pengguna Indonesia setiap malam
+  // antara pukul 00:00 dan 07:00 WIB.
+  const todayWIB = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  }).format(new Date())
+
   return (
     <>
       <AdminHeader title="Dashboard" breadcrumb="Dashboard" />
@@ -102,10 +110,8 @@ export default async function DashboardPage() {
       <main className="flex-1 overflow-y-auto p-6">
         <div className="page-transition mx-auto max-w-[1440px] space-y-6">
           <AdminPageHeader
-            eyebrow="Ringkasan"
-            title="Selamat"
-            titleAccent="Datang"
-            description={user?.email ?? undefined}
+            title="Ringkasan"
+            description={todayWIB}
           />
 
           {failed.length > 0 && (

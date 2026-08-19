@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { articleFormSchema, type ArticleFormData } from '@/lib/validation/article-schema'
+import { ARTICLE_CATEGORY_OPTIONS } from '@/constants/articleCategories'
 import { slugifyTitle } from '@/lib/slugify'
 import { createArticle, updateArticle, ApiFetchError } from '@/lib/api'
 import { revalidateArticleRoutes } from '@/app/actions/articles'
@@ -128,8 +129,9 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
           disabled={isSubmitting}
           className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="education">Edukasi Garam</option>
-          <option value="company_news">Berita Perusahaan</option>
+          {ARTICLE_CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </div>
 

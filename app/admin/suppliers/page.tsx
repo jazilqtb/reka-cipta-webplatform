@@ -13,7 +13,7 @@ import { SupplierListView } from '@/components/admin/supplier/SupplierListView'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Manajemen Supplier — Admin RCI',
+  title: 'Manajemen Supplier',
 }
 
 export default function AdminSuppliersPage() {

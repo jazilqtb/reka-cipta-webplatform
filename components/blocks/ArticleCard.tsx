@@ -23,13 +23,9 @@ import { BookOpenIcon } from '@phosphor-icons/react/ssr'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import { getArticleExcerpt } from '@/lib/article-excerpt'
+import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import { cn } from '@/lib/utils'
 import type { Article } from '@/types/api'
-
-const CATEGORY_LABEL: Record<Article['category'], string> = {
-  education: 'Wawasan Industri',
-  company_news: 'Berita Perusahaan',
-}
 
 const CATEGORY_BADGE_CLASS: Record<Article['category'], string> = {
   education: 'border-brand-teal-600/20 bg-brand-teal-50 text-brand-teal-700',
@@ -75,7 +71,7 @@ export function ArticleCard({ article, className }: ArticleCardProps) {
             CATEGORY_BADGE_CLASS[article.category]
           )}
         >
-          {CATEGORY_LABEL[article.category]}
+          {ARTICLE_CATEGORY_LABEL[article.category]}
         </span>
         <h3 className="font-ui line-clamp-2 text-balance text-base font-bold leading-snug text-ink-700 transition-colors group-hover:text-brand-teal-700 md:text-lg">
           {article.title}

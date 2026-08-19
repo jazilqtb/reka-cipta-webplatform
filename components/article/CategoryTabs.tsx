@@ -23,12 +23,13 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import type { ArticleCategory } from '@/types/api'
 
 const TABS: Array<{ value: ArticleCategory | 'all'; label: string }> = [
   { value: 'all', label: 'Semua' },
-  { value: 'education', label: 'Wawasan Industri' },
-  { value: 'company_news', label: 'Berita Perusahaan' },
+  { value: 'education', label: ARTICLE_CATEGORY_LABEL.education },
+  { value: 'company_news', label: ARTICLE_CATEGORY_LABEL.company_news },
 ]
 
 export function CategoryTabs() {

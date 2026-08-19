@@ -16,7 +16,7 @@ import type { ProductRow } from '@/types/api'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Katalog Produk — Admin RCI',
+  title: 'Katalog Produk',
 }
 
 export default async function AdminProductsPage() {

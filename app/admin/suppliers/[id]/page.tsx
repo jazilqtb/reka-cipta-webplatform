@@ -12,7 +12,7 @@ import { SupplierDetailView } from '@/components/admin/supplier/SupplierDetailVi
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Detail Supplier — Admin RCI',
+  title: 'Detail Supplier',
 }
 
 export default async function SupplierDetailPage({

@@ -61,33 +61,30 @@ export function AdminCard({
    dengan setiap section portal publik, jadi kedua sisi produk terbaca
    sebagai satu bahasa. `actions` untuk tombol utama halaman. */
 export function AdminPageHeader({
-  eyebrow,
   title,
-  titleAccent,
   description,
   actions,
 }: {
-  eyebrow: string
   title: string
-  titleAccent?: string
   description?: string
   actions?: ReactNode
 }) {
+  // CP1 (2026-08-19) — `eyebrow` (.rule-index) dan `titleAccent` (aksen
+  // italic) DIHAPUS. Keduanya perangkat retorika Beranda: eyebrow bergaris
+  // untuk menandai babak naratif, italic untuk menekankan satu kata dalam
+  // janji pemasaran. Di alat kerja yang dibuka delapan jam sehari, keduanya
+  // hanya menambah tinggi tanpa menambah informasi — audit visual produksi
+  // menemukan "Ringkasan / Selamat *Datang* / email" memakan 3 baris untuk
+  // menyampaikan nol fakta yang belum ada di tempat lain.
+  //
+  // Aman diubah: AdminPageHeader hanya punya SATU konsumen (dashboard),
+  // diverifikasi lewat grep sebelum signature-nya disentuh.
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <p className="rule-index font-ui text-brand-teal-600">{eyebrow}</p>
-        <h2 className="font-ui mt-2 text-2xl font-semibold text-ink-700">
-          {title}
-          {titleAccent && (
-            <>
-              {' '}
-              <span className="italic font-medium text-brand-teal-600">{titleAccent}</span>
-            </>
-          )}
-        </h2>
+        <h2 className="font-ui text-xl font-semibold text-ink-700">{title}</h2>
         {description && (
-          <p className="mt-1.5 max-w-2xl text-pretty text-sm text-neutral-600">{description}</p>
+          <p className="mt-1 max-w-2xl text-pretty text-sm text-neutral-600">{description}</p>
         )}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
