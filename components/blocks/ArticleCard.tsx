@@ -22,7 +22,7 @@ import Image from 'next/image'
 import { BookOpenIcon } from '@phosphor-icons/react/ssr'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
-import { getArticleExcerpt } from '@/lib/article-content'
+import { getArticleExcerpt } from '@/lib/article-excerpt'
 import { cn } from '@/lib/utils'
 import type { Article } from '@/types/api'
 
