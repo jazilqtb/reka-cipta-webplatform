@@ -6,6 +6,7 @@
 // jadi tanpa pemusatan akan ada tiga salinan yang bisa melenceng — kelas
 // bug yang persis sama dengan label kategori artikel di CP1.
 
+import { INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
 import type { RFQLead } from '@/types/api'
 
 /** Ambang "belum disentuh" dalam hari. Dipakai badge stale. */
@@ -59,4 +60,36 @@ export function isoDaysAgo(days: number): string {
   const d = new Date()
   d.setDate(d.getDate() - days)
   return d.toISOString().slice(0, 10)
+}
+
+// ─── Label manusiawi ──────────────────────────────────────────────────
+// Panel admin sebelumnya menampilkan nilai MENTAH dari database:
+// "makanan-minuman", "garam-halus-yodium". Itu string mesin. Setiap kali
+// dibaca, pengguna harus menerjemahkannya sendiri — biaya kognitif kecil
+// yang terjadi berkali-kali sehari dan merusak kemampuan memindai.
+
+const INDUSTRY_LABEL: Record<string, string> = Object.fromEntries(
+  INDUSTRY_OPTIONS.map((o) => [o.value, o.label])
+)
+
+const FREQ_FULL: Record<string, string> = Object.fromEntries(
+  FREQUENCY_OPTIONS.map((o) => [o.value, o.label])
+)
+
+export function industryLabel(value: string): string {
+  return INDUSTRY_LABEL[value] ?? value
+}
+
+export function frequencyLabel(value: string): string {
+  return FREQ_FULL[value] ?? value
+}
+
+/** slug produk -> nama produk. Peta datang dari server (tabel products),
+ *  bukan ditebak dari slug: "garam-ghpt" akan jadi "Garam Ghpt" kalau
+ *  ditebak, padahal namanya "Garam Halus Pakan Ternak". */
+export function saltTypeLabels(
+  slugs: string[],
+  productNames: Record<string, string>
+): string[] {
+  return slugs.map((s) => productNames[s] ?? s)
 }

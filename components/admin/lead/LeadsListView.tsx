@@ -17,7 +17,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import { WarningCircleIcon } from '@phosphor-icons/react/ssr'
 import { LABEL_MAP } from '@/lib/constants/lead-status'
-import { formatVolume, isStale, maskWhatsapp } from '@/lib/lead-format'
+import { formatVolume, industryLabel, isStale, maskWhatsapp } from '@/lib/lead-format'
 import type { LeadStatus, RFQLead } from '@/types/api'
 
 /** Warna titik status — dipakai sebagai penanda kecil, bukan badge penuh,
@@ -71,7 +71,7 @@ export function LeadsListView({ leads, selectedId, onSelect }: Props) {
                   </div>
 
                   <p className="mt-0.5 truncate text-xs text-neutral-500">
-                    {lead.full_name} · {lead.industry_type}
+                    {lead.full_name} · {industryLabel(lead.industry_type)}
                   </p>
 
                   <div className="mono-tech mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-neutral-600">

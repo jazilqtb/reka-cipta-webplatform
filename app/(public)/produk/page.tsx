@@ -11,7 +11,7 @@ import type { ProductRow } from '@/types/api'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Katalog Produk | CV Reka Cipta Indonesia',
+  title: 'Katalog Produk',
   description:
     'Portofolio produk garam industri CV Reka Cipta Indonesia. 5 varian garam untuk industri makanan, farmasi, kimia, peternakan, dan lainnya. Bersertifikat SNI.',
   openGraph: {

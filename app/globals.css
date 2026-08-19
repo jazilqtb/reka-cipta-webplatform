@@ -190,6 +190,47 @@
   --sidebar:    oklch(0.104 0.020 175);
 }
 
+/* ═══ SHADCN SEMANTIC → UTILITY TAILWIND v4 ═══
+   Ditambahkan 2026-08-19 atas izin eksplisit Jazil (file ini FROZEN;
+   CLAUDE.md mensyaratkan diskusi lebih dulu).
+
+   MASALAH YANG DITUTUP: variabel di blok `:root` di atas TIDAK menghasilkan
+   utility apa pun. Tailwind v4 hanya melahirkan class dari entri `--color-*`
+   di dalam `@theme`. Akibatnya `bg-popover`, `bg-card`, `bg-background`,
+   `text-muted-foreground`, dan kawan-kawannya adalah CLASS MATI — dirujuk
+   components/ui/*, tidak pernah ada di CSS, dan tidak memunculkan error.
+
+   Gejala yang dilaporkan: panel Dialog tembus pandang di /admin — dan itu
+   menjangkiti SETIAP Dialog di aplikasi, bukan satu modal saja. Diverifikasi
+   dengan meng-grep bundle CSS hasil build sebelum perbaikan ini:
+     .bg-popover  .bg-card  .bg-background  .text-popover-foreground  → nihil
+
+   `@theme inline` (bukan `@theme` biasa) dipakai sesuai anjuran resmi
+   shadcn untuk Tailwind v4: nilainya disubstitusi di titik pakai, sehingga
+   penimpaan di blok `.dark` tetap bekerja ketika dark mode diaktifkan v2.
+
+   MURNI ADITIF — nol token lama diubah atau dihapus. */
+@theme inline {
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+  --color-popover:             var(--popover);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-accent:              var(--accent);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-destructive:         var(--destructive);
+  --color-border:              var(--border);
+  --color-input:               var(--input);
+  --color-ring:                var(--ring);
+}
+
 /* ═══ BASE ═══ */
 @layer base {
   html {

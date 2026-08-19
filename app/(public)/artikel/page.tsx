@@ -22,7 +22,7 @@ import type { ArticleCategory } from '@/types/api'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Artikel & Berita | CV Reka Cipta Indonesia',
+  title: 'Artikel & Berita',
   description:
     'Wawasan industri garam, standar SNI, dan kabar terbaru dari CV Reka Cipta Indonesia.',
   alternates: {

@@ -20,7 +20,7 @@ import { ThankYouPanel, type NextStep } from '@/components/sections/ThankYouPane
 export const revalidate = false
 
 export const metadata: Metadata = {
-  title: 'Pendaftaran Berhasil | CV Reka Cipta Indonesia',
+  title: 'Pendaftaran Berhasil',
   robots: { index: false, follow: false },
 }
 

@@ -24,6 +24,7 @@ import { useState } from 'react'
 import {
   SignOutIcon, CircleNotchIcon, CaretDoubleLeftIcon, CaretDoubleRightIcon, XIcon,
 } from '@phosphor-icons/react/ssr'
+import { Logo } from '@/components/brand/Logo'
 import { createClient } from '@/lib/supabase/client'
 import { ADMIN_NAV_MAIN, ADMIN_NAV_SETTINGS, type AdminNavItem } from '@/constants/adminNavigation'
 
@@ -83,19 +84,36 @@ export function AdminSidebar({
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         ].join(' ')}
       >
-        {/* Logo + tombol tutup (mobile) */}
-        <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/[0.07] px-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-teal-600">
-            <span className="text-xs font-bold text-white">RC</span>
-          </div>
-          <span
-            className={[
-              'font-ui truncate text-sm font-semibold text-white',
-              collapsed ? 'lg:hidden' : '',
-            ].join(' ')}
+        {/* Identitas perusahaan.
+            Sebelumnya: kotak "RC" buatan sendiri + teks "Reka Cipta" —
+            memangkas nama resmi dan mengabaikan logo yang sudah dipakai
+            portal publik, sehingga admin terasa seperti aplikasi lain.
+            Sekarang memakai <Logo> yang SAMA dengan Navbar/Footer publik,
+            varian `dark` karena sidebar berlatar ink-900 (persis seperti
+            Footer).
+
+            Saat mengecil (64px) logo bertulis tidak mungkin terbaca, jadi
+            diganti monogram "RCI" — monogram yang sama dengan fallback
+            bawaan komponen Logo, supaya identitasnya tetap satu. */}
+        <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-white/[0.07] px-3">
+          <Link
+            href="/admin/dashboard"
+            aria-label="Dashboard CV Reka Cipta Indonesia"
+            className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:shadow-focus-dark focus-visible:outline-none"
           >
-            Reka Cipta
-          </span>
+            <span
+              aria-hidden="true"
+              className={[
+                'hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-teal-600 text-[11px] font-bold text-white',
+                collapsed ? 'lg:flex' : '',
+              ].join(' ')}
+            >
+              RCI
+            </span>
+            <span className={collapsed ? 'lg:hidden' : ''}>
+              <Logo variant="dark" height={30} asLink={false} />
+            </span>
+          </Link>
           <button
             type="button"
             onClick={onCloseMobile}

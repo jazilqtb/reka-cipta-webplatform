@@ -12,7 +12,7 @@ import { CalculatorIntro } from '@/components/calculator/CalculatorIntro'
 import { CalculatorForm } from '@/components/calculator/CalculatorForm'
 
 export const metadata: Metadata = {
-  title: 'Kalkulator Kebutuhan Garam | CV Reka Cipta Indonesia',
+  title: 'Kalkulator Kebutuhan Garam',
   description:
     'Estimasikan kebutuhan garam industri Anda dan dapatkan rekomendasi produk yang sesuai dalam hitungan detik.',
   alternates: {

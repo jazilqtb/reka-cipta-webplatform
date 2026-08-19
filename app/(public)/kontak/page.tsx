@@ -21,7 +21,7 @@ import { RevealWrapper } from '@/components/animations/RevealWrapper'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Hubungi Kami — CV Reka Cipta Indonesia Distributor Garam Surabaya',
+  title: 'Hubungi Kami — Distributor Garam Surabaya',
   description:
     'Hubungi CV Reka Cipta Indonesia untuk kebutuhan distribusi garam industri Anda. Kantor Surabaya, respons kurang dari 24 jam. Chat WA langsung.',
   alternates: {

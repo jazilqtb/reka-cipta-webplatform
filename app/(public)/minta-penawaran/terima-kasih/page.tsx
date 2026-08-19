@@ -18,7 +18,7 @@ import { ThankYouPanel, type NextStep } from '@/components/sections/ThankYouPane
 export const revalidate = false
 
 export const metadata: Metadata = {
-  title: 'Terima Kasih | CV Reka Cipta Indonesia',
+  title: 'Terima Kasih',
   robots: { index: false, follow: false },
 }
 

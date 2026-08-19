@@ -27,7 +27,7 @@ import { LeadDetailPanel } from './LeadDetailPanel'
 import { LeadsKanbanBoard } from './LeadsKanbanBoard'
 import type { LeadStatus, RFQLead } from '@/types/api'
 
-export function LeadsWorkspace() {
+export function LeadsWorkspace({ productNames }: { productNames: Record<string, string> }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -208,7 +208,7 @@ export function LeadsWorkspace() {
           {/* Panel konteks — disembunyikan di bawah lg, tempatnya diambil
               alih halaman detail (lihat handleSelect). */}
           <div className="hidden overflow-hidden rounded-xl border border-ink-900/[0.07] bg-white lg:block">
-            <LeadDetailPanel lead={selectedLead} onStatusChange={applyStatusChange} />
+            <LeadDetailPanel lead={selectedLead} productNames={productNames} onStatusChange={applyStatusChange} />
           </div>
         </div>
       )}

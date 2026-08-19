@@ -17,7 +17,7 @@ import { RFQForm } from '@/components/rfq/RFQForm'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Minta Penawaran | CV Reka Cipta Indonesia',
+  title: 'Minta Penawaran',
   description:
     'Dapatkan proposal penawaran khusus untuk kebutuhan garam industri Anda. Isi form, tim kami hubungi dalam 1×24 jam.',
   alternates: {

@@ -15,7 +15,7 @@ import { SupplierRegistrationForm } from '@/components/supplier/SupplierRegistra
 export const dynamic = 'force-static'
 
 export const metadata: Metadata = {
-  title: 'Jadi Supplier | CV Reka Cipta Indonesia',
+  title: 'Jadi Supplier',
   description:
     'Bermitra dengan CV Reka Cipta sebagai supplier garam. Daftarkan usaha Anda dan bergabung dengan jaringan supplier terpercaya di Indonesia.',
   alternates: {
