@@ -13,12 +13,15 @@ export const metadata = {
 export default function AdminEmailTemplatesPage() {
   return (
     <>
-      <AdminHeader title="Template Pesan" breadcrumb="Template Pesan" />
+      <AdminHeader title="Template Pesan" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-6 page-transition">
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="page-transition mx-auto max-w-4xl space-y-4">
+          {/* DIPERTAHANKAN: menjelaskan bahwa template WhatsApp berbeda PER
+              STATUS lead — hubungan yang tidak terbaca dari tab manapun. */}
           <p className="text-sm text-neutral-600">
-            Kelola isi email konfirmasi RFQ dan template pesan WhatsApp per status lead.
+            Isi email konfirmasi RFQ dan template pesan WhatsApp, yang berbeda untuk
+            tiap status lead.
           </p>
 
           <EmailTemplatesTabs />

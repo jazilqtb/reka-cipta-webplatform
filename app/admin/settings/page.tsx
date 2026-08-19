@@ -15,13 +15,16 @@ export const metadata = {
 export default function AdminSettingsPage() {
   return (
     <>
-      <AdminHeader title="Pengaturan Kontak" breadcrumb="Pengaturan" />
+      <AdminHeader title="Pengaturan Kontak" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-3xl mx-auto space-y-6 page-transition">
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="page-transition mx-auto max-w-3xl space-y-4">
+          {/* Kalimat ini DIPERTAHANKAN — beda dari halaman daftar, di sini ia
+              menyampaikan konsekuensi yang tidak terbaca dari form manapun:
+              menyimpan di sini langsung mengubah situs publik. */}
           <p className="text-sm text-neutral-600">
-            Kelola informasi kontak yang tampil di halaman publik. Perubahan akan langsung
-            tercermin di halaman Kontak dan Beranda.
+            Informasi kontak di bawah tampil di halaman publik. Perubahan langsung
+            tercermin di Beranda dan halaman Kontak.
           </p>
 
           <SettingsForm />

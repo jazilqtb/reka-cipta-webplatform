@@ -10,7 +10,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { mapProductRow } from '@/lib/product-mapper'
 import { AdminHeader } from '@/components/layout/AdminHeader'
-import { ProductsAdminList } from '@/components/admin/product/ProductsAdminList'
+import { ProductsWorkspace } from '@/components/admin/product/ProductsWorkspace'
 import type { ProductRow } from '@/types/api'
 
 export const dynamic = 'force-dynamic'
@@ -31,20 +31,17 @@ export default async function AdminProductsPage() {
   }
 
   const products = (data ?? []).map((row) => mapProductRow(row as ProductRow))
-  const activeCount = products.filter((p) => p.is_active).length
-  const inactiveCount = products.length - activeCount
 
   return (
     <>
-      <AdminHeader title="Katalog Produk" breadcrumb="Produk" />
+      <AdminHeader title="Produk" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl mx-auto space-y-6 page-transition">
-          <p className="text-sm text-neutral-600">
-            {products.length} produk ({activeCount} aktif, {inactiveCount} nonaktif)
-          </p>
-
-          <ProductsAdminList products={products} />
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="page-transition mx-auto max-w-[1400px]">
+          {/* Kalimat hitungan ("5 produk (5 aktif, 0 nonaktif)") dihapus:
+              chip status di ProductsWorkspace sudah menyampaikan angka yang
+              sama sambil sekaligus bisa diklik untuk menyaring. */}
+          <ProductsWorkspace products={products} />
         </div>
       </main>
     </>
