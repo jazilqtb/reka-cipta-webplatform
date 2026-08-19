@@ -461,6 +461,10 @@ export interface ArticleAdmin {
   content: string
   thumbnail_url: string | null
   meta_description: string | null
+  // CP3 — cermin backend/schemas/article.py ArticleAdmin.
+  meta_title: string | null
+  og_image_url: string | null
+  canonical_url: string | null
   view_count: number
   is_published: boolean
   published_at: string | null
@@ -474,6 +478,8 @@ export interface ArticleCreateRequest {
   category: ArticleCategory
   content: string
   meta_description: string | null
+  meta_title: string | null
+  canonical_url: string | null
   is_published: boolean
 }
 
@@ -483,6 +489,8 @@ export interface ArticleUpdateRequest {
   category: ArticleCategory
   content: string
   meta_description: string | null
+  meta_title: string | null
+  canonical_url: string | null
 }
 
 export interface ArticlePublishRequest {

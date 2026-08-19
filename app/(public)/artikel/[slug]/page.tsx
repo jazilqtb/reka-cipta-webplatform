@@ -22,12 +22,12 @@
 import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import { cache } from 'react'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Image from 'next/image'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import { CalendarBlankIcon } from '@phosphor-icons/react/ssr'
-import { getArticleBySlug } from '@/lib/data/articles'
+import { getArticleBySlug, getCurrentSlugForOldSlug } from '@/lib/data/articles'
 import { sanitizeArticleContent } from '@/lib/article-content'
 import { createPublic } from '@/lib/supabase/public'
 import { PageHero } from '@/components/sections/PageHero'
@@ -54,7 +54,7 @@ export async function generateMetadata({
   const article = await getArticle(slug)
 
   if (!article) {
-    return { title: 'Artikel tidak ditemukan | CV Reka Cipta Indonesia' }
+    return { title: 'Artikel tidak ditemukan' }
   }
 
   const description = article.meta_description ?? undefined
@@ -72,7 +72,7 @@ export async function generateMetadata({
   const ogImage = article.og_image_url ?? article.thumbnail_url
 
   return {
-    title: `${seoTitle} | CV Reka Cipta Indonesia`,
+    title: seoTitle,
     description,
     alternates: {
       canonical,
@@ -102,7 +102,21 @@ export default async function ArticleDetailPage({
   const { slug } = await params
   const article = await getArticle(slug)
 
-  if (!article) notFound()
+  // CP3 — sebelum menyerah 404, cek apakah slug ini pernah dipakai artikel
+  // yang slug-nya sudah diganti. Kalau ya, alihkan permanen supaya tautan
+  // lama dan peringkat pencariannya ikut pindah, bukan mati.
+  //
+  // permanentRedirect() menghasilkan 308, bukan 301. Untuk request GET
+  // keduanya sama-sama "permanen" dan diperlakukan setara oleh mesin
+  // pencari; bedanya 308 melarang metode request berubah, yang justru
+  // lebih ketat dan tidak relevan di sini.
+  if (!article) {
+    const currentSlug = await getCurrentSlugForOldSlug(slug)
+    if (currentSlug && currentSlug !== slug) {
+      permanentRedirect(`/artikel/${currentSlug}`)
+    }
+    notFound()
+  }
 
   const sanitizedContent = sanitizeArticleContent(article.content)
   const dateLabel = article.published_at

@@ -27,6 +27,13 @@ class ArticleAdmin(BaseModel):
     content: str
     thumbnail_url: Optional[str] = None
     meta_description: Optional[str] = None
+    # CP3 — field SEO. Kolomnya sudah ada di DB sejak
+    # 20260815091000_articles_seo_fields.sql tapi TIDAK PERNAH terekspos
+    # ke admin, jadi tiga dari empat field SEO artikel tidak bisa diisi
+    # dari panel mana pun.
+    meta_title: Optional[str] = None
+    og_image_url: Optional[str] = None
+    canonical_url: Optional[str] = None
     view_count: int
     is_published: bool
     published_at: Optional[datetime] = None
@@ -42,6 +49,11 @@ class ArticleCreateRequest(BaseModel):
     category: str
     content: str = Field(min_length=1)
     meta_description: Optional[str] = Field(default=None, max_length=300)
+    # og_image_path SENGAJA TIDAK ADA di sini: ia path storage, diisi lewat
+    # endpoint upload seperti thumbnail. Selama kosong, lib/article-mapper.ts
+    # sudah jatuh ke thumbnail_path, jadi og:image tetap benar.
+    meta_title: Optional[str] = Field(default=None, max_length=200)
+    canonical_url: Optional[str] = Field(default=None, max_length=500)
     is_published: bool = False
 
     @field_validator("category")
@@ -59,6 +71,8 @@ class ArticleUpdateRequest(BaseModel):
     category: str
     content: str = Field(min_length=1)
     meta_description: Optional[str] = Field(default=None, max_length=300)
+    meta_title: Optional[str] = Field(default=None, max_length=200)
+    canonical_url: Optional[str] = Field(default=None, max_length=500)
 
     @field_validator("category")
     def validate_category(cls, v: str) -> str:

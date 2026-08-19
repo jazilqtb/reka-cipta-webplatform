@@ -54,9 +54,17 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB, konsisten products.py (AR-05 Slice 2)
 
 def _row_to_article_admin(row: dict) -> ArticleAdmin:
     thumbnail_path = row.get("thumbnail_path")
+    og_image_path = row.get("og_image_path")
+    skip = {"thumbnail_path", "og_image_path"}
     return ArticleAdmin(
-        **{k: v for k, v in row.items() if k != "thumbnail_path"},
+        **{k: v for k, v in row.items() if k not in skip},
         thumbnail_url=get_public_storage_url("article-thumbnails", thumbnail_path) if thumbnail_path else None,
+        # og_image_url TIDAK di-fallback ke thumbnail di sini. Panel admin
+        # perlu tahu bedanya "belum pernah diisi" dan "sama dengan thumbnail"
+        # supaya bisa menampilkan placeholder yang benar. Fallback-nya
+        # diterapkan di titik pakai (generateMetadata), sama seperti
+        # meta_title — lihat catatan di lib/article-mapper.ts.
+        og_image_url=get_public_storage_url("article-thumbnails", og_image_path) if og_image_path else None,
     )
 
 
@@ -85,6 +93,8 @@ async def create_article(payload: ArticleCreateRequest):
         "category": payload.category,
         "content": payload.content,
         "meta_description": payload.meta_description,
+        "meta_title": payload.meta_title,
+        "canonical_url": payload.canonical_url,
         "is_published": payload.is_published,
         "published_at": datetime.now(timezone.utc).isoformat() if payload.is_published else None,
     }
@@ -104,13 +114,36 @@ async def update_article(article_id: str, payload: ArticleUpdateRequest):
     itu tugas endpoint publish terpisah (lihat toggle_publish_article)."""
     supabase = get_supabase()
 
-    existing = supabase.table("articles").select("id, slug").eq("id", article_id).limit(1).execute()
+    existing = (
+        supabase.table("articles")
+        .select("id, slug, is_published")
+        .eq("id", article_id)
+        .limit(1)
+        .execute()
+    )
     if not existing.data:
         raise HTTPException(status_code=404, detail="Artikel tidak ditemukan")
 
+    previous = existing.data[0]
+    old_slug = previous["slug"]
     slug = payload.slug.strip()
-    if slug != existing.data[0]["slug"]:
+
+    if slug != old_slug:
         _ensure_unique_slug(supabase, slug, exclude_id=article_id)
+        # Slug baru tidak boleh menabrak slug LAMA milik artikel lain —
+        # kalau dibiarkan, redirect 301 akan mengarah ke isi yang salah.
+        clash = (
+            supabase.table("article_slug_history")
+            .select("article_id")
+            .eq("old_slug", slug)
+            .limit(1)
+            .execute()
+        )
+        if clash.data and clash.data[0]["article_id"] != article_id:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Slug '{slug}' pernah dipakai artikel lain dan masih dialihkan ke sana",
+            )
 
     update_data = {
         "title": payload.title,
@@ -118,6 +151,8 @@ async def update_article(article_id: str, payload: ArticleUpdateRequest):
         "category": payload.category,
         "content": payload.content,
         "meta_description": payload.meta_description,
+        "meta_title": payload.meta_title,
+        "canonical_url": payload.canonical_url,
     }
 
     try:
@@ -125,6 +160,28 @@ async def update_article(article_id: str, payload: ArticleUpdateRequest):
     except Exception as e:
         logger.error(f"articles_update_failed: id={article_id} error={e!r}")
         raise HTTPException(status_code=500, detail="Gagal menyimpan perubahan artikel")
+
+    # CP3 — riwayat slug, HANYA untuk artikel yang sudah pernah terbit.
+    #
+    # Draf sengaja dilewat: belum ada satu pun tautan publik ke sana, jadi
+    # mencatat riwayatnya cuma menumpuk baris mati DAN memakan slug lama
+    # dari kolom UNIQUE, yang justru menghalangi slug itu dipakai lagi.
+    #
+    # Kegagalan pencatatan TIDAK membatalkan update. Artikelnya sudah
+    # tersimpan; melempar error di sini akan membuat admin mengira
+    # simpanannya gagal lalu mencoba lagi. Konsekuensi terburuknya satu
+    # tautan lama tidak teralihkan — dicatat sebagai error untuk ditelusuri.
+    if slug != old_slug and previous.get("is_published"):
+        try:
+            supabase.table("article_slug_history").upsert(
+                {"article_id": article_id, "old_slug": old_slug},
+                on_conflict="old_slug",
+            ).execute()
+        except Exception as e:
+            logger.error(
+                f"article_slug_history_write_failed: id={article_id} "
+                f"old_slug={old_slug} new_slug={slug} error={e!r}"
+            )
 
     return ArticleDetailResponse(article=_row_to_article_admin(result.data[0]))
 

@@ -157,3 +157,40 @@ export async function getAllPublishedSlugsForSitemap(): Promise<
     return []
   }
 }
+
+/** Slug lama -> slug terkini, untuk redirect permanen.
+ *
+ *  Dipanggil HANYA ketika sebuah slug tidak ditemukan di tabel articles,
+ *  jadi ia tidak menambah query pada jalur normal — nol biaya untuk 99%
+ *  request. Dua langkah karena article_slug_history hanya menyimpan
+ *  article_id, bukan slug terkini: menyimpannya akan basi begitu slug
+ *  diubah untuk kedua kalinya.
+ */
+export async function getCurrentSlugForOldSlug(oldSlug: string): Promise<string | null> {
+  try {
+    const supabase = createPublic()
+    const { data: history, error: histErr } = await supabase
+      .from('article_slug_history')
+      .select('article_id')
+      .eq('old_slug', oldSlug)
+      .limit(1)
+      .maybeSingle()
+
+    if (histErr || !history) return null
+
+    const { data: article, error: artErr } = await supabase
+      .from('articles')
+      .select('slug, is_published')
+      .eq('id', history.article_id)
+      .limit(1)
+      .maybeSingle()
+
+    // Artikelnya sudah tidak terbit -> jangan alihkan ke halaman yang juga
+    // akan 404. Biarkan 404 di sini, itu jawaban yang jujur.
+    if (artErr || !article || !article.is_published) return null
+    return article.slug as string
+  } catch (err) {
+    console.error('[Articles] Exception saat cek riwayat slug:', err)
+    return null
+  }
+}

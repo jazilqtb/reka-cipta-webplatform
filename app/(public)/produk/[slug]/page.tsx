@@ -51,13 +51,13 @@ export async function generateMetadata({
   const product = await getProduct(slug)
 
   if (!product) {
-    return { title: 'Produk tidak ditemukan | CV Reka Cipta Indonesia' }
+    return { title: 'Produk tidak ditemukan' }
   }
 
   const description = product.tagline ?? product.description?.slice(0, 160) ?? ''
 
   return {
-    title: `${product.name} - ${product.code} | CV Reka Cipta Indonesia`,
+    title: `${product.name} — ${product.code}`,
     description,
     openGraph: {
       title: product.name,
