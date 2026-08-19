@@ -110,6 +110,20 @@ export async function apiFetch<T>(
       throw new ApiFetchError(err.detail ?? `HTTP ${res.status}`, res.status)
     }
 
+    // BUGFIX (2026-08-19) — 204 No Content TIDAK punya body.
+    //
+    // Sebelumnya res.json() dipanggil tanpa syarat. DELETE /articles/{id}
+    // menjawab 204, jadi parsing-nya melempar SyntaxError yang tertangkap
+    // catch pemanggil dan memunculkan toast "Gagal menghapus artikel" —
+    // PADAHAL penghapusannya sudah berhasil di server. Persis gejala yang
+    // dilaporkan: pesan gagal, tapi artikelnya hilang juga.
+    //
+    // Dicek lewat status DAN Content-Length: sebagian proxy menjawab 200
+    // dengan body kosong, dan itu sama-sama tidak bisa di-parse.
+    if (res.status === 204 || res.headers.get('content-length') === '0') {
+      return undefined as T
+    }
+
     return res.json() as Promise<T>
   } catch (err) {
     clearTimeout(timeoutId)
@@ -540,10 +554,15 @@ export async function toggleArticlePublish(
   return apiFetch<ArticleDetailResponse>(`/articles/${id}/publish`, {
     method: 'PATCH',
     auth: true,
+    // 25s, bukan 10s bawaan. Backend di Railway bisa cold start; timeout
+    // 10s membuat mutasi tampak GAGAL padahal server tetap memprosesnya
+    // sampai selesai — layar dan database jadi tidak sinkron.
+    timeout: 25_000,
     body: JSON.stringify(payload),
   })
 }
 
 export async function deleteArticle(id: string): Promise<void> {
-  await apiFetch<void>(`/articles/${id}`, { method: 'DELETE', auth: true })
+  // 25s — alasan sama dengan toggleArticlePublish di atas.
+  await apiFetch<void>(`/articles/${id}`, { method: 'DELETE', auth: true, timeout: 25_000 })
 }

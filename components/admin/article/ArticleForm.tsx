@@ -38,6 +38,7 @@ import { createArticle, updateArticle, ApiFetchError } from '@/lib/api'
 import { revalidateArticleRoutes } from '@/app/actions/articles'
 import { RichTextEditor } from '@/components/admin/article/RichTextEditor'
 import { ThumbnailUploader } from '@/components/admin/article/ThumbnailUploader'
+import { InfoHint } from '@/components/admin/ui/InfoHint'
 import type { ArticleAdmin } from '@/types/api'
 
 // Batas TAMPILAN hasil pencarian, bukan batas simpan. Google memotong yang
@@ -112,27 +113,44 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 xl:grid-cols-[1fr_320px]">
       {/* ══ KANAL TULIS ══ */}
       <div className="min-w-0 space-y-4">
-        <div>
-          <label htmlFor="title" className="sr-only">Judul artikel</label>
-          <input
-            id="title"
-            {...register('title')}
-            disabled={isSubmitting}
-            placeholder="Judul artikel…"
-            className="font-ui w-full border-0 bg-transparent p-0 text-2xl font-semibold leading-snug text-ink-700 placeholder:text-neutral-300 focus-visible:outline-none md:text-[28px]"
-          />
-          {errors.title && <p className="mt-1 text-xs text-danger-600">{errors.title.message}</p>}
-        </div>
+        {/* KANVAS TULIS.
+            Masalah yang ditutup: `.prose-brand` di globals.css TIDAK berlapis
+            (unlayered), jadi `max-width: 68ch`-nya MENGALAHKAN utility
+            `max-w-none` milik editor — jebakan cascade layer Tailwind v4 yang
+            sudah pernah menggigit proyek ini. Akibatnya teks terkurung 68ch di
+            tengah kolom lebar, menyisakan ruang mati menganga ke arah panel
+            metadata.
 
-        <div>
-          <Controller
-            name="content"
-            control={control}
-            render={({ field }) => (
-              <RichTextEditor value={field.value} onChange={field.onChange} disabled={isSubmitting} />
-            )}
-          />
-          {errors.content && <p className="mt-1 text-xs text-danger-600">{errors.content.message}</p>}
+            Ukuran 68ch itu sendiri BENAR — itu panjang baris yang nyaman
+            dibaca, dan menyamainya membuat editor benar-benar WYSIWYG dengan
+            halaman publik. Yang salah bukan lebar teksnya, melainkan ruang
+            kosong di sekelilingnya yang tidak bertuan. Maka teksnya dibiarkan
+            68ch tapi dipusatkan di dalam kartu putih yang mengisi penuh kolom:
+            ruang kosong berubah jadi margin dokumen yang disengaja, bukan
+            celah yang bocor. */}
+        <div className="rounded-xl border border-ink-900/[0.07] bg-white p-5 md:p-8">
+          <div className="mx-auto max-w-[68ch]">
+            <label htmlFor="title" className="sr-only">Judul artikel</label>
+            <input
+              id="title"
+              {...register('title')}
+              disabled={isSubmitting}
+              placeholder="Judul artikel…"
+              className="font-ui w-full border-0 bg-transparent p-0 text-2xl font-semibold leading-snug text-ink-700 placeholder:text-neutral-300 focus-visible:outline-none md:text-[28px]"
+            />
+            {errors.title && <p className="mt-1 text-xs text-danger-600">{errors.title.message}</p>}
+
+            <div className="mt-5">
+              <Controller
+                name="content"
+                control={control}
+                render={({ field }) => (
+                  <RichTextEditor value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+                )}
+              />
+              {errors.content && <p className="mt-1 text-xs text-danger-600">{errors.content.message}</p>}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -141,7 +159,18 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
         <Panel title="Publikasi">
           <div className="space-y-3">
             <div>
-              <Field label="Kategori" htmlFor="category" />
+              <Field
+                label="Kategori"
+                htmlFor="category"
+                hint={
+                  <InfoHint title="Kategori artikel">
+                    Menentukan di tab mana artikel muncul pada halaman /artikel publik,
+                    dan label yang tercetak di kartunya. <b>Wawasan Industri</b> untuk
+                    materi teknis dan edukasi; <b>Berita Perusahaan</b> untuk kabar
+                    kegiatan, kemitraan, atau pencapaian.
+                  </InfoHint>
+                }
+              />
               <select
                 id="category"
                 {...register('category')}
@@ -226,7 +255,20 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
         <Panel title="SEO">
           <div className="space-y-3">
             <div>
-              <Field label="Judul untuk hasil pencarian" htmlFor="meta_title" />
+              <Field
+                label="Judul untuk hasil pencarian"
+                htmlFor="meta_title"
+                hint={
+                  <InfoHint title="Meta title">
+                    Judul yang tampil sebagai baris biru di Google, bukan judul yang
+                    dibaca pengunjung di halaman. Dipisah karena judul yang enak dibaca
+                    sering terlalu panjang atau kurang mengandung kata kunci.
+                    Idealnya <b>di bawah 60 karakter</b> agar tidak terpotong.
+                    Kosongkan saja kalau judul artikel sudah cukup baik — sistem otomatis
+                    memakainya.
+                  </InfoHint>
+                }
+              />
               <input
                 id="meta_title"
                 {...register('meta_title')}
@@ -238,7 +280,18 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
             </div>
 
             <div>
-              <Field label="Deskripsi ringkas" htmlFor="meta_description" />
+              <Field
+                label="Deskripsi ringkas"
+                htmlFor="meta_description"
+                hint={
+                  <InfoHint title="Meta description">
+                    Dua kalimat di bawah judul pada hasil pencarian, dan teks yang ikut
+                    tampil saat tautan dibagikan di WhatsApp atau LinkedIn. Tulis sebagai
+                    <b> ajakan membaca</b>, bukan ringkasan kaku — sebutkan manfaat
+                    konkret bagi pembaca. Idealnya <b>di bawah 160 karakter</b>.
+                  </InfoHint>
+                }
+              />
               <textarea
                 id="meta_description"
                 {...register('meta_description')}
@@ -250,7 +303,21 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
             </div>
 
             <div>
-              <Field label="Canonical URL" htmlFor="canonical_url" />
+              <Field
+                label="Canonical URL"
+                htmlFor="canonical_url"
+                hint={
+                  <InfoHint title="Canonical URL">
+                    Menunjuk alamat ASLI sebuah tulisan ketika isi yang sama terbit di dua
+                    tempat. Gunanya mencegah Google menganggapnya konten duplikat lalu
+                    membagi peringkat ke dua alamat.
+                    <br /><br />
+                    <b>Hampir selalu dikosongkan.</b> Isi hanya kalau artikel ini
+                    diterbitkan ulang dari sumber lain — tulis URL sumbernya lengkap
+                    dengan https://
+                  </InfoHint>
+                }
+              />
               <input
                 id="canonical_url"
                 {...register('canonical_url')}
@@ -303,11 +370,16 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   )
 }
 
-function Field({ label, htmlFor }: { label: string; htmlFor: string }) {
+function Field({
+  label, htmlFor, hint,
+}: { label: string; htmlFor: string; hint?: React.ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1 block text-[11px] font-medium text-neutral-600">
-      {label}
-    </label>
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <label htmlFor={htmlFor} className="text-[11px] font-medium text-neutral-600">
+        {label}
+      </label>
+      {hint}
+    </div>
   )
 }
 

@@ -1,38 +1,35 @@
 // app/admin/dashboard/page.tsx
 //
-// CHECKPOINT 4 (2026-08-15) — metrik dashboard DIBANGUN.
+// CP4 (2026-08-19) — dashboard jadi "Beranda Kerja".
 //
-// KOREKSI DIAGNOSIS: metrik ini tidak "gagal render". Sebelum ini
-// TIDAK ADA jalur datanya sama sekali — STAT_CARDS adalah konstanta
-// level-modul dengan `value: '—'` sebagai string literal, dan satu-
-// satunya panggilan Supabase adalah auth.getUser() untuk email.
-// Diverifikasi lewat graph: `graphify path "dashboard/page.tsx"
-// "RFQLead"` -> "No path found". Jadi ini pekerjaan MEMBANGUN fitur,
-// bukan memperbaiki query yang rusak — dan RLS tidak pernah terlibat.
+// KEPUTUSAN: Jazil memilih opsi A — dashboard tetap halaman terpisah
+// (bukan digabung ke /admin/leads).
 //
-// PENDEKATAN: count agregat sisi server dengan
-// `.select('*', { count: 'exact', head: true })`. `head: true` berarti
-// TIDAK ada baris yang ditransfer — hanya header Content-Range berisi
-// jumlah. Jauh lebih murah daripada menarik baris lalu menghitungnya di
-// JS, dan tidak butuh view/RPC/skema baru sama sekali.
+// KENAPA TIDAK DITAMBAH GRAFIK:
+// Data nyata saat perancangan: 2 lead baru, 0 supplier, 6 artikel, 5
+// produk. Grafik tren di atas angka sekecil itu bukan informasi, melainkan
+// teater — ia MENYIRATKAN pola yang datanya belum sanggup dukung. Yang
+// betul-betul dibutuhkan tiap pagi bukan "berapa banyak", tapi "apa yang
+// perlu saya kerjakan hari ini".
 //
-// KEAMANAN: query berjalan lewat createClient() (sesi user), jadi TETAP
-// tunduk pada RLS. Setelah Checkpoint 1, tabel ini hanya bisa dibaca
-// anggota public.admin_users — angka di sini tidak akan pernah bocor ke
-// akun non-admin sekalipun halaman ini berhasil dirender.
+// Maka pusat halaman ini adalah DAFTAR TINDAKAN, bukan papan angka. Kartu
+// angka tetap ada tapi turun ke bawah, sebagai konteks, bukan bintang utama.
+//
+// Setiap baris tindakan HANYA muncul kalau memang ada yang harus dikerjakan
+// — dan ketika semuanya beres, halaman berkata demikian dengan jujur alih-
+// alih memaksakan daftar kosong.
 
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { StatTile, AdminPageHeader } from '@/components/admin/ui/AdminPrimitives'
 import {
   ClipboardTextIcon, PlantIcon, BookOpenIcon, PackageIcon, WarningIcon,
+  CheckCircleIcon, ArrowRightIcon, PlusIcon, GearIcon, EnvelopeSimpleIcon,
 } from '@phosphor-icons/react/ssr'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 
 export const metadata = { title: 'Dashboard' }
-
-// Angka harus selalu segar — dashboard yang menampilkan jumlah lead basi
-// lebih buruk daripada tidak menampilkan apa pun.
 export const dynamic = 'force-dynamic'
 
 interface StatCard {
@@ -43,107 +40,206 @@ interface StatCard {
   icon: PhosphorIcon
 }
 
+interface ActionItem {
+  text: string
+  cta: string
+  href: string
+  tone: 'urgent' | 'normal'
+}
+
+/** Ambang "lead terlantar" dalam hari — sejalan dengan badge stale di
+ *  /admin/leads supaya kedua halaman tidak berbeda pendapat. */
+const STALE_DAYS = 3
+
+/** Pembacaan jam DISENGAJA ditaruh di luar badan komponen.
+ *  React Compiler menandai panggilan tak-murni (Date.now/new Date) yang
+ *  dilakukan langsung saat render — aturannya benar, karena nilai seperti
+ *  itu membuat hasil render tidak deterministik. Halaman ini `force-dynamic`
+ *  dan memang HARUS membaca jam tiap request, jadi jawabannya bukan
+ *  membisukan aturannya, melainkan memindahkan pembacaannya keluar. */
+function readClock() {
+  const now = new Date()
+  return {
+    staleSince: new Date(now.getTime() - STALE_DAYS * 86_400_000).toISOString(),
+    // Zona Asia/Jakarta, BUKAN zona server. Server Vercel berjalan di UTC —
+    // tanpa timeZone eksplisit, dashboard menampilkan tanggal KEMARIN bagi
+    // pengguna Indonesia setiap 00:00–07:00 WIB.
+    todayWIB: new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      timeZone: 'Asia/Jakarta',
+    }).format(now),
+  }
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
+  const { staleSince, todayWIB } = readClock()
 
-  // Semua count paralel — 4 round-trip berurutan akan membuat dashboard
-  // terasa lambat tanpa alasan.
-  const [leadsRes, suppliersRes, articlesRes, productsRes] = await Promise.all([
-    supabase.from('rfq_leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
-    supabase.from('supplier_registrations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('articles').select('*', { count: 'exact', head: true }).eq('is_published', true),
-    supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
-  ])
+  // Semua query paralel — berurutan akan membuat halaman ini terasa lambat
+  // tanpa alasan.
+  const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes] =
+    await Promise.all([
+      supabase.from('rfq_leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+      supabase.from('rfq_leads').select('*', { count: 'exact', head: true })
+        .eq('status', 'new').lt('updated_at', staleSince),
+      supabase.from('supplier_registrations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('supplier_registrations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('articles').select('*', { count: 'exact', head: true }).eq('is_published', true),
+      supabase.from('articles').select('*', { count: 'exact', head: true }).eq('is_published', false),
+      supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    ])
 
   // Gagal != 0. Kartu yang menampilkan "0" padahal query-nya error adalah
-  // kebohongan diam-diam — persis kelas masalah yang membuat dashboard
-  // ini rusak sejak awal. null -> ditampilkan sebagai "—" + peringatan.
+  // kebohongan diam-diam.
   const failed = [leadsRes, suppliersRes, articlesRes, productsRes].filter((r) => r.error)
   if (failed.length > 0) {
     console.error('[dashboard] count query gagal:', failed.map((r) => r.error?.message))
   }
 
-  const stats: StatCard[] = [
-    {
-      label: 'Leads Baru',
-      value: leadsRes.error ? null : (leadsRes.count ?? 0),
-      hint: 'Belum ditindaklanjuti',
-      href: '/admin/leads',
-      icon: ClipboardTextIcon,
-    },
-    {
-      label: 'Supplier Aktif',
-      value: suppliersRes.error ? null : (suppliersRes.count ?? 0),
-      hint: 'Berstatus aktif',
-      href: '/admin/suppliers',
-      icon: PlantIcon,
-    },
-    {
-      label: 'Artikel Terbit',
-      value: articlesRes.error ? null : (articlesRes.count ?? 0),
-      hint: 'Tayang di situs publik',
-      href: '/admin/articles',
-      icon: BookOpenIcon,
-    },
-    {
-      label: 'Produk Aktif',
-      value: productsRes.error ? null : (productsRes.count ?? 0),
-      hint: 'Tampil di katalog',
-      href: '/admin/products',
-      icon: PackageIcon,
-    },
-  ]
+  const newLeads = leadsRes.error ? null : (leadsRes.count ?? 0)
+  const staleLeads = staleRes.error ? 0 : (staleRes.count ?? 0)
+  const pendingSuppliers = pendingSupRes.error ? 0 : (pendingSupRes.count ?? 0)
+  const drafts = draftRes.error ? 0 : (draftRes.count ?? 0)
+  const activeSuppliers = suppliersRes.error ? null : (suppliersRes.count ?? 0)
 
-  // Tanggal dihitung di zona Asia/Jakarta, BUKAN zona server. Server
-  // Vercel berjalan di UTC — tanpa timeZone eksplisit, dashboard akan
-  // menampilkan tanggal kemarin bagi pengguna Indonesia setiap malam
-  // antara pukul 00:00 dan 07:00 WIB.
-  const todayWIB = new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    timeZone: 'Asia/Jakarta',
-  }).format(new Date())
+  // Urutan sengaja: yang paling mendesak di atas. Lead yang mendiam >3 hari
+  // didahulukan dari lead baru biasa — lead dingin lebih mahal daripada
+  // lead yang belum sempat disentuh.
+  const actions: ActionItem[] = []
+  if (staleLeads > 0) {
+    actions.push({
+      text: `${staleLeads} lead belum ditindaklanjuti lebih dari ${STALE_DAYS} hari`,
+      cta: 'Tindak sekarang', href: '/admin/leads', tone: 'urgent',
+    })
+  }
+  if (newLeads !== null && newLeads - staleLeads > 0) {
+    actions.push({
+      text: `${newLeads - staleLeads} lead baru menunggu respons`,
+      cta: 'Buka', href: '/admin/leads', tone: 'normal',
+    })
+  }
+  if (pendingSuppliers > 0) {
+    actions.push({
+      text: `${pendingSuppliers} pendaftaran supplier menunggu verifikasi`,
+      cta: 'Tinjau', href: '/admin/suppliers', tone: 'normal',
+    })
+  }
+  if (drafts > 0) {
+    actions.push({
+      text: `${drafts} artikel masih berstatus draf`,
+      cta: 'Lanjutkan', href: '/admin/articles?', tone: 'normal',
+    })
+  }
+  if (activeSuppliers === 0) {
+    actions.push({
+      text: 'Belum ada supplier terdaftar',
+      cta: 'Bagikan formulir', href: '/jadi-supplier', tone: 'normal',
+    })
+  }
+
+  const stats: StatCard[] = [
+    { label: 'Lead baru',     value: newLeads,        hint: 'Belum ditindaklanjuti', href: '/admin/leads',     icon: ClipboardTextIcon },
+    { label: 'Supplier aktif', value: activeSuppliers, hint: 'Berstatus aktif',       href: '/admin/suppliers', icon: PlantIcon },
+    { label: 'Artikel terbit', value: articlesRes.error ? null : (articlesRes.count ?? 0), hint: drafts > 0 ? `${drafts} draf menunggu` : 'Tayang di situs publik', href: '/admin/articles', icon: BookOpenIcon },
+    { label: 'Produk aktif',   value: productsRes.error ? null : (productsRes.count ?? 0), hint: 'Tampil di katalog', href: '/admin/products', icon: PackageIcon },
+  ]
 
   return (
     <>
-      <AdminHeader title="Dashboard" breadcrumb="Dashboard" />
+      <AdminHeader title="Dashboard" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="page-transition mx-auto max-w-[1440px] space-y-6">
-          <AdminPageHeader
-            title="Ringkasan"
-            description={todayWIB}
-          />
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="page-transition mx-auto max-w-[1400px] space-y-5">
+          <AdminPageHeader title="Ringkasan" description={todayWIB} />
 
           {failed.length > 0 && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-xl border border-danger-100 bg-danger-50 p-4 text-sm text-danger-700"
-            >
-              <WarningIcon size={16} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-danger-600" />
+            <div role="alert" className="flex items-start gap-2 rounded-xl border border-danger-100 bg-danger-50 p-3.5 text-xs text-danger-700">
+              <WarningIcon size={15} weight="duotone" aria-hidden="true" className="mt-px shrink-0 text-danger-600" />
               <span>
-                {failed.length} dari {stats.length} metrik gagal dimuat. Angka yang
-                ditampilkan sebagai &ldquo;&mdash;&rdquo; belum tentu nol.
+                {failed.length} dari {stats.length} angka gagal dimuat. Yang tampil sebagai
+                &ldquo;&mdash;&rdquo; belum tentu nol.
               </span>
             </div>
           )}
 
-          {/* Kartu statistik — StatTile (primitif B1). Sekaligus jalan
-              pintas ke halaman terkait: angka tanpa tindak lanjut hanya
-              jadi hiasan. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <StatTile
-                key={stat.label}
-                label={stat.label}
-                value={stat.value}
-                hint={stat.hint}
-                href={stat.href}
-                icon={stat.icon}
-              />
+          {/* ══ PERLU TINDAKAN — pusat halaman ══ */}
+          <section className="rounded-xl border border-ink-900/[0.07] bg-white">
+            <h2 className="font-ui border-b border-ink-900/[0.06] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Perlu tindakan Anda
+            </h2>
+
+            {actions.length === 0 ? (
+              <div className="flex items-center gap-2.5 px-4 py-6">
+                <CheckCircleIcon size={20} weight="duotone" aria-hidden="true" className="shrink-0 text-success-600" />
+                <div>
+                  <p className="font-ui text-sm font-medium text-ink-700">Tidak ada yang tertunda</p>
+                  <p className="text-xs text-neutral-500">
+                    Semua lead sudah ditindaklanjuti dan tidak ada draf menggantung.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <ul role="list" className="divide-y divide-ink-900/[0.05]">
+                {actions.map((a) => (
+                  <li key={a.text}>
+                    <Link
+                      href={a.href}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
+                    >
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        <span
+                          aria-hidden="true"
+                          className={[
+                            'h-2 w-2 shrink-0 rounded-full',
+                            a.tone === 'urgent' ? 'bg-warning-600' : 'bg-brand-teal-600',
+                          ].join(' ')}
+                        />
+                        <span className="truncate text-sm text-ink-700">{a.text}</span>
+                      </span>
+                      <span className="font-ui flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-teal-600">
+                        {a.cta}
+                        <ArrowRightIcon size={13} weight="bold" aria-hidden="true" />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* ══ Angka — konteks, bukan bintang utama ══ */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {stats.map((s) => (
+              <StatTile key={s.label} label={s.label} value={s.value} hint={s.hint} href={s.href} icon={s.icon} />
             ))}
           </div>
+
+          {/* ══ Pintasan ══ */}
+          <section className="rounded-xl border border-ink-900/[0.07] bg-white p-4">
+            <h2 className="font-ui mb-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Pintasan
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              <Shortcut href="/admin/articles/new" icon={PlusIcon} label="Artikel baru" />
+              <Shortcut href="/admin/products" icon={PackageIcon} label="Katalog produk" />
+              <Shortcut href="/admin/email-templates" icon={EnvelopeSimpleIcon} label="Template pesan" />
+              <Shortcut href="/admin/settings" icon={GearIcon} label="Pengaturan" />
+            </div>
+          </section>
         </div>
       </main>
     </>
+  )
+}
+
+function Shortcut({ href, icon: Icon, label }: { href: string; icon: PhosphorIcon; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="font-ui flex h-9 items-center gap-1.5 rounded-xl border border-ink-900/10 px-3 text-xs font-medium text-ink-700 transition-colors hover:bg-neutral-50 hover:text-brand-teal-600 focus-visible:shadow-focus focus-visible:outline-none"
+    >
+      <Icon size={15} weight="duotone" aria-hidden="true" />
+      {label}
+    </Link>
   )
 }
