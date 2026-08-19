@@ -11,7 +11,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { MessageSquare } from 'lucide-react'
 import { generateSupplierWATemplate, ApiFetchError } from '@/lib/api'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { BrandDialogContent } from '@/components/brand/BrandDialogContent'
 import { SUPPLIER_STATUS_LABELS } from './StatusBadge'
 import type { SupplierStatus } from '@/types/api'
 
@@ -76,7 +77,7 @@ export function SupplierWATemplateButton({ supplierId, currentStatus, whatsapp, 
       </button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-lg">
+        <BrandDialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Template Pesan WhatsApp</DialogTitle>
             <p className="text-sm text-neutral-500">
@@ -122,7 +123,7 @@ export function SupplierWATemplateButton({ supplierId, currentStatus, whatsapp, 
               </div>
             </>
           )}
-        </DialogContent>
+        </BrandDialogContent>
       </Dialog>
     </div>
   )

@@ -14,13 +14,8 @@
 
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { BrandDialogContent } from '@/components/brand/BrandDialogContent'
 import { SPEC_LABEL_REGISTRY, getSpecLabel } from '@/lib/product-spec-labels'
 
 const CUSTOM_KEY_PATTERN = /^[a-z][a-z0-9_]*$/
@@ -228,7 +223,7 @@ export function SpecJSONBEditor({ value, onChange }: SpecJSONBEditorProps) {
             di globals.css (frozen, hanya brand-teal/ink/sand/neutral yang ada
             di @theme), jadi tanpa override className di sini popup rendernya
             transparan/tanpa warna teks. */}
-        <DialogContent className="bg-white text-neutral-900 ring-1 ring-neutral-200 shadow-lg">
+        <BrandDialogContent className="bg-white text-neutral-900 ring-1 ring-neutral-200 shadow-lg">
           <DialogHeader>
             <DialogTitle className="text-ink-700">Tambah Custom Field</DialogTitle>
           </DialogHeader>
@@ -302,7 +297,7 @@ export function SpecJSONBEditor({ value, onChange }: SpecJSONBEditorProps) {
               Tambah
             </button>
           </DialogFooter>
-        </DialogContent>
+        </BrandDialogContent>
       </Dialog>
     </div>
   )
