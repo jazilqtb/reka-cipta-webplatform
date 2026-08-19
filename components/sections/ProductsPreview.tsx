@@ -186,9 +186,8 @@ export function ProductsPreview({ products }: ProductsPreviewProps) {
               5 Pilihan Garam <span className="italic font-medium text-brand-teal-600">Bersertifikasi</span>
             </h2>
             <p className="mt-4 max-w-xl text-pretty text-base text-neutral-700">
-              Dari garam halus food-grade beryodium hingga garam kasar industri
-              dengan kandungan NaCl tinggi — setiap produk dilengkapi hasil uji
-              laboratorium yang bisa diunduh.
+              Dari halus food-grade beryodium hingga kasar ber-NaCl tinggi untuk
+              proses teknis.
             </p>
           </div>
         </RevealWrapper>

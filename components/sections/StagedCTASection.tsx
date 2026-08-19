@@ -65,7 +65,7 @@ const STAGES: FunnelStage[] = [
   {
     stage: 'Tertarik, Belum Siap Deal',
     title: 'Minta Sampel Produk',
-    desc: 'Sebutkan kebutuhan sampel Anda di kolom keterangan pada form penawaran — kami kirimkan untuk diuji langsung di lokasi Anda.',
+    desc: 'Tulis kebutuhan sampel di kolom keterangan form penawaran — kami kirim untuk Anda uji sendiri.',
     cta: 'Minta Sampel',
     href: '/minta-penawaran',
     icon: FlaskIcon,
@@ -73,7 +73,7 @@ const STAGES: FunnelStage[] = [
   {
     stage: 'Siap Bernegosiasi',
     title: 'Dapatkan Penawaran Sekarang',
-    desc: 'Isi kebutuhan volume dan jenis garam Anda — penawaran harga kami kirimkan ke email dalam hitungan menit, bukan hari.',
+    desc: 'Isi volume dan jenis garam yang Anda butuhkan. Penawaran masuk ke email dalam hitungan menit.',
     cta: 'Minta Penawaran',
     href: '/minta-penawaran',
     icon: HandshakeIcon,
@@ -157,7 +157,7 @@ export function StagedCTASection() {
         <RevealWrapper>
           <div className="mx-auto max-w-2xl text-center">
             <p className="rule-index font-ui justify-center text-brand-teal-300">
-              Langkah Berikutnya
+              Mulai Kerja Sama
             </p>
             <h2
               id="next-step-heading"
@@ -166,8 +166,7 @@ export function StagedCTASection() {
               Pilih Langkah Sesuai <span className="italic font-medium text-brand-teal-200">Kesiapan</span> Anda
             </h2>
             <p className="mt-3 text-pretty text-base text-white/70">
-              Setiap mitra berada di tahap yang berbeda. Empat jalur di bawah membantu
-              Anda menemukan langkah yang paling relevan.
+              Empat jalur masuk, sesuai tahap Anda sekarang.
             </p>
           </div>
         </RevealWrapper>

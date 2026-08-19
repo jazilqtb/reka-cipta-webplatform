@@ -210,24 +210,16 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
             variants={item}
             className="mt-5 text-balance font-display text-[clamp(2.1rem,4.6vw+0.6rem,3.9rem)] font-semibold leading-[1.06] tracking-tight text-ink-900"
           >
-            Distributor garam SNI untuk industri — transparan dalam proses,{' '}
-            <span className="italic font-medium text-brand-teal-600">konsisten</span> dalam kualitas.
+            Garam industri bermutu{' '}
+            <span className="italic font-medium text-brand-teal-600">konsisten</span>, dari tambak Madura ke pabrik Anda.
           </motion.h1>
-
-          <motion.p
-            variants={item}
-            className="font-ui mt-2 text-sm font-semibold uppercase tracking-wide text-brand-teal-600"
-          >
-            Garam Lokal, Standar Industri
-          </motion.p>
 
           <motion.p
             variants={item}
             className="mt-5 max-w-xl text-pretty text-[clamp(0.95rem,0.4vw+0.85rem,1.125rem)] leading-relaxed text-ink-700/80"
           >
-            Satu mitra untuk lima jenis garam bersertifikasi SNI — lengkap dengan hasil uji
-            laboratorium dan legalitas yang bisa Anda periksa kapan saja. Penawaran harga
-            kami kirimkan dalam hitungan menit, bukan hari.
+            Hasil uji laboratorium dan legalitas tiap produk terbuka untuk diperiksa,
+            sebelum Anda memesan.
           </motion.p>
 
           <motion.div variants={item} className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">

@@ -106,7 +106,7 @@ export default function HowItWorks() {
         <RevealWrapper>
           <div className="mb-8 text-center md:mb-12">
             <p className="rule-index font-ui justify-center text-brand-teal-300">
-              Proses Kerja Kami
+              Alur Kemitraan
             </p>
             <h2
               id="howitworks-heading"
@@ -115,8 +115,7 @@ export default function HowItWorks() {
               Cara Kami <span className="italic font-medium text-brand-teal-300">Bekerja</span>
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-white/70">
-              Empat langkah sederhana, transparan, dan terukur — klik tiap langkah
-              untuk lihat detailnya.
+              Dari permintaan pertama sampai pengiriman berkala, dalam empat langkah.
             </p>
           </div>
         </RevealWrapper>

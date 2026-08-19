@@ -120,8 +120,7 @@ export function IndustriesGrid() {
               Garam untuk Beragam <span className="italic font-medium text-brand-teal-600">Kebutuhan</span> Industri
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-neutral-700">
-              Garam industri SNI untuk enam sektor utama — dari food-grade hingga
-              proses teknis. Hubungi kami untuk spesifikasi lebih detail.
+              Enam sektor utama, masing-masing dengan spesifikasi garam yang berbeda.
             </p>
           </div>
         </RevealWrapper>

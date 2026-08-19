@@ -44,7 +44,7 @@ export function ArticlesPreview({ articles }: Props) {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-2xl text-center">
           <p className="rule-index font-ui justify-center text-brand-teal-600">
-            Artikel &amp; Berita
+            Publikasi
           </p>
           <h2 className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-ink-700">
             Wawasan &amp; Kabar <span className="italic font-medium text-brand-teal-600">Terbaru</span>
@@ -53,8 +53,7 @@ export function ArticlesPreview({ articles }: Props) {
               reaktif/defensif, pola yg sama dgn keluhan copywriting
               /produk sebelumnya. Diganti pernyataan positif langsung. */}
           <p className="mt-3 text-pretty text-base text-neutral-600">
-            Edukasi seputar garam industri, disusun untuk membantu Anda mengambil
-            keputusan yang tepat.
+            Catatan teknis dan standar mutu dari praktik lapangan.
           </p>
         </div>
 

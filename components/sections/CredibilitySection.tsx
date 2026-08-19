@@ -83,7 +83,7 @@ export function CredibilitySection() {
         <RevealWrapper>
           <div className="mx-auto mb-8 max-w-2xl text-center md:mb-12">
             <p className="rule-index font-ui justify-center text-brand-teal-600">
-              Kepercayaan yang Dibuktikan
+              Bukti &amp; Dokumentasi
             </p>
             <h2
               id="credibility-heading"
@@ -91,10 +91,6 @@ export function CredibilitySection() {
             >
               Kenapa Mitra <span className="italic font-medium text-brand-teal-600">Mempercayai</span> Reka Cipta
             </h2>
-            <p className="mt-3 text-pretty text-neutral-700">
-              Setiap klaim di bawah ini didukung dokumentasi yang dapat Anda periksa
-              sendiri, kapan saja.
-            </p>
           </div>
         </RevealWrapper>
 
