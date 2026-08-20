@@ -90,7 +90,34 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
   const metaTitleLength = watch('meta_title')?.length ?? 0
   const slugChanged = mode === 'edit' && slugValue !== initialData?.slug
 
-  async function onSubmit(values: ArticleFormData) {
+  /** Field opsional yang dikosongkan harus dikirim sebagai null, BUKAN ''.
+   *
+   *  Input HTML selalu menghasilkan string; field opsional yang tidak
+   *  disentuh tersimpan sebagai '' di kolom nullable. Seluruh pembaca di
+   *  sisi publik memakai pola `nilai ?? cadangan`, dan `??` TIDAK menangkap
+   *  string kosong — jadi '' lolos sebagai nilai sah dan cadangannya tidak
+   *  pernah jalan. Yang benar-benar terjadi di produksi: satu artikel punya
+   *  canonical_url = '' sehingga <link rel="canonical"> hilang sepenuhnya
+   *  dari halamannya, dan satu lagi punya meta_description = '' sehingga
+   *  <meta name="description"> ikut hilang. Keduanya tanpa error apa pun.
+   *
+   *  Mapper juga menormalkan ini di sisi baca (lib/article-mapper.ts) supaya
+   *  baris yang sudah terlanjur tersimpan ikut terbantu; yang di sini
+   *  menghentikan baris baru lahir dalam keadaan sama. */
+  function nullifyBlanks(values: ArticleFormData): ArticleFormData {
+    const optional = ['meta_title', 'meta_description', 'canonical_url'] as const
+    const out = { ...values }
+    for (const key of optional) {
+      const v = out[key]
+      if (typeof v === 'string' && v.trim() === '') {
+        ;(out as Record<string, unknown>)[key] = null
+      }
+    }
+    return out
+  }
+
+  async function onSubmit(raw: ArticleFormData) {
+    const values = nullifyBlanks(raw)
     try {
       if (mode === 'create') {
         const { article } = await createArticle({ ...values, is_published: isPublishChecked })

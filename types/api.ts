@@ -425,6 +425,12 @@ export interface Article {
   meta_description: string | null
   view_count: number
   published_at: string | null
+  /** CP5 (2026-08-21): kolomnya SUDAH ada di tabel articles sejak migrasi
+   *  pertama (dengan trigger auto-update) dan sudah dikirim backend, tapi
+   *  tidak pernah diteruskan ke kontrak publik. Akibatnya JSON-LD artikel
+   *  tidak bisa mengisi `dateModified` — sinyal kesegaran yang dipakai
+   *  Google untuk artikel yang diperbarui. */
+  updated_at: string | null
   // Checkpoint 3 (2026-08-15) — field SEO per-artikel.
   // Migrasi 20260815091000. SEMUANYA nullable dengan fallback di
   // application layer (lihat komentar kolom di file migrasi):

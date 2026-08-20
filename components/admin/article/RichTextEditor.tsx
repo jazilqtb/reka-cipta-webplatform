@@ -32,6 +32,9 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ value, onChange, disabled }: RichTextEditorProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [linkDraft, setLinkDraft] = useState('')
+  const [linkError, setLinkError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
@@ -66,16 +69,56 @@ export function RichTextEditor({ value, onChange, disabled }: RichTextEditorProp
     }
   }
 
-  function handleLinkClick() {
-    const url = window.prompt('URL link:')
-    if (url) editor?.chain().focus().setLink({ href: url }).run()
+  /* Dulu: window.prompt('URL link:').
+   *
+   * Tiga masalah nyata, bukan sekadar selera:
+   *   1. Tidak ada validasi — apa pun yang diketik langsung jadi href,
+   *      termasuk "javascript:..." dan "www.contoh.com" tanpa skema (yang
+   *      akan diperlakukan browser sebagai path relatif, jadi tautan mati).
+   *   2. Tautan yang SUDAH ada tidak bisa disunting atau dihapus. Satu-
+   *      satunya jalan keluar adalah menghapus teksnya lalu mengetik ulang.
+   *   3. prompt() digambar oleh browser, jadi satu-satunya bagian editor
+   *      yang berada di luar sistem desain — dan ia membekukan seluruh tab
+   *      selama terbuka.
+   */
+  function openLinkEditor() {
+    const existing = editor?.getAttributes('link').href as string | undefined
+    setLinkDraft(existing ?? '')
+    setLinkOpen(true)
+  }
+
+  /** Menerima "contoh.com", "www.contoh.com", "https://contoh.com",
+   *  "mailto:…" dan menolak skema yang bisa dieksekusi. */
+  function normaliseHref(raw: string): string | null {
+    const value = raw.trim()
+    if (!value) return null
+    if (/^(javascript|data|vbscript):/i.test(value)) return null
+    if (/^(https?:|mailto:|tel:|\/)/i.test(value)) return value
+    return `https://${value}`
+  }
+
+  function applyLink() {
+    const href = normaliseHref(linkDraft)
+    if (!href) {
+      setLinkError('Alamat tidak valid.')
+      return
+    }
+    editor?.chain().focus().extendMarkRange('link').setLink({ href }).run()
+    setLinkOpen(false)
+    setLinkError(null)
+  }
+
+  function removeLink() {
+    editor?.chain().focus().extendMarkRange('link').unsetLink().run()
+    setLinkOpen(false)
+    setLinkError(null)
   }
 
   if (!editor) return null
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-input bg-neutral-50 px-2 py-1.5">
+      <div className="relative flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-neutral-50 px-2 py-1.5">
         <ToolbarButton
           active={editor.isActive('bold')}
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -118,7 +161,7 @@ export function RichTextEditor({ value, onChange, disabled }: RichTextEditorProp
         >
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton active={editor.isActive('link')} onClick={handleLinkClick} disabled={disabled}>
+        <ToolbarButton active={editor.isActive('link')} onClick={openLinkEditor} disabled={disabled}>
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
@@ -139,6 +182,55 @@ export function RichTextEditor({ value, onChange, disabled }: RichTextEditorProp
             e.target.value = ''
           }}
         />
+
+        {/* Panel tautan inline — menggantikan window.prompt. Ditempel di
+            dalam bilah alat (relative) supaya muncul tepat di bawah tombol
+            yang ditekan, bukan di tengah layar seperti modal. */}
+        {linkOpen && (
+          <div className="absolute left-2 top-full z-20 mt-1 w-[min(20rem,calc(100%-1rem))] rounded-md border border-ink-900/12 bg-white p-3 shadow-lg">
+            <label className="font-ui mb-1 block text-xs font-medium text-neutral-600" htmlFor="rte-link-url">
+              Alamat tautan
+            </label>
+            <input
+              id="rte-link-url"
+              autoFocus
+              value={linkDraft}
+              onChange={(e) => { setLinkDraft(e.target.value); setLinkError(null) }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); applyLink() }
+                if (e.key === 'Escape') { e.preventDefault(); setLinkOpen(false); setLinkError(null) }
+              }}
+              placeholder="contoh.com atau https://contoh.com"
+              className="h-9 w-full rounded-md border border-ink-900/15 px-2 text-sm text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
+            />
+            {linkError && <p className="mt-1 text-xs text-danger-600">{linkError}</p>}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={removeLink}
+                className="font-ui text-xs font-medium text-neutral-500 hover:text-danger-600"
+              >
+                Hapus tautan
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setLinkOpen(false); setLinkError(null) }}
+                  className="font-ui h-8 rounded-md px-2.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={applyLink}
+                  className="font-ui h-8 rounded-md bg-brand-teal-600 px-3 text-xs font-medium text-white hover:bg-brand-teal-500"
+                >
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <EditorContent editor={editor} />
     </div>

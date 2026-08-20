@@ -34,6 +34,12 @@ import { PageHero } from '@/components/sections/PageHero'
 import { ArticleViewTracker } from '@/components/article/ArticleViewTracker'
 import { RelatedArticles } from '@/components/article/RelatedArticles'
 import type { Article } from '@/types/api'
+import { getArticleExcerpt } from '@/lib/article-excerpt'
+
+/** Basis URL absolut. Sebelumnya ditulis literal di generateMetadata dan
+ *  sekarang dibutuhkan juga oleh dua blok JSON-LD; satu konstanta supaya
+ *  ketiganya tidak bisa berselisih. */
+const SITE_URL = 'https://rekaciptaindonesia.com'
 
 export const revalidate = 3600
 
@@ -57,7 +63,15 @@ export async function generateMetadata({
     return { title: 'Artikel tidak ditemukan' }
   }
 
-  const description = article.meta_description ?? undefined
+  /* Cadangan dari isi artikel sendiri kalau meta_description kosong.
+   * Setelah mapper menormalkan '' menjadi null (lihat lib/article-mapper.ts),
+   * artikel yang kolomnya kosong jadi TIDAK punya <meta name="description">
+   * sama sekali — jujur, tapi berarti Google menyusun cuplikannya sendiri
+   * dari potongan halaman mana pun. getArticleExcerpt memakai kalimat
+   * pembuka artikel itu sendiri, jadi tidak ada klaim baru yang dikarang.
+   * Fungsi ini sengaja hidup di modul terpisah tanpa sentuhan DOM — jangan
+   * ganti dengan sesuatu dari lib/article-content.ts (jsdom). */
+  const description = article.meta_description ?? getArticleExcerpt(article)
 
   // CHECKPOINT 3 (2026-08-15) — field SEO per-artikel dgn FALLBACK.
   // Kolomnya nullable (migrasi 20260815091000), jadi tiap nilai punya
@@ -65,7 +79,7 @@ export async function generateMetadata({
   // yang benar tanpa perlu backfill apa pun.
   const seoTitle = article.meta_title ?? article.title
   const canonical =
-    article.canonical_url ?? `https://rekaciptaindonesia.com/artikel/${article.slug}`
+    article.canonical_url ?? `${SITE_URL}/artikel/${article.slug}`
   // og:image ideal 1200x630; thumbnail kartu 16:9 — beda rasio, jadi
   // og_image_url dipisah. Kalau belum diisi, thumbnail tetap jauh lebih
   // baik daripada tidak ada gambar sama sekali di social card.
@@ -123,22 +137,68 @@ export default async function ArticleDetailPage({
     ? format(new Date(article.published_at), 'd MMMM yyyy', { locale: idLocale })
     : null
 
-  const jsonLd = {
+  const canonical = article.canonical_url ?? `${SITE_URL}/artikel/${article.slug}`
+
+  /* JSON-LD Article — dilengkapi di CP5.
+   *
+   * Versi sebelumnya sah secara sintaks tapi TIDAK MEMENUHI SYARAT rich
+   * result Article Google, karena tiga hal:
+   *   1. `publisher` tanpa `logo`. Google mensyaratkan publisher.logo
+   *      berupa ImageObject; tanpa itu artikel tidak pernah dipertimbangkan.
+   *   2. Tidak ada `dateModified`. Sinyal kesegaran untuk artikel yang
+   *      diperbarui — kolomnya sudah ada di DB sejak awal, hanya tidak
+   *      pernah diteruskan ke kontrak publik (lihat types/api.ts).
+   *   3. Tidak ada `mainEntityOfPage`, jadi data terstruktur tidak pernah
+   *      terikat ke URL kanonik halamannya.
+   * `headline` dipotong 110 karakter: Google mengabaikan Article yang
+   * headline-nya lebih panjang dari itu, dan judul artikel terpanjang di
+   * situs ini sudah 103 karakter — jaraknya tipis. */
+  const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: article.title,
-    image: article.thumbnail_url ?? undefined,
+    headline: article.title.slice(0, 110),
+    image: article.og_image_url ?? article.thumbnail_url ?? undefined,
     datePublished: article.published_at ?? undefined,
+    dateModified: article.updated_at ?? article.published_at ?? undefined,
     description: article.meta_description ?? undefined,
+    inLanguage: 'id-ID',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
     author: { '@type': 'Organization', name: 'CV Reka Cipta Indonesia' },
-    publisher: { '@type': 'Organization', name: 'CV Reka Cipta Indonesia' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'CV Reka Cipta Indonesia',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/logo/logo-light.png`,
+        width: 2816,
+        height: 1536,
+      },
+    },
+  }
+
+  /* BreadcrumbList — halaman ini SUDAH menampilkan breadcrumb ke pembaca
+   * (Beranda > Artikel > judul) tapi tidak pernah memberi tahu mesin
+   * pencari. Menambahkannya membuat SERP menampilkan jalur, bukan URL
+   * mentah, dan itu meningkatkan klik untuk hasil non-peringkat-satu. */
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Beranda', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Artikel', item: `${SITE_URL}/artikel` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: canonical },
+    ],
   }
 
   return (
     <main>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <ArticleViewTracker slug={article.slug} />
 
