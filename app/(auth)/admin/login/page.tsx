@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { EyeIcon, EyeSlashIcon, CircleNotchIcon, WarningCircleIcon, ShieldWarningIcon } from '@phosphor-icons/react/ssr'
 import { createClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/brand/Logo'
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -116,16 +117,20 @@ export default function LoginPage() {
       <div className="bg-dot-grid absolute inset-0 opacity-50 pointer-events-none" />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 space-y-6">
+      <div className="relative z-10 w-full max-w-sm bg-white rounded-md shadow-lg p-8 space-y-6">
         {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="h-12 w-12 rounded-2xl bg-brand-teal-600 flex items-center justify-center mx-auto">
-            <span className="text-white text-base font-bold">RC</span>
-          </div>
+        {/* Logo resmi, bukan monogram "RC", dan nama lengkap perusahaan.
+            Halaman ini satu-satunya sisa yang masih menulis "Reka Cipta"
+            saja setelah sidebar dibetulkan di ronde sebelumnya — dan ini
+            justru layar pertama yang dilihat siapa pun yang masuk. */}
+        <div className="space-y-3 text-center">
+          <Logo variant="light" height={34} asLink={false} className="mx-auto" />
           <div>
-            <h1 className="font-ui text-base font-bold text-ink-700">Reka Cipta</h1>
-            <p className="font-ui text-sm font-medium text-neutral-500 tracking-wide mt-0.5">
-              Admin Panel
+            <h1 className="font-ui text-base font-semibold text-ink-700">
+              CV Reka Cipta Indonesia
+            </h1>
+            <p className="font-ui mt-0.5 text-sm font-medium tracking-wide text-neutral-500">
+              Panel Admin
             </p>
           </div>
         </div>
@@ -174,7 +179,7 @@ export default function LoginPage() {
               placeholder="admin@rekaciptaindonesia.com"
               disabled={isSubmitting}
               className={[
-                'w-full h-11 px-3.5 py-2.5 text-sm text-neutral-900 bg-white rounded-xl',
+                'w-full h-11 px-3.5 py-2.5 text-sm text-neutral-900 bg-white rounded-md',
                 'placeholder:text-neutral-400 transition-colors duration-150',
                 'focus:outline-none focus:shadow-focus',
                 'disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed',
@@ -206,7 +211,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 disabled={isSubmitting}
                 className={[
-                  'w-full h-11 px-3.5 py-2.5 pr-11 text-sm text-neutral-900 bg-white rounded-xl',
+                  'w-full h-11 px-3.5 py-2.5 pr-11 text-sm text-neutral-900 bg-white rounded-md',
                   'placeholder:text-neutral-400 transition-colors duration-150',
                   'focus:outline-none focus:shadow-focus',
                   'disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed',
@@ -247,7 +252,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting || cooldown > 0}
-            className="font-ui w-full flex items-center justify-center gap-2 h-12 bg-brand-teal-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-brand-teal-500 hover:shadow-md active:bg-brand-teal-700 active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus transition-all duration-100 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-brand-teal-600 disabled:hover:shadow-sm disabled:active:scale-100"
+            className="font-ui w-full flex items-center justify-center gap-2 h-12 bg-brand-teal-600 text-white text-sm font-semibold rounded-md shadow-sm hover:bg-brand-teal-500 hover:shadow-md active:bg-brand-teal-700 active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus transition-all duration-100 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-brand-teal-600 disabled:hover:shadow-sm disabled:active:scale-100"
           >
             {isSubmitting ? (
               <>

@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
+import { AdminState } from '@/components/admin/ui/AdminState'
 
 const settingsSchema = z.object({
   whatsapp_1: z.string().regex(/^0\d{9,13}$/, 'Format: 08xxxxxxxxxx'),
@@ -161,7 +162,7 @@ export function SettingsForm() {
   if (isError) {
     return (
       <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-4">
-        <p className="text-neutral-600">Gagal memuat pengaturan.</p>
+        <AdminState tone="error" title="Gagal memuat pengaturan" description="Periksa koneksi lalu coba lagi." />
         <button
           type="button"
           onClick={fetchSettings}
@@ -174,10 +175,21 @@ export function SettingsForm() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8">
+    <div className="rounded-md border border-neutral-200 bg-white p-6 md:p-8">
       <h2 className="text-lg font-semibold text-ink-700">Informasi Kontak</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="mt-6 space-y-5">
+      {/* Enam field ini bukan satu jenis hal: tiga adalah SALURAN yang
+          dipakai pelanggan menghubungi, dua adalah LOKASI fisik, satu
+          adalah teks yang terkirim atas nama perusahaan. Sebelumnya
+          ketiganya bertumpuk sebagai satu daftar rata, jadi admin harus
+          membaca tiap label untuk tahu sedang menyunting apa. <fieldset>
+          bukan cuma kosmetik — pembaca layar mengumumkan <legend> saat
+          fokus masuk ke grup, jadi pengelompokannya ikut terdengar. */}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="mt-6 space-y-7">
+        <fieldset className="space-y-5">
+          <legend className="font-ui mb-3 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            Saluran kontak
+          </legend>
         <div className="space-y-1.5">
           <Label htmlFor="whatsapp_1">Nomor WhatsApp Utama</Label>
           <Input
@@ -232,6 +244,12 @@ export function SettingsForm() {
           )}
         </div>
 
+        </fieldset>
+
+        <fieldset className="space-y-5">
+          <legend className="font-ui mb-3 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            Lokasi
+          </legend>
         <div className="space-y-1.5">
           <Label htmlFor="address">Alamat Kantor</Label>
           <Textarea
@@ -272,6 +290,12 @@ export function SettingsForm() {
           )}
         </div>
 
+        </fieldset>
+
+        <fieldset className="space-y-5">
+          <legend className="font-ui mb-3 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            Pesan otomatis
+          </legend>
         <div className="space-y-1.5">
           <Label htmlFor="wa_default_message">Pesan Default WhatsApp</Label>
           <Textarea
@@ -294,7 +318,9 @@ export function SettingsForm() {
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
+        </fieldset>
+
+        <div className="flex items-center justify-end gap-3 border-t border-ink-900/[0.07] pt-4">
           <button
             type="button"
             onClick={() => reset(serverValues)}

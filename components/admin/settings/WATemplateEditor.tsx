@@ -22,6 +22,7 @@ import { LEAD_STATUSES, LABEL_MAP } from '@/lib/constants/lead-status'
 import { Textarea } from '@/components/ui/textarea'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { cn } from '@/lib/utils'
+import { AdminState } from '@/components/admin/ui/AdminState'
 
 const SAMPLE_CONTEXT: Record<string, string> = {
   full_name: 'Budi Santoso',
@@ -127,7 +128,7 @@ export function WATemplateEditor() {
   if (isError) {
     return (
       <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-4">
-        <p className="text-neutral-600">Gagal memuat template WhatsApp.</p>
+        <AdminState tone="error" title="Gagal memuat template WhatsApp" description="Periksa koneksi lalu coba lagi." />
         <button
           type="button"
           onClick={fetchTemplates}

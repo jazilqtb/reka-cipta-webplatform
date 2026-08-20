@@ -26,6 +26,8 @@ import { LeadsListView } from './LeadsListView'
 import { LeadDetailPanel } from './LeadDetailPanel'
 import { LeadsKanbanBoard } from './LeadsKanbanBoard'
 import type { LeadStatus, RFQLead } from '@/types/api'
+import { AdminState } from '@/components/admin/ui/AdminState'
+import { AdminCard } from '@/components/admin/ui/AdminPrimitives'
 
 export function LeadsWorkspace({ productNames }: { productNames: Record<string, string> }) {
   const router = useRouter()
@@ -152,16 +154,14 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
 
   if (isError) {
     return (
-      <div className="space-y-4 rounded-xl border border-ink-900/[0.07] bg-white p-8 text-center">
-        <p className="text-sm text-neutral-600">Gagal memuat leads.</p>
-        <button
-          type="button"
-          onClick={fetchLeads}
-          className="font-ui h-9 rounded-xl bg-brand-teal-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-500"
-        >
-          Coba Lagi
-        </button>
-      </div>
+      <AdminCard>
+        <AdminState
+          tone="error"
+          title="Gagal memuat leads"
+          description="Periksa koneksi lalu coba lagi."
+          action={<button type="button" onClick={fetchLeads} className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none">Coba lagi</button>}
+        />
+      </AdminCard>
     )
   }
 
@@ -187,12 +187,12 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
       />
 
       {leads.length === 0 ? (
-        <div className="rounded-xl border border-ink-900/[0.07] bg-white p-10 text-center">
-          <p className="font-ui text-sm font-medium text-ink-700">Belum ada RFQ masuk</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            Bagikan halaman /minta-penawaran untuk mulai mengumpulkan lead.
-          </p>
-        </div>
+        <AdminCard>
+          <AdminState
+            title="Belum ada RFQ masuk"
+            description="Bagikan halaman /minta-penawaran untuk mulai mengumpulkan lead."
+          />
+        </AdminCard>
       ) : view === 'kanban' ? (
         <LeadsKanbanBoard leads={visibleLeads} onStatusChange={applyStatusChange} />
       ) : (
@@ -202,9 +202,10 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
         <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(320px,380px)_1fr]">
           <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-ink-900/[0.07] bg-white">
             {visibleLeads.length === 0 ? (
-              <p className="p-6 text-center text-sm text-neutral-500">
-                Tidak ada lead yang cocok dengan filter ini.
-              </p>
+              <AdminState
+                title="Tidak ada lead yang cocok"
+                description="Longgarkan filter atau kosongkan kotak pencarian."
+              />
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <LeadsListView leads={visibleLeads} selectedId={selectedId} onSelect={handleSelect} />

@@ -13,6 +13,7 @@ import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { FilterPanel } from './FilterPanel'
 import { SupplierTable } from './SupplierTable'
 import type { Supplier, SupplierStatus } from '@/types/api'
+import { AdminState } from '@/components/admin/ui/AdminState'
 
 const VALID_STATUSES: SupplierStatus[] = ['new', 'verified', 'active', 'inactive']
 
@@ -71,7 +72,7 @@ export function SupplierListView() {
         </div>
       ) : isError ? (
         <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-8 text-center">
-          <p className="text-neutral-600">Gagal memuat data supplier.</p>
+          <AdminState tone="error" title="Gagal memuat data supplier" description="Periksa koneksi lalu coba lagi." />
           <button
             type="button"
             onClick={fetchSuppliers}

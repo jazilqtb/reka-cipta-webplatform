@@ -37,6 +37,7 @@ import { Input } from '@/components/ui/input'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { HistoryPanel } from './HistoryPanel'
 import { LayoutCustomizer } from './LayoutCustomizer'
+import { AdminState } from '@/components/admin/ui/AdminState'
 
 const promptSchema = z.object({
   prompt_role: z.string().min(1, 'Wajib diisi'),
@@ -173,7 +174,7 @@ export function PromptEditor() {
   if (isError || !settings) {
     return (
       <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-4">
-        <p className="text-neutral-600">Gagal memuat pengaturan proposal.</p>
+        <AdminState tone="error" title="Gagal memuat pengaturan proposal" description="Periksa koneksi lalu coba lagi." />
         <button
           type="button"
           onClick={fetchSettings}

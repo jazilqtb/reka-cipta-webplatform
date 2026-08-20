@@ -22,6 +22,8 @@ import { StatusHistoryTable } from './StatusHistoryTable'
 import { StatusPanel } from './StatusPanel'
 import type { LeadStatus, RFQLead, LeadStatusHistory } from '@/types/api'
 import { saltTypeLabels } from '@/lib/lead-format'
+import { AdminState } from '@/components/admin/ui/AdminState'
+import { AdminCard } from '@/components/admin/ui/AdminPrimitives'
 
 function industryLabel(value: string): string {
   return INDUSTRY_OPTIONS.find((o) => o.value === value)?.label ?? value
@@ -105,30 +107,27 @@ export function LeadDetailView({ leadId, productNames }: { leadId: string; produ
 
   if (notFound) {
     return (
-      <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-4">
-        <p className="text-neutral-600">Lead tidak ditemukan.</p>
-        <Link
-          href="/admin/leads"
-          className="inline-block h-9 px-4 rounded-md bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 transition-colors leading-9"
-        >
-          Kembali ke Pipeline
-        </Link>
-      </div>
+      <AdminCard>
+        <AdminState
+          tone="missing"
+          title="Lead tidak ditemukan"
+          description="Lead ini mungkin sudah dihapus, atau tautannya sudah tidak berlaku."
+          action={<Link href="/admin/leads" className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none">Kembali ke daftar lead</Link>}
+        />
+      </AdminCard>
     )
   }
 
   if (isError || !lead) {
     return (
-      <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-4">
-        <p className="text-neutral-600">Gagal memuat data lead.</p>
-        <button
-          type="button"
-          onClick={() => fetchDetail()}
-          className="h-9 px-4 rounded-md bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 transition-colors"
-        >
-          Coba Lagi
-        </button>
-      </div>
+      <AdminCard>
+        <AdminState
+          tone="error"
+          title="Gagal memuat data lead"
+          description="Periksa koneksi lalu coba lagi."
+          action={<button type="button" onClick={() => fetchDetail()} className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none">Coba lagi</button>}
+        />
+      </AdminCard>
     )
   }
 
