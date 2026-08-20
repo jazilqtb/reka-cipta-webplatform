@@ -20,6 +20,8 @@
 // alih memaksakan daftar kosong.
 
 import Link from 'next/link'
+import { formatDistanceToNow } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
 import { createClient } from '@/lib/supabase/server'
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { StatTile, AdminPageHeader } from '@/components/admin/ui/AdminPrimitives'
@@ -77,7 +79,7 @@ export default async function DashboardPage() {
 
   // Semua query paralel — berurutan akan membuat halaman ini terasa lambat
   // tanpa alasan.
-  const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes] =
+  const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes, recentRes] =
     await Promise.all([
       supabase.from('rfq_leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
       supabase.from('rfq_leads').select('*', { count: 'exact', head: true })
@@ -87,11 +89,37 @@ export default async function DashboardPage() {
       supabase.from('articles').select('*', { count: 'exact', head: true }).eq('is_published', true),
       supabase.from('articles').select('*', { count: 'exact', head: true }).eq('is_published', false),
       supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      /* Lima RFQ terakhir. Ini SATU-SATUNYA query di halaman ini yang
+         mengambil baris, bukan sekadar menghitung — dan itu disengaja:
+         angka memberi tahu ADA berapa, daftar ini memberi tahu SIAPA.
+         Untuk distributor yang meninjau dashboard di pagi hari, "siapa
+         yang menghubungi semalam" adalah pertanyaan pertama, dan tanpa ini
+         ia harus membuka halaman lain untuk menjawabnya. Dibatasi 5 supaya
+         tetap ringkasan, bukan duplikat halaman Leads. */
+      supabase.from('rfq_leads')
+        .select('id, company_name, industry_type, volume_per_month, delivery_city, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5),
     ])
 
   // Gagal != 0. Kartu yang menampilkan "0" padahal query-nya error adalah
   // kebohongan diam-diam.
-  const failed = [leadsRes, suppliersRes, articlesRes, productsRes].filter((r) => r.error)
+  /* Banner kegagalan HARUS mencakup tujuh query, bukan empat.
+   *
+   * Versi sebelumnya hanya memeriksa keempat query yang mengisi kartu angka.
+   * Tiga yang tersisa — staleRes, pendingSupRes, draftRes — justru yang
+   * mengisi daftar "Perlu tindakan Anda", dan ketiganya jatuh ke 0 saat
+   * gagal. Artinya query yang gagal ter-render sebagai "tidak ada yang
+   * tertunda": operator melihat dashboard bersih lalu menyimpulkan tidak
+   * ada pekerjaan, padahal datanya memang tidak pernah sampai.
+   *
+   * Ini relevan sejak RLS diperketat ke public.is_admin() (migrasi
+   * 20260815090100). Sebelum itu policy-nya USING (TRUE) dan query nyaris
+   * tidak mungkin gagal; sesudahnya, sesi apa pun yang tidak lolos
+   * allowlist menerima nol baris. */
+  const countQueries = [leadsRes, suppliersRes, articlesRes, productsRes, staleRes, pendingSupRes, draftRes]
+  const failed = countQueries.filter((r) => r.error)
+  const actionDataFailed = [staleRes, pendingSupRes, draftRes].some((r) => r.error)
   if (failed.length > 0) {
     console.error('[dashboard] count query gagal:', failed.map((r) => r.error?.message))
   }
@@ -156,8 +184,9 @@ export default async function DashboardPage() {
             <div role="alert" className="flex items-start gap-2 rounded-xl border border-danger-100 bg-danger-50 p-3.5 text-xs text-danger-700">
               <WarningIcon size={16} weight="duotone" aria-hidden="true" className="mt-px shrink-0 text-danger-600" />
               <span>
-                {failed.length} dari {stats.length} angka gagal dimuat. Yang tampil sebagai
-                &ldquo;&mdash;&rdquo; belum tentu nol.
+                {failed.length} dari {countQueries.length} query gagal dimuat. Angka yang tampil
+                sebagai &ldquo;&mdash;&rdquo; belum tentu nol
+                {actionDataFailed ? ', dan daftar tindakan di bawah bisa jadi tidak lengkap' : ''}.
               </span>
             </div>
           )}
@@ -172,7 +201,9 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-2.5 px-4 py-6">
                 <CheckCircleIcon size={20} weight="duotone" aria-hidden="true" className="shrink-0 text-success-600" />
                 <div>
-                  <p className="font-ui text-sm font-medium text-ink-700">Tidak ada yang tertunda</p>
+                  <p className="font-ui text-sm font-medium text-ink-700">
+                    {actionDataFailed ? 'Daftar tindakan tidak dapat dimuat' : 'Tidak ada yang tertunda'}
+                  </p>
                   <p className="text-xs text-neutral-500">
                     Semua lead sudah ditindaklanjuti dan tidak ada draf menggantung.
                   </p>
@@ -213,6 +244,56 @@ export default async function DashboardPage() {
               <StatTile key={s.label} label={s.label} value={s.value} hint={s.hint} href={s.href} icon={s.icon} />
             ))}
           </div>
+
+          {/* ══ RFQ terbaru — mengisi paruh bawah halaman dengan hal yang
+                 benar-benar dipakai, bukan widget kosong sekadar penuh ══ */}
+          <section className="rounded-md border border-ink-900/[0.07] bg-white">
+            <div className="flex items-center justify-between border-b border-ink-900/[0.06] px-4 py-3">
+              <h2 className="font-ui text-xs font-bold uppercase tracking-wider text-neutral-400">
+                RFQ terbaru
+              </h2>
+              <Link
+                href="/admin/leads"
+                className="font-ui flex items-center gap-1 text-xs font-medium text-brand-teal-600 hover:text-brand-teal-500"
+              >
+                Semua lead
+                <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+              </Link>
+            </div>
+            {recentRes.error ? (
+              <p className="px-4 py-6 text-sm text-danger-700">Daftar RFQ tidak dapat dimuat.</p>
+            ) : (recentRes.data ?? []).length === 0 ? (
+              <p className="px-4 py-6 text-sm text-neutral-500">
+                Belum ada permintaan penawaran yang masuk.
+              </p>
+            ) : (
+              <ul role="list" className="divide-y divide-ink-900/[0.06]">
+                {(recentRes.data ?? []).map((lead) => (
+                  <li key={lead.id as string}>
+                    <Link
+                      href={`/admin/leads/${lead.id}`}
+                      className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="font-ui block truncate text-sm font-medium text-ink-700">
+                          {(lead.company_name as string) || '(tanpa nama perusahaan)'}
+                        </span>
+                        <span className="mono-tech block truncate text-xs text-neutral-500">
+                          {lead.volume_per_month as number} ton · {lead.delivery_city as string}
+                        </span>
+                      </span>
+                      <span className="mono-tech shrink-0 text-xs text-neutral-400">
+                        {formatDistanceToNow(new Date(lead.created_at as string), {
+                          locale: idLocale,
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           {/* ══ Pintasan ══ */}
           <section className="rounded-xl border border-ink-900/[0.07] bg-white p-4">
