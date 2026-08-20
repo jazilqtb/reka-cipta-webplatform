@@ -37,7 +37,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { buttonVariants } from '@/components/ui/button'
 import { AnimatedCounter } from '@/components/animations/AnimatedCounter'
@@ -81,12 +81,12 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
   const sectionRef = useRef<HTMLElement>(null)
 
   // RONDE Tahap 3 — poin UMUM "Parallax & Scroll Tracking". Hanya layer
-  // FOTO yang bergerak (bukan overlay/teks), section sudah
-  // `overflow-hidden` jadi celah di tepi saat tergeser otomatis
-  // tertutup/menyatu ke bg-salt-50. Rentang kecil (±26px) — elegan,
-  // bukan "scroll-jacking" yang mengganggu.
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] })
-  const photoY = useTransform(scrollYProgress, [0, 1], [-26, 26])
+  // Parallax foto hero DICABUT (CP7). Terlewat saat ParallaxBlob dihapus di
+  // CP1 karena yang ini ditulis inline di sini, bukan lewat komponen
+  // bersama. Rentangnya kecil (±26px) dan terasa halus, tapi kategorinya
+  // tetap "parallax dekoratif" — DILARANG oleh DESIGN-SYSTEM §7. Dan pada
+  // foto yang menjadi latar SELURUH hero, gerak itu menyeret teks di
+  // atasnya secara visual justru saat pembaca berusaha membacanya.
 
   const stats = [
     { label: 'Jenis Garam', value: 5, suffix: '', isStatic: true, delay: 0 },
@@ -135,10 +135,9 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
     >
       {/* Foto full-bleed — background penuh section, bukan panel mengambang.
           Overlay: solid di mobile, gradient reveal di lg+ (lihat catatan
-          atas file). Layer foto dibungkus motion.div terpisah dari overlay
-          supaya HANYA foto yang parallax, overlay/fade tetap diam. */}
+          atas file). Foto kini DIAM — parallax-nya dicabut di CP7. */}
       <div className="absolute inset-0" aria-hidden="true">
-        <motion.div className="absolute inset-0" style={prefersReduced ? undefined : { y: photoY }}>
+        <div className="absolute inset-0">
           {slides.map((slide, i) =>
             failed.has(i) ? null : (
               <div
@@ -158,7 +157,7 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
               </div>
             )
           )}
-        </motion.div>
+        </div>
         {/* RONDE 7: overlay sebelumnya terlalu kuat (foto nyaris hilang).
             Dikurangi — zona teks (0–35%) tetap solid utk keterbacaan,
             tapi meluruh jauh lebih cepat sehingga foto jelas terlihat di

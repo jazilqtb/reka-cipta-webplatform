@@ -143,7 +143,7 @@ export function StagedCTASection() {
         }}
         aria-hidden="true"
       />
-      {/* RONDE Tahap 3: satu blob parallax TAMBAHAN di atas glow statis
+      {/* Catatan lama soal blob parallax dihapus bersama komponennya di CP1.
           di atas — bergerak halus mengikuti scroll (bukan diam), poin
           UMUM "Parallax & Background Kreatif". Diblur berat + opacity
           rendah supaya tetap dekoratif, tidak mengganggu keterbacaan
