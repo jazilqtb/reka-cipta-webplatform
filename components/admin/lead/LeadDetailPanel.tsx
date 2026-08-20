@@ -59,7 +59,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
   if (!lead) {
     return (
       <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 p-8 text-center">
-        <UserIcon size={32} weight="duotone" aria-hidden="true" className="text-neutral-300" />
+        <UserIcon size={40} weight="duotone" aria-hidden="true" className="text-neutral-300" />
         <p className="font-ui text-sm font-medium text-ink-700">Pilih satu lead</p>
         <p className="max-w-[220px] text-xs text-neutral-500">
           Detailnya muncul di sini tanpa berpindah halaman.
@@ -99,7 +99,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
         {/* ── Angka penentu. Ditaruh paling atas dan paling besar karena
              inilah yang dicari lebih dulu pada tiap RFQ garam. ── */}
         <div>
-          <p className="mono-tech text-[30px] font-semibold leading-none text-ink-700">
+          <p className="mono-tech text-2xl font-semibold leading-none text-ink-700">
             {lead.volume_per_month}
             <span className="ml-1 text-base font-medium text-neutral-500">ton</span>
           </p>
@@ -107,7 +107,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
             <span>{frequencyLabel(lead.delivery_frequency)}</span>
             <span className="text-neutral-300" aria-hidden="true">·</span>
             <span className="inline-flex items-center gap-1">
-              <MapPinIcon size={12} weight="duotone" aria-hidden="true" className="text-neutral-400" />
+              <MapPinIcon size={16} weight="duotone" aria-hidden="true" className="text-neutral-400" />
               {lead.delivery_city}
             </span>
           </p>
@@ -118,7 +118,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
             {products.map((name) => (
               <li
                 key={name}
-                className="font-ui rounded-lg bg-brand-teal-50 px-2 py-1 text-[11px] font-medium text-brand-teal-700"
+                className="font-ui rounded-lg bg-brand-teal-50 px-2 py-1 text-xs font-medium text-brand-teal-700"
               >
                 {name}
               </li>
@@ -181,14 +181,14 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
           rel="noopener noreferrer"
           className="font-ui flex h-9 items-center justify-center gap-1.5 rounded-xl border border-ink-900/10 bg-white text-xs font-semibold text-ink-700 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
         >
-          <WhatsappLogoIcon size={15} weight="duotone" aria-hidden="true" />
+          <WhatsappLogoIcon size={16} weight="duotone" aria-hidden="true" />
           WhatsApp
         </a>
         <a
           href={`mailto:${lead.email}`}
           className="font-ui flex h-9 items-center justify-center gap-1.5 rounded-xl border border-ink-900/10 bg-white text-xs font-semibold text-ink-700 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
         >
-          <EnvelopeSimpleIcon size={15} weight="duotone" aria-hidden="true" />
+          <EnvelopeSimpleIcon size={16} weight="duotone" aria-hidden="true" />
           Email
         </a>
         <Link
@@ -196,7 +196,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
           className="font-ui col-span-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-brand-teal-600 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none"
         >
           Buka detail lengkap
-          <ArrowSquareOutIcon size={15} weight="bold" aria-hidden="true" />
+          <ArrowSquareOutIcon size={16} weight="bold" aria-hidden="true" />
         </Link>
       </div>
     </div>
@@ -206,7 +206,7 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="font-ui mb-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+      <h3 className="font-ui mb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
         {title}
       </h3>
       {children}

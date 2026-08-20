@@ -223,7 +223,7 @@ export default function LoginPage() {
                 aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                 tabIndex={-1}
               >
-                {showPassword ? <EyeSlashIcon size={18} weight="duotone" /> : <EyeIcon size={18} weight="duotone" />}
+                {showPassword ? <EyeSlashIcon size={20} weight="duotone" /> : <EyeIcon size={20} weight="duotone" />}
               </button>
             </div>
             {errors.password && (
@@ -251,7 +251,7 @@ export default function LoginPage() {
           >
             {isSubmitting ? (
               <>
-                <CircleNotchIcon size={18} weight="bold" className="animate-spin" aria-hidden="true" />
+                <CircleNotchIcon size={20} weight="bold" className="animate-spin" aria-hidden="true" />
                 Memproses...
               </>
             ) : cooldown > 0 ? (

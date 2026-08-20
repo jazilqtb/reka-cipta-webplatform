@@ -17,7 +17,7 @@ export default function AdminNotFound() {
     <main className="flex flex-1 items-center justify-center p-6">
       <AdminCard className="w-full max-w-md p-8 text-center">
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-          <FileMagnifyingGlassIcon size={22} weight="duotone" className="text-neutral-500" aria-hidden="true" />
+          <FileMagnifyingGlassIcon size={20} weight="duotone" className="text-neutral-500" aria-hidden="true" />
         </div>
 
         <h1 className="font-ui text-lg font-bold text-ink-700">Data tidak ditemukan</h1>
@@ -30,7 +30,7 @@ export default function AdminNotFound() {
             href="/admin/dashboard"
             className={adminButtonClass("primary")}
           >
-            <SquaresFourIcon size={15} weight="duotone" aria-hidden="true" />
+            <SquaresFourIcon size={16} weight="duotone" aria-hidden="true" />
             Kembali ke Dashboard
           </Link>
         </div>

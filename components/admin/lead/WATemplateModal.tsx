@@ -135,7 +135,7 @@ export function WATemplateModal({ leadId, status, whatsapp, open, onOpenChange }
         ) : (
           <>
             <div className="rounded-xl border border-ink-900/[0.07] bg-neutral-50 px-3 py-2">
-              <p className="font-ui text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+              <p className="font-ui text-xs font-bold uppercase tracking-wider text-neutral-400">
                 Kirim ke
               </p>
               <p className="mono-tech mt-0.5 text-sm text-ink-700">{whatsapp}</p>
@@ -152,16 +152,16 @@ export function WATemplateModal({ leadId, status, whatsapp, open, onOpenChange }
                 className="w-full resize-y rounded-xl border border-ink-900/10 bg-white p-3.5 text-sm leading-relaxed text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
               />
               <div className="mt-1.5 flex items-center justify-between gap-2">
-                <span className="mono-tech text-[11px] text-neutral-400">
+                <span className="mono-tech text-xs text-neutral-400">
                   {template.length} karakter
                 </span>
                 {isEdited && (
                   <button
                     type="button"
                     onClick={() => setTemplate(original)}
-                    className="font-ui flex items-center gap-1 text-[11px] font-medium text-neutral-500 transition-colors hover:text-brand-teal-600 focus-visible:shadow-focus focus-visible:outline-none"
+                    className="font-ui flex items-center gap-1 text-xs font-medium text-neutral-500 transition-colors hover:text-brand-teal-600 focus-visible:shadow-focus focus-visible:outline-none"
                   >
-                    <ArrowCounterClockwiseIcon size={12} weight="bold" aria-hidden="true" />
+                    <ArrowCounterClockwiseIcon size={16} weight="bold" aria-hidden="true" />
                     Kembalikan ke template
                   </button>
                 )}
@@ -174,7 +174,7 @@ export function WATemplateModal({ leadId, status, whatsapp, open, onOpenChange }
                 onClick={copyMessage}
                 className="font-ui flex h-10 items-center gap-1.5 rounded-xl border border-ink-900/10 px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
               >
-                <CopyIcon size={15} weight="duotone" aria-hidden="true" />
+                <CopyIcon size={16} weight="duotone" aria-hidden="true" />
                 Salin
               </button>
 

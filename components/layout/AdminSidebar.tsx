@@ -104,7 +104,7 @@ export function AdminSidebar({
             <span
               aria-hidden="true"
               className={[
-                'hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-teal-600 text-[11px] font-bold text-white',
+                'hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-teal-600 text-xs font-bold text-white',
                 collapsed ? 'lg:flex' : '',
               ].join(' ')}
             >
@@ -120,7 +120,7 @@ export function AdminSidebar({
             aria-label="Tutup menu"
             className="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-white/60 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
           >
-            <XIcon size={18} weight="bold" aria-hidden="true" />
+            <XIcon size={20} weight="bold" aria-hidden="true" />
           </button>
         </div>
 
@@ -170,8 +170,8 @@ export function AdminSidebar({
             ].join(' ')}
           >
             {isLoggingOut
-              ? <CircleNotchIcon size={18} weight="bold" className="animate-spin" aria-hidden="true" />
-              : <SignOutIcon size={18} weight="duotone" aria-hidden="true" />}
+              ? <CircleNotchIcon size={20} weight="bold" className="animate-spin" aria-hidden="true" />
+              : <SignOutIcon size={20} weight="duotone" aria-hidden="true" />}
             <span className={collapsed ? 'lg:hidden' : ''}>
               {isLoggingOut ? 'Memproses…' : 'Logout'}
             </span>
@@ -192,7 +192,7 @@ function NavGroup({
           menggantikannya sebagai pemisah supaya pengelompokan tetap ada. */}
       <p
         className={[
-          'font-ui mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-white/35',
+          'font-ui mb-2 px-3 text-xs font-bold uppercase tracking-wider text-white/35',
           collapsed ? 'lg:hidden' : '',
         ].join(' ')}
       >
@@ -230,7 +230,7 @@ function NavLink({
         ].join(' ')}
         aria-current={active ? 'page' : undefined}
       >
-        <Icon size={18} weight="duotone" aria-hidden="true" className={active ? '' : 'opacity-70'} />
+        <Icon size={20} weight="duotone" aria-hidden="true" className={active ? '' : 'opacity-70'} />
         <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
       </Link>
     </li>

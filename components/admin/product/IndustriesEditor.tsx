@@ -67,7 +67,7 @@ export function IndustriesEditor({ value, onChange, suggestions }: IndustriesEdi
                 className="flex items-center justify-center h-5 w-5 rounded-full hover:bg-brand-teal-100 transition-colors"
                 aria-label={`Hapus ${industry}`}
               >
-                <X size={12} aria-hidden="true" />
+                <X size={16} aria-hidden="true" />
               </button>
             </span>
           ))}

@@ -69,7 +69,7 @@ export function InfoHint({ title, children }: InfoHintProps) {
         onClick={() => setPinned((p) => !p)}
         className="inline-flex h-4 w-4 items-center justify-center rounded-full text-neutral-300 transition-colors duration-100 hover:text-brand-teal-600 focus-visible:shadow-focus focus-visible:outline-none"
       >
-        <InfoIcon size={14} weight={visible ? 'fill' : 'regular'} aria-hidden="true" />
+        <InfoIcon size={16} weight={visible ? 'fill' : 'regular'} aria-hidden="true" />
       </button>
 
       {visible && (
@@ -80,8 +80,8 @@ export function InfoHint({ title, children }: InfoHintProps) {
           // membuka ke kanan akan keluar dari tepi layar.
           className="absolute right-0 top-6 z-30 w-64 rounded-xl border border-ink-900/10 bg-white p-3 text-left shadow-xl shadow-ink-950/15"
         >
-          <span className="font-ui mb-1 block text-[11px] font-bold text-ink-700">{title}</span>
-          <span className="block text-[11px] leading-relaxed text-neutral-600">{children}</span>
+          <span className="font-ui mb-1 block text-xs font-bold text-ink-700">{title}</span>
+          <span className="block text-xs leading-relaxed text-neutral-600">{children}</span>
         </span>
       )}
     </span>

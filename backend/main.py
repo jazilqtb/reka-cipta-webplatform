@@ -50,7 +50,15 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── CORS ─────────────────────────────────────────────────────
-allowed_origins = settings.ALLOWED_ORIGINS.split(",")
+# .strip() BUKAN kosmetik. `ALLOWED_ORIGINS` ditulis manusia di dashboard
+# Railway, dan "a.com, b.com" (dengan spasi setelah koma) adalah cara paling
+# alami menulisnya — persis bentuk yang ada di backend/.env repo ini.
+# Tanpa strip, entri kedua menjadi " https://b.com" yang tidak akan pernah
+# cocok dengan header Origin mana pun, dan CORS-nya gagal DIAM-DIAM: preflight
+# balas 400, browser hanya bilang "network error", server tidak mencatat
+# apa-apa yang mencurigakan. Ditemukan saat preflight localhost:3001 ditolak
+# padahal origin-nya jelas terdaftar.
+allowed_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,

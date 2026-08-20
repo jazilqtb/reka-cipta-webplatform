@@ -88,7 +88,16 @@ export function AdminShell({ userEmail, initialCollapsed, children }: AdminShell
 
   return (
     <Ctx.Provider value={{ openMobileNav }}>
-      <div className="flex min-h-dvh bg-neutral-50">
+      {/* h-dvh + overflow-hidden, BUKAN min-h-dvh.
+          Seluruh 14 halaman admin sudah menulis <main className="flex-1
+          overflow-y-auto">, artinya semuanya mengasumsikan rangka
+          setinggi layar. Dengan min-h-dvh asumsi itu tidak pernah
+          terpenuhi: flex-1 tidak punya tinggi batas, jadi overflow-y-auto
+          tidak pernah aktif dan halaman ikut memanjang. Akibatnya header
+          ikut tergulung dan panel split-view Leads berhenti setinggi
+          isinya — menyisakan ~380px ruang kosong menganga di 1440x900,
+          persis keluhan yang jadi dasar CP3. */}
+      <div className="flex h-dvh overflow-hidden bg-neutral-50">
         <AdminSidebar
           userEmail={userEmail}
           collapsed={collapsed}

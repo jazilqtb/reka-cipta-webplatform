@@ -92,17 +92,17 @@ export function LeadsToolbar({
             onClick={onReset}
             className="font-ui flex h-9 items-center gap-1.5 rounded-xl border border-ink-900/10 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
           >
-            <XIcon size={13} weight="bold" aria-hidden="true" />
+            <XIcon size={16} weight="bold" aria-hidden="true" />
             Reset
           </button>
         )}
 
         <div className="ml-auto flex items-center gap-0.5 rounded-xl border border-ink-900/10 bg-white p-0.5">
           <ViewButton active={view === 'list'} onClick={() => onViewChange('list')} label="Daftar">
-            <ListIcon size={15} weight="bold" aria-hidden="true" />
+            <ListIcon size={16} weight="bold" aria-hidden="true" />
           </ViewButton>
           <ViewButton active={view === 'kanban'} onClick={() => onViewChange('kanban')} label="Kanban">
-            <KanbanIcon size={15} weight="bold" aria-hidden="true" />
+            <KanbanIcon size={16} weight="bold" aria-hidden="true" />
           </ViewButton>
         </div>
       </div>
@@ -176,7 +176,7 @@ function StatusChip({
       ].join(' ')}
     >
       {label}
-      <span className={['mono-tech text-[11px]', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>
+      <span className={['mono-tech text-xs', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>
         {count}
       </span>
     </button>

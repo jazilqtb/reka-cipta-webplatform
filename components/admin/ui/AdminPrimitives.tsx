@@ -116,7 +116,7 @@ export function StatTile({
       <div className="mb-3 flex items-center justify-between">
         <p className="font-ui text-sm font-medium text-neutral-500">{label}</p>
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-teal-50">
-          <Icon size={18} weight="duotone" className="text-brand-teal-600" aria-hidden="true" />
+          <Icon size={20} weight="duotone" className="text-brand-teal-600" aria-hidden="true" />
         </div>
       </div>
       <p className="mono-tech text-3xl font-bold text-ink-700">{value === null ? '—' : value}</p>
@@ -164,7 +164,7 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        'font-ui inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
+        'font-ui inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold',
         TONE[tone],
         className
       )}

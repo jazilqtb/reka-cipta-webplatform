@@ -66,7 +66,7 @@ export function AdminHeader({ title, breadcrumb }: AdminHeaderProps) {
                   </Link>
                 </li>
                 <li aria-hidden="true" className="flex items-center">
-                  <CaretRightIcon size={11} weight="bold" />
+                  <CaretRightIcon size={16} weight="bold" />
                 </li>
                 <li className="truncate font-medium text-neutral-600">{breadcrumb}</li>
               </ol>
@@ -87,7 +87,7 @@ export function AdminHeader({ title, breadcrumb }: AdminHeaderProps) {
           className="relative flex h-9 w-9 items-center justify-center rounded-xl text-neutral-300 transition-colors duration-100 disabled:cursor-not-allowed"
           aria-label="Notifikasi (belum tersedia)"
         >
-          <BellIcon size={19} weight="duotone" aria-hidden="true" />
+          <BellIcon size={20} weight="duotone" aria-hidden="true" />
         </button>
       </div>
     </header>

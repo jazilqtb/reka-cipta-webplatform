@@ -166,7 +166,9 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
   }
 
   return (
-    <div className="space-y-4">
+    // h-full + flex-col: toolbar tetap di atas, grid di bawahnya mengambil
+    // sisa tinggi rangka. Tanpa ini `flex-1` pada grid tidak punya arti.
+    <div className="flex h-full flex-col gap-4">
       <LeadsToolbar
         search={search}
         onSearchChange={setSearch}
@@ -194,26 +196,31 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
       ) : view === 'kanban' ? (
         <LeadsKanbanBoard leads={visibleLeads} onStatusChange={applyStatusChange} />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[minmax(320px,380px)_1fr]">
-          <div className="overflow-hidden rounded-xl border border-ink-900/[0.07] bg-white">
+        // min-h-0 wajib: tanpa itu, anak grid dengan konten panjang menolak
+        // menyusut di bawah tinggi kontennya dan scroll internal tidak
+        // pernah terjadi.
+        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(320px,380px)_1fr]">
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-ink-900/[0.07] bg-white">
             {visibleLeads.length === 0 ? (
-              <p className="p-6 text-center text-xs text-neutral-500">
+              <p className="p-6 text-center text-sm text-neutral-500">
                 Tidak ada lead yang cocok dengan filter ini.
               </p>
             ) : (
-              <LeadsListView leads={visibleLeads} selectedId={selectedId} onSelect={handleSelect} />
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <LeadsListView leads={visibleLeads} selectedId={selectedId} onSelect={handleSelect} />
+              </div>
             )}
           </div>
 
           {/* Panel konteks — disembunyikan di bawah lg, tempatnya diambil
               alih halaman detail (lihat handleSelect). */}
-          <div className="hidden overflow-hidden rounded-xl border border-ink-900/[0.07] bg-white lg:block">
+          <div className="hidden min-h-0 overflow-y-auto rounded-md border border-ink-900/[0.07] bg-white lg:block">
             <LeadDetailPanel lead={selectedLead} productNames={productNames} onStatusChange={applyStatusChange} />
           </div>
         </div>
       )}
 
-      <p className="mono-tech text-xs text-neutral-400">
+      <p className="mono-tech shrink-0 text-xs text-neutral-400">
         {visibleLeads.length} dari {leads.length} lead
       </p>
     </div>

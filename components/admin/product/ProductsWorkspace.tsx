@@ -107,7 +107,7 @@ export function ProductsWorkspace({ products }: { products: Product[] }) {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="border-b border-ink-900/[0.07] bg-neutral-50/70">
-                <tr className="font-ui text-left text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                <tr className="font-ui text-left text-xs font-bold uppercase tracking-wider text-neutral-400">
                   <th className="w-16 px-4 py-2.5">Foto</th>
                   <th className="px-4 py-2.5">Produk</th>
                   <th className="w-24 px-4 py-2.5">Kode</th>
@@ -145,18 +145,18 @@ export function ProductsWorkspace({ products }: { products: Product[] }) {
                         {p.name}
                       </Link>
                       {p.tagline && (
-                        <span className="mt-0.5 block truncate text-[11px] text-neutral-500">{p.tagline}</span>
+                        <span className="mt-0.5 block truncate text-xs text-neutral-500">{p.tagline}</span>
                       )}
                     </td>
                     <td className="mono-tech px-4 py-2.5 text-xs text-neutral-600">{p.code}</td>
                     <td className="px-4 py-2.5">
-                      <span className="font-ui rounded-lg bg-brand-teal-50 px-2 py-0.5 text-[11px] font-medium text-brand-teal-700">
+                      <span className="font-ui rounded-lg bg-brand-teal-50 px-2 py-0.5 text-xs font-medium text-brand-teal-700">
                         {CATEGORY_LABELS[p.category]}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
                       <span className={[
-                        'font-ui inline-flex items-center gap-1.5 text-[11px] font-medium',
+                        'font-ui inline-flex items-center gap-1.5 text-xs font-medium',
                         p.is_active ? 'text-success-700' : 'text-neutral-500',
                       ].join(' ')}>
                         <span
@@ -178,7 +178,7 @@ export function ProductsWorkspace({ products }: { products: Product[] }) {
                             aria-label="Lihat di katalog publik"
                             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-900/10 text-neutral-600 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
                           >
-                            <ArrowSquareOutIcon size={15} weight="bold" aria-hidden="true" />
+                            <ArrowSquareOutIcon size={16} weight="bold" aria-hidden="true" />
                           </Link>
                         )}
                         <Link
@@ -187,7 +187,7 @@ export function ProductsWorkspace({ products }: { products: Product[] }) {
                           aria-label="Sunting produk"
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-900/10 text-neutral-600 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none"
                         >
-                          <PencilSimpleIcon size={15} weight="duotone" aria-hidden="true" />
+                          <PencilSimpleIcon size={16} weight="duotone" aria-hidden="true" />
                         </Link>
                       </div>
                     </td>
@@ -225,7 +225,7 @@ function Chip({ active, onClick, label, count }: { active: boolean; onClick: () 
       ].join(' ')}
     >
       {label}
-      <span className={['mono-tech text-[11px]', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>{count}</span>
+      <span className={['mono-tech text-xs', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>{count}</span>
     </button>
   )
 }

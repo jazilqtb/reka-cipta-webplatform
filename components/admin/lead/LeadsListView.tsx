@@ -65,7 +65,7 @@ export function LeadsListView({ leads, selectedId, onSelect }: Props) {
                     <p className="font-ui truncate text-sm font-semibold text-ink-700">
                       {lead.company_name}
                     </p>
-                    <span className="font-ui shrink-0 text-[11px] font-medium text-neutral-400">
+                    <span className="font-ui shrink-0 text-xs font-medium text-neutral-400">
                       {LABEL_MAP[lead.status]}
                     </span>
                   </div>
@@ -74,7 +74,7 @@ export function LeadsListView({ leads, selectedId, onSelect }: Props) {
                     {lead.full_name} · {industryLabel(lead.industry_type)}
                   </p>
 
-                  <div className="mono-tech mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-neutral-600">
+                  <div className="mono-tech mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-600">
                     <span>{formatVolume(lead)}</span>
                     <span className="text-neutral-300" aria-hidden="true">·</span>
                     <span>{lead.delivery_city}</span>
@@ -83,15 +83,15 @@ export function LeadsListView({ leads, selectedId, onSelect }: Props) {
                   </div>
 
                   <div className="mt-1 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-neutral-400">
+                    <span className="text-xs text-neutral-400">
                       {formatDistanceToNow(new Date(lead.created_at), { locale: idLocale, addSuffix: true })}
                     </span>
                     {stale && (
                       <span
                         title={`Belum ada update lebih dari 3 hari`}
-                        className="font-ui flex items-center gap-1 text-[11px] font-medium text-warning-600"
+                        className="font-ui flex items-center gap-1 text-xs font-medium text-warning-600"
                       >
-                        <WarningCircleIcon size={12} weight="fill" aria-hidden="true" />
+                        <WarningCircleIcon size={16} weight="fill" aria-hidden="true" />
                         perlu ditindak
                       </span>
                     )}

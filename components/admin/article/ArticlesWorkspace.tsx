@@ -178,7 +178,7 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
           href="/admin/articles/new"
           className="font-ui ml-auto flex h-9 items-center gap-1.5 rounded-xl bg-brand-teal-600 px-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none"
         >
-          <PlusIcon size={15} weight="bold" aria-hidden="true" />
+          <PlusIcon size={16} weight="bold" aria-hidden="true" />
           Artikel Baru
         </Link>
       </div>
@@ -201,7 +201,7 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
               <thead className="border-b border-ink-900/[0.07] bg-neutral-50/70">
-                <tr className="font-ui text-left text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                <tr className="font-ui text-left text-xs font-bold uppercase tracking-wider text-neutral-400">
                   <th className="px-4 py-2.5">Artikel</th>
                   <th className="px-4 py-2.5 w-40">Kategori</th>
                   <th className="px-4 py-2.5 w-24">Status</th>
@@ -222,18 +222,18 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                         >
                           {row.title}
                         </Link>
-                        <span className="mono-tech mt-0.5 block truncate text-[11px] text-neutral-400">
+                        <span className="mono-tech mt-0.5 block truncate text-xs text-neutral-400">
                           /artikel/{row.slug}
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="font-ui rounded-lg bg-brand-teal-50 px-2 py-0.5 text-[11px] font-medium text-brand-teal-700">
+                        <span className="font-ui rounded-lg bg-brand-teal-50 px-2 py-0.5 text-xs font-medium text-brand-teal-700">
                           {ARTICLE_CATEGORY_LABEL[row.category]}
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={[
-                          'font-ui inline-flex items-center gap-1.5 text-[11px] font-medium',
+                          'font-ui inline-flex items-center gap-1.5 text-xs font-medium',
                           row.is_published ? 'text-success-700' : 'text-neutral-500',
                         ].join(' ')}>
                           <span
@@ -253,7 +253,7 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                         <div className="flex items-center justify-end gap-1">
                           {row.is_published && (
                             <IconLink href={`/artikel/${row.slug}`} label="Lihat di situs publik" external>
-                              <ArrowSquareOutIcon size={15} weight="bold" aria-hidden="true" />
+                              <ArrowSquareOutIcon size={16} weight="bold" aria-hidden="true" />
                             </IconLink>
                           )}
                           <IconButton
@@ -263,11 +263,11 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                             busy={busy}
                           >
                             {row.is_published
-                              ? <EyeSlashIcon size={15} weight="duotone" aria-hidden="true" />
-                              : <EyeIcon size={15} weight="duotone" aria-hidden="true" />}
+                              ? <EyeSlashIcon size={16} weight="duotone" aria-hidden="true" />
+                              : <EyeIcon size={16} weight="duotone" aria-hidden="true" />}
                           </IconButton>
                           <IconLink href={`/admin/articles/${row.id}/edit`} label="Sunting">
-                            <PencilSimpleIcon size={15} weight="duotone" aria-hidden="true" />
+                            <PencilSimpleIcon size={16} weight="duotone" aria-hidden="true" />
                           </IconLink>
                           <IconButton
                             onClick={() => handleDelete(row)}
@@ -276,7 +276,7 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                             busy={busy}
                             danger
                           >
-                            <TrashIcon size={15} weight="duotone" aria-hidden="true" />
+                            <TrashIcon size={16} weight="duotone" aria-hidden="true" />
                           </IconButton>
                         </div>
                       </td>
@@ -299,11 +299,11 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <PageBtn onClick={() => setPage(safePage - 1)} disabled={safePage <= 1} label="Halaman sebelumnya">
-              <CaretLeftIcon size={14} weight="bold" aria-hidden="true" />
+              <CaretLeftIcon size={16} weight="bold" aria-hidden="true" />
             </PageBtn>
             <span className="mono-tech px-2 text-xs text-neutral-600">{safePage} / {totalPages}</span>
             <PageBtn onClick={() => setPage(safePage + 1)} disabled={safePage >= totalPages} label="Halaman berikutnya">
-              <CaretRightIcon size={14} weight="bold" aria-hidden="true" />
+              <CaretRightIcon size={16} weight="bold" aria-hidden="true" />
             </PageBtn>
           </div>
         )}
@@ -329,7 +329,7 @@ function Chip({ active, onClick, label, count }: { active: boolean; onClick: () 
       ].join(' ')}
     >
       {label}
-      <span className={['mono-tech text-[11px]', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>{count}</span>
+      <span className={['mono-tech text-xs', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>{count}</span>
     </button>
   )
 }
@@ -358,7 +358,7 @@ function IconButton({
       ].join(' ')}
     >
       {busy
-        ? <CircleNotchIcon size={15} weight="bold" className="animate-spin" aria-hidden="true" />
+        ? <CircleNotchIcon size={16} weight="bold" className="animate-spin" aria-hidden="true" />
         : children}
     </button>
   )

@@ -154,7 +154,7 @@ export default async function DashboardPage() {
 
           {failed.length > 0 && (
             <div role="alert" className="flex items-start gap-2 rounded-xl border border-danger-100 bg-danger-50 p-3.5 text-xs text-danger-700">
-              <WarningIcon size={15} weight="duotone" aria-hidden="true" className="mt-px shrink-0 text-danger-600" />
+              <WarningIcon size={16} weight="duotone" aria-hidden="true" className="mt-px shrink-0 text-danger-600" />
               <span>
                 {failed.length} dari {stats.length} angka gagal dimuat. Yang tampil sebagai
                 &ldquo;&mdash;&rdquo; belum tentu nol.
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
 
           {/* ══ PERLU TINDAKAN — pusat halaman ══ */}
           <section className="rounded-xl border border-ink-900/[0.07] bg-white">
-            <h2 className="font-ui border-b border-ink-900/[0.06] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <h2 className="font-ui border-b border-ink-900/[0.06] px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-400">
               Perlu tindakan Anda
             </h2>
 
@@ -198,7 +198,7 @@ export default async function DashboardPage() {
                       </span>
                       <span className="font-ui flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-teal-600">
                         {a.cta}
-                        <ArrowRightIcon size={13} weight="bold" aria-hidden="true" />
+                        <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                       </span>
                     </Link>
                   </li>
@@ -216,7 +216,7 @@ export default async function DashboardPage() {
 
           {/* ══ Pintasan ══ */}
           <section className="rounded-xl border border-ink-900/[0.07] bg-white p-4">
-            <h2 className="font-ui mb-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <h2 className="font-ui mb-2.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
               Pintasan
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ function Shortcut({ href, icon: Icon, label }: { href: string; icon: PhosphorIco
       href={href}
       className="font-ui flex h-9 items-center gap-1.5 rounded-xl border border-ink-900/10 px-3 text-xs font-medium text-ink-700 transition-colors hover:bg-neutral-50 hover:text-brand-teal-600 focus-visible:shadow-focus focus-visible:outline-none"
     >
-      <Icon size={15} weight="duotone" aria-hidden="true" />
+      <Icon size={16} weight="duotone" aria-hidden="true" />
       {label}
     </Link>
   )

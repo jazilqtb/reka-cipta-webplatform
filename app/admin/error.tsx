@@ -31,7 +31,7 @@ export default function AdminError({
     <main className="flex flex-1 items-center justify-center p-6">
       <AdminCard className="w-full max-w-md p-8 text-center">
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-danger-50">
-          <WarningIcon size={22} weight="duotone" className="text-danger-600" aria-hidden="true" />
+          <WarningIcon size={20} weight="duotone" className="text-danger-600" aria-hidden="true" />
         </div>
 
         <h1 className="font-ui text-lg font-bold text-ink-700">Terjadi kesalahan</h1>
@@ -52,14 +52,14 @@ export default function AdminError({
             onClick={reset}
             className={adminButtonClass("primary")}
           >
-            <ArrowCounterClockwiseIcon size={15} weight="bold" aria-hidden="true" />
+            <ArrowCounterClockwiseIcon size={16} weight="bold" aria-hidden="true" />
             Coba lagi
           </button>
           <Link
             href="/admin/dashboard"
             className={adminButtonClass("secondary")}
           >
-            <SquaresFourIcon size={15} weight="duotone" aria-hidden="true" />
+            <SquaresFourIcon size={16} weight="duotone" aria-hidden="true" />
             Ke Dashboard
           </Link>
         </div>

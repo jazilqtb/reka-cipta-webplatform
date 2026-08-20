@@ -142,7 +142,7 @@ export function ThumbnailUploader({
               onClick={() => handleUpload(state.retryFile!)}
               className="flex items-center gap-1 font-medium hover:underline"
             >
-              <RotateCcw size={14} aria-hidden="true" />
+              <RotateCcw size={16} aria-hidden="true" />
               Coba lagi
             </button>
           )}

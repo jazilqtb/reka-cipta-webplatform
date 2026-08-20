@@ -136,7 +136,7 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
               {...register('title')}
               disabled={isSubmitting}
               placeholder="Judul artikel…"
-              className="font-ui w-full border-0 bg-transparent p-0 text-2xl font-semibold leading-snug text-ink-700 placeholder:text-neutral-300 focus-visible:outline-none md:text-[28px]"
+              className="font-ui w-full border-0 bg-transparent p-0 text-2xl font-semibold leading-snug text-ink-700 placeholder:text-neutral-300 focus-visible:outline-none md:text-2xl"
             />
             {errors.title && <p className="mt-1 text-xs text-danger-600">{errors.title.message}</p>}
 
@@ -202,7 +202,7 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
           {!slugUnlocked ? (
             <div className="space-y-1.5">
               <p className="mono-tech break-all rounded-xl bg-neutral-50 px-2.5 py-2 text-xs text-ink-700">
-                <LinkSimpleIcon size={12} weight="bold" aria-hidden="true" className="mr-1 inline text-neutral-400" />
+                <LinkSimpleIcon size={16} weight="bold" aria-hidden="true" className="mr-1 inline text-neutral-400" />
                 /artikel/{slugValue || '…'}
               </p>
               <button
@@ -211,12 +211,12 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
                   slugFollowsTitle.current = false
                   setSlugUnlocked(true)
                 }}
-                className="font-ui text-[11px] font-medium text-neutral-500 underline-offset-2 hover:text-brand-teal-600 hover:underline"
+                className="font-ui text-xs font-medium text-neutral-500 underline-offset-2 hover:text-brand-teal-600 hover:underline"
               >
                 Ubah URL
               </button>
               {wasPublished && (
-                <p className="text-[11px] leading-relaxed text-neutral-400">
+                <p className="text-xs leading-relaxed text-neutral-400">
                   Artikel sudah terbit — URL dibekukan agar tautan yang sudah
                   tersebar tidak patah.
                 </p>
@@ -229,10 +229,10 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
                 disabled={isSubmitting}
                 className="mono-tech h-9 w-full rounded-xl border border-ink-900/10 bg-white px-2.5 text-xs text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
               />
-              {errors.slug && <p className="text-[11px] text-danger-600">{errors.slug.message}</p>}
+              {errors.slug && <p className="text-xs text-danger-600">{errors.slug.message}</p>}
               {slugChanged && wasPublished && (
-                <p className="flex items-start gap-1.5 rounded-xl bg-warning-50 p-2 text-[11px] leading-relaxed text-warning-700">
-                  <WarningCircleIcon size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
+                <p className="flex items-start gap-1.5 rounded-xl bg-warning-50 p-2 text-xs leading-relaxed text-warning-700">
+                  <WarningCircleIcon size={16} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                   URL lama akan dialihkan otomatis (301) ke yang baru, jadi
                   tautan lama tetap hidup dan peringkat pencarian ikut pindah.
                 </p>
@@ -326,9 +326,9 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
                 className="h-9 w-full rounded-xl border border-ink-900/10 bg-white px-2.5 text-xs text-ink-700 placeholder:text-neutral-300 focus-visible:shadow-focus focus-visible:outline-none"
               />
               {errors.canonical_url && (
-                <p className="mt-1 text-[11px] text-danger-600">{errors.canonical_url.message}</p>
+                <p className="mt-1 text-xs text-danger-600">{errors.canonical_url.message}</p>
               )}
-              <p className="mt-1 text-[11px] leading-relaxed text-neutral-400">
+              <p className="mt-1 text-xs leading-relaxed text-neutral-400">
                 Isi hanya kalau artikel ini salinan dari sumber lain.
               </p>
             </div>
@@ -362,7 +362,7 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-xl border border-ink-900/[0.07] bg-white p-3.5">
-      <h2 className="font-ui mb-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+      <h2 className="font-ui mb-2.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
         {title}
       </h2>
       {children}
@@ -375,7 +375,7 @@ function Field({
 }: { label: string; htmlFor: string; hint?: React.ReactNode }) {
   return (
     <div className="mb-1 flex items-center justify-between gap-2">
-      <label htmlFor={htmlFor} className="text-[11px] font-medium text-neutral-600">
+      <label htmlFor={htmlFor} className="text-xs font-medium text-neutral-600">
         {label}
       </label>
       {hint}
@@ -392,7 +392,7 @@ function Counter({ value, guide, hardMax }: { value: number; guide: number; hard
   return (
     <p
       className={[
-        'mono-tech mt-1 text-[10px]',
+        'mono-tech mt-1 text-xs',
         overHard ? 'text-danger-600' : overGuide ? 'text-warning-600' : 'text-neutral-400',
       ].join(' ')}
     >
