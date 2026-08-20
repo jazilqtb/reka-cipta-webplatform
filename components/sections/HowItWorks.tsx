@@ -114,9 +114,8 @@ export default function HowItWorks() {
             >
               Cara Kami <span className="font-medium text-brand-teal-300">Bekerja</span>
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-pretty text-white/70">
-              Dari permintaan pertama sampai pengiriman berkala, dalam empat langkah.
-            </p>
+            {/* REDUNDANSI (CP2): subtitle "…dalam empat langkah" dihapus —
+                empat langkah bernomor terpampang tepat di bawahnya. */}
           </div>
         </RevealWrapper>
 

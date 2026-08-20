@@ -483,10 +483,6 @@
   }
 }
 
-/* ═══ Tambahan Epic 2 Slice 1 (FE-02) — Design System §33.2 ═══
-   Pengecualian frozen-file terdokumentasi (preseden: marquee FE-07,
-   disetujui Fase 0): implementasi spec DS yang belum ter-port ke
-   Tailwind v4, bukan token baru. */
 /* DILARANG oleh motion policy (DESIGN-SYSTEM §7): animasi berulang tak
    berhingga pada elemen yang tidak sedang memuat. Kelasnya dibiarkan hidup
    sebagai no-op supaya HeroCarousel tidak perlu diubah di CP0; rujukannya
@@ -496,32 +492,8 @@
   .cta-hero-pulse { animation: none; }
 }
 
-/* ═══ Tambahan Epic 2 Slice 1 (FE-07) — Wireframe v1.0 §6 ═══
-   Pengecualian frozen-file kedua (sudah pre-dokumentasi di
-   ARCHITECTURE.md §11). Marquee infinite scroll utk
-   CredibilitySection. Reduced motion: animation off. */
-.marquee-track {
-  display: flex;
-  width: max-content;
-  gap: 1rem;
-  /* DILARANG §7 — gerak tak berhingga. Baris logo sekarang diam dan
-     bisa digeser manual bila melebihi lebar layar. */
-  animation: none;
-}
-
-.marquee-track:hover,
-.marquee-track:focus-within {
-  animation-play-state: paused;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-    flex-wrap: wrap;
-    width: auto;
-    justify-content: center;
   }
-}
 
 /* ─── Tambahan Slice 2 — Design System v2.0 §19.5 ─── */
 .photo-teal-hover { position: relative; overflow: hidden; }
@@ -540,15 +512,6 @@
 .photo-teal-hover:hover img { filter: brightness(1.04); }
 .photo-teal-hover:hover::after { opacity: 0.06; }
 /* ─── End Tambahan Slice 2 ─── */
-
-/* ═══ Tambahan — Homepage Redesign (2026-08) ═══
-   Pengecualian frozen-file terdokumentasi, mengikuti preseden di atas
-   (marquee, cta-hero-pulse, photo-teal-hover): mengisi gap kelas yang
-   SUDAH dirujuk di komponen tapi tidak pernah didefinisikan
-   (.card-hover-lift, .link-arrow/.arrow-icon — lihat catatan gap di
-   ProductCard.tsx, ArticleCard.tsx, IndustriesGrid.tsx,
-   ArticlesPreview.tsx, ArticlePagination.tsx), plus motif visual baru
-   ("faceted crystal" — signature garam) dan tekstur brand ringan. */
 
 /* .card-hover-lift — affordance klik utk kartu produk/artikel/industri.
    translateY halus + shadow teal-tinted (token §5.2 Design System). */

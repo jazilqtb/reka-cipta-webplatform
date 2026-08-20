@@ -34,7 +34,10 @@ import { RevealWrapper } from '@/components/animations/RevealWrapper'
 
 // Duplicate array → seamless loop (CSS translateX(-50%) bekerja
 // karena konten = 2× isi aslinya, transisi balik tidak terlihat)
-const MARQUEE_ITEMS = [...ACTIVE_CLIENTS, ...ACTIVE_CLIENTS]
+// MARQUEE_ITEMS (daftar mitra digandakan supaya loop terlihat mulus)
+// dihapus bersama animasinya di CP0. Tanpa gerak, salinan kedua hanya
+// mengulang nama yang sama persis di layar — persis keluhan "teks
+// berulang" yang jadi pokok CP2.
 
 // Pilar kepercayaan — proof points langsung dari Fondasi Brand v1.0
 // §2.4 (Nilai 1 Transparansi, Nilai 2 Keandalan) & §6.3 (Proof Points).
@@ -49,7 +52,7 @@ const PILLARS: Pillar[] = [
   {
     icon: SealCheckIcon,
     title: 'Tersertifikasi SNI',
-    proof: 'Hasil uji laboratorium tiap produk tersedia untuk diunduh — tanpa perlu diminta.',
+    proof: 'Kadar NaCl, air, KIO3, dan zat tak larut diuji dengan metode SNI 3556:2016.',
   },
   {
     icon: ShieldCheckIcon,
@@ -63,8 +66,12 @@ const PILLARS: Pillar[] = [
   },
   {
     icon: LightningIcon,
-    title: 'Respons Cepat',
-    proof: 'Penawaran harga terkirim dalam hitungan menit setelah permintaan masuk.',
+    title: 'Respons Terjadwal',
+    // (needs data dari Jazil) — versi sebelumnya menjanjikan "hitungan
+    // menit" sementara HowItWorks, RFQForm, dan halaman terima kasih
+    // menjanjikan 1×24 jam pada halaman yang sama. Dipakai angka yang
+    // konservatif sampai waktu kirim penawaran yang sebenarnya diukur.
+    proof: 'Setiap permintaan dijawab dalam 1×24 jam kerja, lengkap dengan harga dan ketersediaan stok.',
   },
 ]
 
@@ -155,39 +162,27 @@ export function CredibilitySection() {
         </ul>
       </div>
 
-      {/* Marquee — SENGAJA di luar wrapper `max-w-7xl px-4` di atas, jadi
-          sibling penuh-lebar langsung di dalam <section> (RONDE 6, fix
-          bug fade-mask — lihat catatan di kepala file). `<section>`
-          sendiri sudah `overflow-hidden` tanpa padding horizontal, jadi
-          "left-0/right-0" di sini benar-benar tepi layar/section asli. */}
-      <div
-        className="relative mt-2"
-        role="region"
-        aria-label="Daftar mitra distribusi aktif (animasi bergerak)"
-        aria-hidden="true"
-      >
-        <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-white to-transparent md:w-32" />
-        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-white to-transparent md:w-32" />
-
-        <div className="marquee-track px-4">
-          {MARQUEE_ITEMS.map((client, i) => (
-            <div
-              key={`${client.name}-${i}`}
-              className="flex h-16 shrink-0 items-center justify-center px-8"
-              style={{ minWidth: '200px' }}
-            >
+      {/* Dinding logo statis. Dulu marquee bergerak dengan dua salinan
+          daftar + dua mask gradient di tepi. Setelah geraknya dicabut
+          (motion policy §7), mask itu hanya menutupi nama mitra yang diam,
+          dan salinan kedua hanya mengulanginya. Keduanya dihapus: daftar
+          membungkus dan seluruh mitra terbaca sekaligus, juga di ponsel.
+          Tetap aria-hidden — <ul className="sr-only"> di atas sudah
+          menyampaikan daftar yang sama ke pembaca layar. */}
+      <div className="mx-auto max-w-5xl px-4" aria-hidden="true">
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 md:gap-x-12">
+          {ACTIVE_CLIENTS.map((client) => (
+            <div key={client.name} className="flex h-12 items-center justify-center">
               {client.logoUrl ? (
                 <Image
                   src={client.logoUrl}
                   alt={client.name}
                   width={140}
                   height={48}
-                  className="h-10 w-auto object-contain grayscale transition-all duration-300 hover:grayscale-0"
+                  className="h-9 w-auto object-contain grayscale transition-all duration-150 hover:grayscale-0"
                 />
               ) : (
-                // Fallback wordmark tipografis — logo wall asli tidak
-                // pernah pakai ikon generik + caption industri.
-                <span className="font-ui whitespace-nowrap text-lg font-bold tracking-tight text-ink-900/30 transition-colors duration-300 hover:text-ink-900/70">
+                <span className="font-ui whitespace-nowrap text-base font-semibold tracking-tight text-ink-900/35 transition-colors duration-150 hover:text-ink-900/70">
                   {client.name}
                 </span>
               )}

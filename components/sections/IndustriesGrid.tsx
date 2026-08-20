@@ -120,7 +120,7 @@ export function IndustriesGrid() {
               Garam untuk Beragam <span className="font-medium text-brand-teal-600">Kebutuhan</span> Industri
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-neutral-700">
-              Enam sektor utama, masing-masing dengan spesifikasi garam yang berbeda.
+              Tiap sektor memakai spesifikasi garam yang berbeda.
             </p>
           </div>
         </RevealWrapper>

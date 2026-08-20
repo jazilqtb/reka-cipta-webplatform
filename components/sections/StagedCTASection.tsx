@@ -72,7 +72,7 @@ const STAGES: FunnelStage[] = [
   {
     stage: 'Siap Bernegosiasi',
     title: 'Dapatkan Penawaran Sekarang',
-    desc: 'Isi volume dan jenis garam yang Anda butuhkan. Penawaran masuk ke email dalam hitungan menit.',
+    desc: 'Isi volume dan jenis garam yang Anda butuhkan. Penawaran masuk ke email dalam 1×24 jam kerja.',
     cta: 'Minta Penawaran',
     href: '/minta-penawaran',
     icon: HandshakeIcon,
@@ -160,9 +160,8 @@ export function StagedCTASection() {
             >
               Pilih Langkah Sesuai <span className="font-medium text-brand-teal-200">Kesiapan</span> Anda
             </h2>
-            <p className="mt-3 text-pretty text-base text-white/70">
-              Empat jalur masuk, sesuai tahap Anda sekarang.
-            </p>
+            {/* REDUNDANSI (CP2): kartu di bawah sudah berlabel tahap
+                ("Baru Mengenal Kami", "Siap Bernegosiasi", …). */}
           </div>
         </RevealWrapper>
 
