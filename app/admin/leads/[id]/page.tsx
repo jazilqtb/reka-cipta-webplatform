@@ -8,6 +8,7 @@
 
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { LeadDetailView } from '@/components/admin/lead/LeadDetailView'
+import { getProductNames } from '@/lib/data/product-names'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,7 @@ export default async function LeadDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const productNames = await getProductNames()
 
   return (
     <>
@@ -28,7 +30,7 @@ export default async function LeadDetailPage({
 
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto page-transition">
-          <LeadDetailView leadId={id} />
+          <LeadDetailView leadId={id} productNames={productNames} />
         </div>
       </main>
     </>

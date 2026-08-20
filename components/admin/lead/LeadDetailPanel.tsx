@@ -82,17 +82,30 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
             {lead.full_name}{lead.position ? ` · ${lead.position}` : ''}
           </p>
         </div>
-        <label className="sr-only" htmlFor="lead-status-select">Ubah status lead</label>
+        {/* Label dibuat TERLIHAT, bukan sr-only. Memindahkan lead di
+            pipeline adalah tindakan paling sering dan paling menentukan di
+            layar ini, tapi kontrolnya tampil sebagai dropdown yang cuma
+            menulis "Negosiasi" — tidak terbaca sebagai sesuatu yang bisa
+            diubah, hanya sebagai keterangan. Satu label kecil mengubahnya
+            dari informasi jadi tindakan. */}
+        <div className="shrink-0">
+          <label
+            className="font-ui mb-1 block text-right text-xs font-medium text-neutral-500"
+            htmlFor="lead-status-select"
+          >
+            Status
+          </label>
         <select
           id="lead-status-select"
           value={lead.status}
           onChange={(e) => onStatusChange(lead.id, e.target.value as LeadStatus)}
-          className="font-ui h-8 shrink-0 rounded-xl border border-ink-900/10 bg-white px-2 text-xs font-medium text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
+          className="font-ui h-9 shrink-0 rounded-md border border-ink-900/15 bg-white px-2 text-sm font-medium text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
         >
           {LEAD_STATUSES.map((s) => (
             <option key={s} value={s}>{LABEL_MAP[s]}</option>
           ))}
         </select>
+        </div>
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto p-4">

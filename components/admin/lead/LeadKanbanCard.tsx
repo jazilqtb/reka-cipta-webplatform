@@ -10,6 +10,7 @@
 // LeadsKanbanBoard's PointerSensor).
 
 import Link from 'next/link'
+import { PackageIcon, MapPinIcon, WhatsappLogoIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { formatDistanceToNow } from 'date-fns'
@@ -60,10 +61,24 @@ export function LeadKanbanCard({ lead, isDragging = false }: Props) {
         <h4 className="font-semibold text-sm text-ink-700 truncate">{lead.company_name}</h4>
         <p className="text-xs text-neutral-500 mt-0.5">{lead.industry_type}</p>
 
-        <div className="mt-2 flex flex-col gap-1 text-xs text-neutral-600">
-          <span>📦 {lead.volume_per_month} ton/{lead.delivery_frequency === 'weekly' ? 'minggu' : lead.delivery_frequency === 'biweekly' ? '2 minggu' : 'bulan'}</span>
-          <span>📍 {lead.delivery_city}</span>
-          <span>📱 {maskWhatsapp(lead.whatsapp)}</span>
+        {/* Dulu baris ini memakai emoji (📦 📍 📱) sementara daftar di
+            tampilan Daftar memakai ikon Phosphor. Data yang sama, fitur
+            yang sama, dua bahasa visual berbeda — operator yang berpindah
+            antar tampilan harus belajar dua kali. Diseragamkan ke ikon
+            yang SUDAH dipakai; tidak ada icon set baru. */}
+        <div className="mono-tech mt-2 flex flex-col gap-1 text-xs text-neutral-600">
+          <span className="flex items-center gap-1.5">
+            <PackageIcon size={16} className="shrink-0 text-neutral-400" aria-hidden="true" />
+            {lead.volume_per_month} ton/{lead.delivery_frequency === 'weekly' ? 'minggu' : lead.delivery_frequency === 'biweekly' ? '2 minggu' : 'bulan'}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <MapPinIcon size={16} className="shrink-0 text-neutral-400" aria-hidden="true" />
+            {lead.delivery_city}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <WhatsappLogoIcon size={16} className="shrink-0 text-neutral-400" aria-hidden="true" />
+            {maskWhatsapp(lead.whatsapp)}
+          </span>
         </div>
 
         <div className="mt-2 flex items-center justify-between">
@@ -71,8 +86,12 @@ export function LeadKanbanCard({ lead, isDragging = false }: Props) {
             {formatDistanceToNow(new Date(lead.created_at), { locale: idLocale, addSuffix: true })}
           </p>
           {isStale && (
-            <span className="text-xs font-medium text-warning-600" title="Belum ada update > 3 hari">
-              ⚠ stale
+            <span
+              title="Belum ada update lebih dari 3 hari"
+              className="font-ui flex items-center gap-1 text-xs font-medium text-warning-600"
+            >
+              <WarningCircleIcon size={16} weight="fill" aria-hidden="true" />
+              perlu ditindak
             </span>
           )}
         </div>

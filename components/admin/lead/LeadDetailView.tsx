@@ -21,6 +21,7 @@ import { ProposalGeneratorPanel } from './ProposalGeneratorPanel'
 import { StatusHistoryTable } from './StatusHistoryTable'
 import { StatusPanel } from './StatusPanel'
 import type { LeadStatus, RFQLead, LeadStatusHistory } from '@/types/api'
+import { saltTypeLabels } from '@/lib/lead-format'
 
 function industryLabel(value: string): string {
   return INDUSTRY_OPTIONS.find((o) => o.value === value)?.label ?? value
@@ -30,7 +31,7 @@ function frequencyLabel(value: string): string {
   return FREQUENCY_OPTIONS.find((o) => o.value === value)?.label ?? value
 }
 
-export function LeadDetailView({ leadId }: { leadId: string }) {
+export function LeadDetailView({ leadId, productNames }: { leadId: string; productNames: Record<string, string> }) {
   const router = useRouter()
   const [lead, setLead] = useState<RFQLead | null>(null)
   const [history, setHistory] = useState<LeadStatusHistory[]>([])
@@ -166,7 +167,7 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
             <InfoRow label="Email" value={lead.email} />
             <InfoRow label="WhatsApp" value={lead.whatsapp} />
             <InfoRow label="Industri" value={industryLabel(lead.industry_type)} />
-            <InfoRow label="Produk Diminati" value={lead.salt_types.join(', ')} />
+            <InfoRow label="Produk Diminati" value={saltTypeLabels(lead.salt_types, productNames).join(', ')} />
             <InfoRow
               label="Volume"
               value={`${lead.volume_per_month} ton / ${frequencyLabel(lead.delivery_frequency)}`}
