@@ -31,7 +31,6 @@ import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { SealCheckIcon, ShieldCheckIcon, PlantIcon, LightningIcon } from '@phosphor-icons/react/ssr'
 import { ACTIVE_CLIENTS } from '@/constants/clients'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 
 // Duplicate array → seamless loop (CSS translateX(-50%) bekerja
 // karena konten = 2× isi aslinya, transisi balik tidak terlihat)
@@ -87,9 +86,9 @@ export function CredibilitySection() {
             </p>
             <h2
               id="credibility-heading"
-              className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-ink-700"
+              className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-ink-700"
             >
-              Kenapa Mitra <span className="italic font-medium text-brand-teal-600">Mempercayai</span> Reka Cipta
+              Kenapa Mitra <span className="font-medium text-brand-teal-600">Mempercayai</span> Reka Cipta
             </h2>
           </div>
         </RevealWrapper>
@@ -106,7 +105,7 @@ export function CredibilitySection() {
                     micro-interaction ikon Sektor Industri. */}
                 <div className="group flex items-start gap-4">
                   <Icon
-                    size={30}
+                    size={24}
                     weight="duotone"
                     className="mt-0.5 shrink-0 text-brand-teal-600 transition-transform duration-300 group-hover:scale-110"
                     aria-hidden="true"
@@ -124,27 +123,22 @@ export function CredibilitySection() {
         {/* Divider ke showcase mitra */}
         <div className="mx-auto mb-6 mt-8 flex max-w-md items-center gap-4 md:mt-10" aria-hidden="true">
           <span className="h-px flex-1 bg-ink-900/10" />
-          <PlantIcon size={18} weight="duotone" className="text-sand-600" aria-hidden="true" />
+          <PlantIcon size={20} weight="duotone" className="text-sand-600" aria-hidden="true" />
           <span className="h-px flex-1 bg-ink-900/10" />
         </div>
 
         {/* RONDE 7: reveal-scale (bukan reveal-up default) — sedikit lebih
             dinamis utk heading section Mitra sesuai permintaan klien.
-            RONDE Tahap 3: ditambah ParallaxBlob dekoratif di belakang
             heading (poin UMUM "Background Kreatif" + "tipografi Mitra
             lebih dinamis") — blob teal lembut, bergerak halus saat
             scroll, tidak mengganggu keterbacaan (opacity rendah + blur
             berat, z-index di bawah teks). */}
         <div className="relative">
-          <ParallaxBlob
-            range={30}
-            className="left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 bg-brand-teal-300/15"
-          />
           <RevealWrapper variant="reveal-scale" className="relative">
             <div className="mb-6 text-center md:mb-8">
               <p className="rule-index font-ui justify-center text-brand-teal-600">Dipercaya Oleh</p>
               <h3 className="mt-3 font-ui text-2xl font-bold text-ink-700 md:text-3xl">
-                Mitra Distribusi <span className="italic font-medium text-brand-teal-600">Aktif</span> Kami
+                Mitra Distribusi <span className="font-medium text-brand-teal-600">Aktif</span> Kami
               </h3>
             </div>
           </RevealWrapper>

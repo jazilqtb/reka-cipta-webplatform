@@ -42,7 +42,7 @@ export function CalculatorIntro() {
       <RevealWrapper className="text-center">
         <p className="rule-index font-ui justify-center text-brand-teal-600">Cara Kerja</p>
         <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-          Tiga Langkah, <span className="italic font-medium text-brand-teal-600">Hitungan Detik</span>
+          Tiga Langkah, <span className="font-medium text-brand-teal-600">Hitungan Detik</span>
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-pretty text-neutral-600">
           Estimasi kebutuhan garam industri Anda berdasarkan jenis industri dan kapasitas produksi.
@@ -58,7 +58,7 @@ export function CalculatorIntro() {
                   sm+: kolom (ikon atas) → kartu bento klasik. */}
               <div className="panel-card group flex h-full items-start gap-3.5 rounded-2xl p-4 sm:flex-col sm:items-center sm:gap-2 sm:p-5 sm:text-center">
                 <Icon
-                  size={26}
+                  size={24}
                   weight="duotone"
                   className="mt-0.5 shrink-0 text-brand-teal-600 transition-transform duration-300 group-hover:scale-110 sm:mt-0"
                   aria-hidden="true"

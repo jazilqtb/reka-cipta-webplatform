@@ -59,7 +59,7 @@ export default function JadiSupplierPage() {
           <RevealWrapper className="text-center">
             <p className="rule-index font-ui justify-center text-sand-700">Formulir Pendaftaran</p>
             <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-              Daftarkan <span className="italic font-medium text-sand-600">Usaha Garam</span> Anda
+              Daftarkan <span className="font-medium text-sand-600">Usaha Garam</span> Anda
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-neutral-600">
               Isi data usaha Anda di bawah ini. Tim kemitraan kami akan meninjau dan menghubungi Anda.

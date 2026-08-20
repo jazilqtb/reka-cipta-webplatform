@@ -21,7 +21,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 
 export interface NextStep {
   title: string
@@ -63,7 +62,6 @@ export function ThankYouPanel({
           }}
           aria-hidden="true"
         />
-        <ParallaxBlob range={24} className="left-1/2 top-[-10%] h-64 w-64 -translate-x-1/2 bg-brand-teal-400/14" />
 
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Checkmark beranimasi — lingkaran menggambar dulu, lalu centang */}
@@ -96,12 +94,12 @@ export function ThankYouPanel({
 
           <p className="rule-index font-ui justify-center text-brand-teal-300">{eyebrow}</p>
 
-          <h1 className="mt-3 text-balance font-ui text-[clamp(1.8rem,3vw+1rem,2.9rem)] font-semibold leading-tight text-white">
+          <h1 className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-white">
             {title}
             {titleAccent && (
               <>
                 {' '}
-                <span className="italic font-medium text-brand-teal-300">{titleAccent}</span>
+                <span className="font-medium text-brand-teal-300">{titleAccent}</span>
               </>
             )}
           </h1>
@@ -126,7 +124,7 @@ export function ThankYouPanel({
               Langkah Selanjutnya
             </p>
             <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-              Apa yang <span className="italic font-medium text-brand-teal-600">Terjadi</span> Berikutnya
+              Apa yang <span className="font-medium text-brand-teal-600">Terjadi</span> Berikutnya
             </h2>
           </RevealWrapper>
 
@@ -151,7 +149,7 @@ export function ThankYouPanel({
                 className="font-ui group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-teal-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-teal-500 focus-visible:outline-none focus-visible:shadow-focus"
               >
                 {primaryCta.label}
-                <ArrowRightIcon size={14} weight="bold" className="arrow-icon" aria-hidden="true" />
+                <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
               </Link>
               <Link
                 href={secondaryCta.href}

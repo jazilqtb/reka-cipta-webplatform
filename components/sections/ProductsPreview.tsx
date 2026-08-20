@@ -120,7 +120,7 @@ function FeaturedProductCard({ product }: { product: ProductCardData }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <PackageIcon size={80} weight="duotone" className="text-brand-teal-600/40" aria-hidden="true" />
+            <PackageIcon size={40} weight="duotone" className="text-brand-teal-600/40" aria-hidden="true" />
           </div>
         )}
         {product.is_sni && (
@@ -136,7 +136,7 @@ function FeaturedProductCard({ product }: { product: ProductCardData }) {
         <h3 className="text-balance font-ui text-2xl font-bold tracking-tight text-ink-700 md:text-3xl">
           {product.name}
         </h3>
-        <p className="mono-tech text-xs italic text-neutral-500">{product.spec}</p>
+        <p className="mono-tech text-xs text-neutral-500">{product.spec}</p>
         <p className="text-pretty text-sm leading-relaxed text-neutral-700 md:text-base">
           {blurb}
         </p>
@@ -181,9 +181,9 @@ export function ProductsPreview({ products }: ProductsPreviewProps) {
             <p className="rule-index font-ui text-brand-teal-600">Katalog Produk</p>
             <h2
               id="products-heading"
-              className="mt-3 max-w-2xl text-balance font-ui text-[clamp(1.9rem,3.2vw+1rem,3.25rem)] font-semibold leading-tight text-ink-700"
+              className="mt-3 max-w-2xl text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-ink-700"
             >
-              5 Pilihan Garam <span className="italic font-medium text-brand-teal-600">Bersertifikasi</span>
+              5 Pilihan Garam <span className="font-medium text-brand-teal-600">Bersertifikasi</span>
             </h2>
             <p className="mt-4 max-w-xl text-pretty text-base text-neutral-700">
               Dari halus food-grade beryodium hingga kasar ber-NaCl tinggi untuk

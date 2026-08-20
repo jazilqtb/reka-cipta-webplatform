@@ -41,7 +41,6 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { buttonVariants } from '@/components/ui/button'
 import { AnimatedCounter } from '@/components/animations/AnimatedCounter'
-import { Magnetic } from '@/components/interactive/Magnetic'
 import { cn } from '@/lib/utils'
 import type { CompanySettingsMap } from '@/types/api'
 
@@ -193,7 +192,7 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
           className="max-w-2xl"
         >
           <motion.div variants={item} className="rule-index font-ui inline-flex items-center gap-1.5 text-brand-teal-600">
-            <SealCheckIcon size={14} weight="fill" aria-hidden="true" className="text-brand-teal-600" />
+            <SealCheckIcon size={16} weight="fill" aria-hidden="true" className="text-brand-teal-600" />
             Distributor Bersertifikasi SNI
           </motion.div>
 
@@ -208,15 +207,15 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
               /produk. */}
           <motion.h1
             variants={item}
-            className="mt-5 text-balance font-display text-[clamp(2.1rem,4.6vw+0.6rem,3.9rem)] font-semibold leading-[1.06] tracking-tight text-ink-900"
+            className="mt-5 text-balance font-display text-3xl md:text-4xl font-semibold leading-[1.06] tracking-tight text-ink-900"
           >
             Garam industri bermutu{' '}
-            <span className="italic font-medium text-brand-teal-600">konsisten</span>, dari tambak Madura ke pabrik Anda.
+            <span className="font-medium text-brand-teal-600">konsisten</span>, dari tambak Madura ke pabrik Anda.
           </motion.h1>
 
           <motion.p
             variants={item}
-            className="mt-5 max-w-xl text-pretty text-[clamp(0.95rem,0.4vw+0.85rem,1.125rem)] leading-relaxed text-ink-700/80"
+            className="mt-5 max-w-xl text-pretty text-base md:text-lg leading-relaxed text-ink-700/80"
           >
             Hasil uji laboratorium dan legalitas tiap produk terbuka untuk diperiksa,
             sebelum Anda memesan.
@@ -226,19 +225,17 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
             {/* RONDE Tahap 3 — poin UMUM "Mouse Tracking/Hover": CTA
                 utama bereaksi mengikuti kursor (magnetic-hover), elemen
                 paling sering disorot pengunjung di seluruh beranda. */}
-            <Magnetic strength={10} className="inline-block">
               <Link
                 href="/minta-penawaran"
                 aria-label="Minta penawaran harga sekarang"
                 className={cn(
                   buttonVariants({ size: 'lg' }),
-                  'font-ui rounded-xl cta-hero-pulse bg-brand-teal-600 text-white hover:bg-brand-teal-500'
+                  'font-ui rounded-md bg-brand-teal-600 text-white hover:bg-brand-teal-500'
                 )}
               >
                 Minta Penawaran Sekarang
                 <ArrowRightIcon weight="bold" className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
-            </Magnetic>
             <Link
               href="/produk"
               aria-label="Lihat lima produk garam kami"
@@ -296,10 +293,14 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
               aria-selected={i === current}
               aria-label={`Foto ${i + 1} dari ${slides.length}`}
               onClick={() => goTo(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
+              /* Area sentuh 44px lewat padding + kotak transparan, sementara
+                 titiknya tetap 6px. Membesarkan titiknya sendiri akan
+                 mengubah indikator jadi deretan tombol yang berebut
+                 perhatian dengan CTA di sebelahnya. */
+              className={`relative flex h-11 items-center px-1.5 transition-all duration-300 before:block before:h-1.5 before:rounded-full before:transition-all before:duration-300 ${
                 i === current
-                  ? 'w-7 bg-brand-teal-600'
-                  : 'w-1.5 bg-ink-900/20 hover:bg-ink-900/40'
+                  ? 'before:w-7 before:bg-brand-teal-600'
+                  : 'before:w-1.5 before:bg-ink-900/20 hover:before:bg-ink-900/40'
               }`}
             />
           ))}

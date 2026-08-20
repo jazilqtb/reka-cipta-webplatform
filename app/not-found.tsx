@@ -18,7 +18,7 @@ export default function NotFound() {
       <div className="relative z-10 text-center max-w-md space-y-6">
         {/* Angka 404 */}
         <h1
-          className="text-[80px] md:text-[96px] font-bold text-brand-teal-200 select-none leading-none"
+          className="text-3xl md:text-4xl font-bold text-brand-teal-200 select-none leading-none"
           aria-label="Error 404 — Halaman tidak ditemukan"
         >
           404
@@ -44,7 +44,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center gap-2 h-11 px-6 bg-brand-teal-600 text-white text-base font-semibold rounded-md shadow-sm hover:bg-brand-teal-500 hover:shadow-md hover:-translate-y-0.5 active:bg-brand-teal-700 active:scale-[0.97] active:shadow-none focus-visible:outline-none focus-visible:shadow-focus transition-all duration-100"
           >
-            <ArrowLeft size={18} aria-hidden="true" />
+            <ArrowLeft size={20} aria-hidden="true" />
             Kembali ke Beranda
           </Link>
         </div>

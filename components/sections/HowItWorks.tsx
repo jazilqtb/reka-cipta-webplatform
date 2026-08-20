@@ -110,9 +110,9 @@ export default function HowItWorks() {
             </p>
             <h2
               id="howitworks-heading"
-              className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-white"
+              className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-white"
             >
-              Cara Kami <span className="italic font-medium text-brand-teal-300">Bekerja</span>
+              Cara Kami <span className="font-medium text-brand-teal-300">Bekerja</span>
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-white/70">
               Dari permintaan pertama sampai pengiriman berkala, dalam empat langkah.
@@ -151,16 +151,16 @@ export default function HowItWorks() {
                       className={cn(
                         'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300',
                         isActive
-                          ? 'step-pulse-ring bg-brand-teal-500 text-white'
+                          ? ' bg-brand-teal-500 text-white'
                           : 'text-white/45 group-hover:text-white/70'
                       )}
                     >
-                      <Icon size={22} weight="duotone" aria-hidden="true" />
+                      <Icon size={20} weight="duotone" aria-hidden="true" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p
                         className={cn(
-                          'font-ui text-[11px] font-bold uppercase tracking-wide transition-colors duration-300',
+                          'font-ui text-xs font-bold uppercase tracking-wide transition-colors duration-300',
                           isActive ? 'text-brand-teal-300' : 'text-white/35'
                         )}
                       >
@@ -169,7 +169,7 @@ export default function HowItWorks() {
                       <p
                         className={cn(
                           'font-ui truncate font-semibold transition-colors duration-300',
-                          isActive ? 'text-[15px] text-white' : 'text-sm text-white/55'
+                          isActive ? 'text-base text-white' : 'text-sm text-white/55'
                         )}
                       >
                         {step.title}
@@ -219,7 +219,7 @@ export default function HowItWorks() {
                 className="relative z-10"
               >
                 {/* RONDE 6: badge .icon-hex dihapus — ikon polos & besar */}
-                <ActiveIcon size={48} weight="duotone" className="mb-6 text-brand-teal-400" aria-hidden="true" />
+                <ActiveIcon size={40} weight="duotone" className="mb-6 text-brand-teal-400" aria-hidden="true" />
                 <p className="mono-tech text-xs text-white/40">
                   Langkah {String(active.num).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
                 </p>

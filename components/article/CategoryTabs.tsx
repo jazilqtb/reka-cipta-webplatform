@@ -51,7 +51,7 @@ export function CategoryTabs() {
 
   return (
     <div className="overflow-x-auto">
-      <div className="no-scrollbar inline-flex gap-1 rounded-full border border-ink-900/10 bg-white p-1 font-ui">
+      <div className="no-scrollbar inline-flex gap-1 rounded-md border border-ink-900/10 bg-white p-1 font-ui">
         {TABS.map((tab) => {
           const isActive = activeCategory === tab.value
           return (
@@ -60,14 +60,14 @@ export function CategoryTabs() {
               type="button"
               onClick={() => handleTabClick(tab.value)}
               aria-pressed={isActive}
-              className={`relative shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus ${
+              className={`relative shrink-0 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus ${
                 isActive ? 'text-white' : 'text-ink-700/60 hover:text-ink-700'
               }`}
             >
               {isActive && (
                 <motion.span
                   layoutId="article-category-pill"
-                  className="absolute inset-0 rounded-full bg-brand-teal-600"
+                  className="absolute inset-0 rounded-md bg-brand-teal-600"
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                 />
               )}

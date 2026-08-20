@@ -1,7 +1,7 @@
 // components/product/ProductCard.tsx
 // RONDE Tahap 4 (2026-08) — kartu katalog /produk, dirombak total supaya
 // DNA-nya identik dgn kartu produk Beranda (components/blocks/ProductCard.tsx):
-// .panel-card + .spotlight-card (mouse-tracking, poin UMUM), badge SNI
+// .panel-card + .(mouse-tracking, poin UMUM), badge SNI
 // solid-fill (.tag-pill-dark, kontras terjamin), TANPA border-hover
 // (dihapus permanen dari .panel-card sejak Ronde 7 — "merusak estetika"),
 // tipografi proporsional (bukan "tempelan").
@@ -26,26 +26,13 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const ref = useRef<HTMLAnchorElement>(null)
 
-  // Spotlight mouse-tracking — pola identik dgn blocks/ProductCard.tsx
-  // Beranda (lihat catatan di sana), ditulis langsung ke DOM style
-  // (bukan state React) supaya tetap 60fps.
-  function handleMouseMove(e: React.MouseEvent<HTMLAnchorElement>) {
-    const el = ref.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const xPct = ((e.clientX - rect.left) / rect.width) * 100
-    const yPct = ((e.clientY - rect.top) / rect.height) * 100
-    el.style.setProperty('--spot-x', `${xPct}%`)
-    el.style.setProperty('--spot-y', `${yPct}%`)
-  }
 
   return (
     <Link
       ref={ref}
       href={`/produk/${product.slug}`}
       aria-label={`Lihat detail produk ${product.name}`}
-      onMouseMove={handleMouseMove}
-      className="panel-card spotlight-card group flex h-full flex-col overflow-hidden rounded-2xl"
+      className="panel-card group flex h-full flex-col overflow-hidden rounded-2xl"
     >
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-brand-teal-50 to-brand-teal-100 sm:aspect-[4/3]">
         {product.photo_url ? (
@@ -58,7 +45,7 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <PackageIcon size={56} weight="duotone" className="text-brand-teal-600/40" aria-hidden="true" />
+            <PackageIcon size={40} weight="duotone" className="text-brand-teal-600/40" aria-hidden="true" />
           </div>
         )}
 

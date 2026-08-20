@@ -41,7 +41,7 @@ export function ArticlePagination({ currentPage, totalPages, buildHref }: Props)
         className={cn(BASE, isFirst ? DISABLED : ENABLED)}
       >
         <CaretLeftIcon
-          size={14}
+          size={16}
           weight="bold"
           className="transition-transform duration-200 group-hover:-translate-x-0.5"
           aria-hidden="true"
@@ -62,7 +62,7 @@ export function ArticlePagination({ currentPage, totalPages, buildHref }: Props)
       >
         Berikutnya
         <CaretRightIcon
-          size={14}
+          size={16}
           weight="bold"
           className="transition-transform duration-200 group-hover:translate-x-0.5"
           aria-hidden="true"

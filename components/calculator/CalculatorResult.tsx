@@ -48,7 +48,7 @@ export function CalculatorResult({ result, onReset }: Props) {
           <p className="rule-index font-ui justify-center text-brand-teal-300">
             Estimasi Kebutuhan Anda
           </p>
-          <p className="mono-tech mt-4 text-[clamp(2rem,5vw+1rem,3rem)] font-bold leading-none text-white">
+          <p className="mono-tech mt-4 text-2xl md:text-3xl font-bold leading-none text-white">
             {result.estimateMinTon}&ndash;{result.estimateMaxTon}
             <span className="ml-2 text-2xl font-medium text-brand-teal-300">ton</span>
           </p>
@@ -69,7 +69,7 @@ export function CalculatorResult({ result, onReset }: Props) {
           className="font-ui group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-teal-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-teal-500 focus-visible:outline-none focus-visible:shadow-focus"
         >
           Minta Penawaran {result.estimateMaxTon} Ton/Bulan
-          <ArrowRightIcon size={14} weight="bold" className="arrow-icon" aria-hidden="true" />
+          <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
         </Link>
         <button
           type="button"
@@ -77,7 +77,7 @@ export function CalculatorResult({ result, onReset }: Props) {
           className="font-ui group inline-flex items-center justify-center gap-2 rounded-xl border border-ink-900/15 px-5 py-3 text-sm font-semibold text-ink-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-salt-50 focus-visible:outline-none focus-visible:shadow-focus"
         >
           <ArrowCounterClockwiseIcon
-            size={14}
+            size={16}
             weight="bold"
             className="transition-transform duration-300 group-hover:-rotate-90"
             aria-hidden="true"

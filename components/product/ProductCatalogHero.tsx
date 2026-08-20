@@ -38,14 +38,12 @@
 //     bawah = ink-900 solid, konstan di seluruh lebar) — sekarang
 //     match 1:1 dgn fill-ink-900 divider di semua titik x. Kekayaan
 //     warna teal/ocean-blue TETAP ada lewat mesh-gradient overlay +
-//     ParallaxBlob, tapi keduanya SENGAJA diklaster di area ATAS (30%
 //     pertama tinggi section) supaya tepi BAWAH (yg ditempeli divider)
 //     selalu murni ink-900 tanpa campuran warna lain. SectionDivider.tsx
 //     sendiri juga ditambah overlap 1px (lihat catatan di sana) sbg
 //     lapisan pengaman kedua utk celah sub-pixel rendering.
 import Link from 'next/link'
 import { CaretRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 
 interface BreadcrumbItem {
@@ -77,14 +75,12 @@ export function ProductCatalogHero() {
         }}
         aria-hidden="true"
       />
-      <ParallaxBlob range={30} className="left-[10%] top-[-14%] h-64 w-64 bg-brand-teal-400/15" />
-      <ParallaxBlob range={22} className="right-[10%] top-[-6%] h-56 w-56 bg-brand-teal-300/12" />
 
       <div className="relative mx-auto max-w-5xl">
         <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">
           {BREADCRUMB.map((item, index) => (
             <span key={item.label} className="flex items-center gap-1.5">
-              {index > 0 && <CaretRightIcon size={12} weight="bold" aria-hidden="true" />}
+              {index > 0 && <CaretRightIcon size={16} weight="bold" aria-hidden="true" />}
               {item.href ? (
                 <Link href={item.href} className="link-animated transition-colors hover:text-brand-teal-200">
                   {item.label}
@@ -103,9 +99,9 @@ export function ProductCatalogHero() {
             try-hard, terdengar seperti dibuat AI. Diganti tone B2B
             standar industri: fokus kualitas & konsistensi pasokan,
             tanpa perlu membantah klaim siapa pun. */}
-        <h1 className="mt-3 max-w-2xl text-balance font-ui text-[clamp(2rem,3.6vw+1rem,3.5rem)] font-semibold leading-[1.1] tracking-tight text-white">
+        <h1 className="mt-3 max-w-2xl text-balance font-ui text-3xl md:text-4xl font-semibold leading-[1.1] tracking-tight text-white">
           Garam Industri Bersertifikat SNI, Dipasok dengan{' '}
-          <span className="italic font-medium text-brand-teal-300">Standar yang Konsisten</span>
+          <span className="font-medium text-brand-teal-300">Standar yang Konsisten</span>
         </h1>
 
         <p className="mt-4 max-w-xl text-pretty text-base leading-relaxed text-white/70 md:text-lg">

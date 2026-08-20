@@ -35,7 +35,7 @@ export function GMapsEmbed({ embedUrl, address }: GMapsEmbedProps) {
         <RevealWrapper>
           <p className="rule-index font-ui text-brand-teal-600">Kunjungi Kami</p>
           <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-            Lokasi Kantor <span className="italic font-medium text-brand-teal-600">Kami</span>
+            Lokasi Kantor <span className="font-medium text-brand-teal-600">Kami</span>
           </h2>
           <p className="mt-2 text-neutral-600">Kunjungi kami di kantor pusat Surabaya.</p>
         </RevealWrapper>
@@ -54,7 +54,7 @@ export function GMapsEmbed({ embedUrl, address }: GMapsEmbedProps) {
               />
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-white px-4 text-center">
-                <MapPinIcon size={48} weight="duotone" className="text-brand-teal-600" aria-hidden="true" />
+                <MapPinIcon size={40} weight="duotone" className="text-brand-teal-600" aria-hidden="true" />
                 <p className="max-w-md text-pretty text-neutral-700">{address}</p>
                 <Link
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}

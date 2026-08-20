@@ -33,7 +33,7 @@ export async function RelatedArticles({ category, excludeSlug }: Props) {
           <RevealWrapper>
             <p className="rule-index font-ui text-brand-teal-600">Bacaan Lain</p>
             <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-              Artikel <span className="italic font-medium text-brand-teal-600">Terkait</span>
+              Artikel <span className="font-medium text-brand-teal-600">Terkait</span>
             </h2>
           </RevealWrapper>
 

@@ -26,8 +26,8 @@ export function AboutCTA() {
       <div className="relative mx-auto max-w-3xl text-center">
         <RevealWrapper>
           <p className="rule-index font-ui justify-center text-brand-teal-200">Langkah Berikutnya</p>
-          <h2 className="mt-3 text-balance font-ui text-[clamp(1.6rem,2.6vw+1rem,2.5rem)] font-semibold leading-tight text-white">
-            Ingin Tahu Lebih Lanjut Tentang <span className="italic font-medium text-brand-teal-200">Kami</span>?
+          <h2 className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-white">
+            Ingin Tahu Lebih Lanjut Tentang <span className="font-medium text-brand-teal-200">Kami</span>?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-pretty text-white/70">
             Jelajahi portofolio produk kami, atau hubungi langsung tim kami untuk pertanyaan
@@ -41,16 +41,16 @@ export function AboutCTA() {
               href="/produk"
               className="font-ui group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-ink-900/30 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-ink-900/45"
             >
-              <PackageIcon size={18} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
+              <PackageIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
               Lihat Katalog Produk
             </Link>
             <Link
               href="/kontak"
               className="font-ui group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-teal-700 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-teal-50"
             >
-              <ChatCircleIcon size={18} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
+              <ChatCircleIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
               Hubungi Kami
-              <ArrowRightIcon size={14} weight="bold" className="arrow-icon" aria-hidden="true" />
+              <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
             </Link>
           </div>
         </RevealWrapper>

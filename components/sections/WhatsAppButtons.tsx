@@ -34,13 +34,13 @@ export function WhatsAppButtons({ whatsapp1, whatsapp2, defaultMessage }: WhatsA
 
       <div className="mt-3 flex flex-col gap-3 md:flex-row">
         <Link href={generateWALink(whatsapp1, defaultMessage)} target="_blank" rel="noopener noreferrer" className={BUTTON_CLASS}>
-          <ChatCircleIcon size={18} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
+          <ChatCircleIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
           WA {formatPhoneDisplay(whatsapp1)}
         </Link>
 
         {whatsapp2 && (
           <Link href={generateWALink(whatsapp2, defaultMessage)} target="_blank" rel="noopener noreferrer" className={BUTTON_CLASS}>
-            <ChatCircleIcon size={18} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
+            <ChatCircleIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
             WA {formatPhoneDisplay(whatsapp2)}
           </Link>
         )}

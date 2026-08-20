@@ -117,7 +117,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
           <div className="flex items-center gap-3">
             <Logo variant="light" height={34} />
             <div className="hidden xl:block h-8 w-px bg-ink-900/10" aria-hidden="true" />
-            <p className="hidden xl:block font-display text-[13px] italic leading-tight text-ink-700/60">
+            <p className="hidden xl:block font-display text-sm leading-tight text-ink-700/60">
               Garam Lokal,<br />Standar Industri
             </p>
           </div>
@@ -153,7 +153,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                 href={SUPPLIER_LINK.href}
                 className="px-3 py-2 text-sm font-medium text-sand-700 hover:text-sand-600 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus flex items-center gap-1.5"
               >
-                <PlantIcon size={14} weight="duotone" aria-hidden="true" />
+                <PlantIcon size={16} weight="duotone" aria-hidden="true" />
                 {SUPPLIER_LINK.label}
               </Link>
             </li>
@@ -172,13 +172,13 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
               aria-label="Chat via WhatsApp"
               className="hidden rounded-xl lg:inline-flex items-center justify-center h-9 w-9 border border-ink-900/10 text-ink-700/60 hover:border-brand-teal-300 hover:bg-brand-teal-50 hover:text-brand-teal-600 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-150"
             >
-              <ChatCircleIcon size={17} weight="duotone" aria-hidden="true" />
+              <ChatCircleIcon size={16} weight="duotone" aria-hidden="true" />
             </a>
 
             {/* CTA button — desktop. rounded-xl, arrow-slide on hover. */}
             <Link
               href={CTA_LINK.href}
-              className="link-arrow font-ui rounded-xl hidden lg:inline-flex items-center gap-2 h-9 px-4 bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-150"
+              className="link-arrow font-ui rounded-md hidden lg:inline-flex items-center gap-2 h-9 px-4 bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus transition-colors duration-150"
             >
               {CTA_LINK.label}
               <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
@@ -270,13 +270,13 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                       <Link
                         href={item.href}
                         className={[
-                          'flex items-center gap-3 rounded-xl py-2.5 text-[28px] font-semibold leading-tight transition-colors duration-150',
+                          'flex items-center gap-3 rounded-xl py-2.5 text-2xl font-semibold leading-tight transition-colors duration-150',
                           'focus-visible:outline-none focus-visible:shadow-focus-dark',
                           active ? 'text-white' : 'text-white/55 hover:text-white/85',
                         ].join(' ')}
                         aria-current={active ? 'page' : undefined}
                       >
-                        {active && <span className="italic font-medium text-brand-teal-300">/</span>}
+                        {active && <span className="font-medium text-brand-teal-300">/</span>}
                         {item.label}
                       </Link>
                     </motion.li>
@@ -289,7 +289,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                   href={SUPPLIER_LINK.href}
                   className="flex items-center gap-2.5 rounded-xl py-2.5 text-base font-medium text-sand-300 hover:text-sand-200 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus-dark"
                 >
-                  <PlantIcon size={18} weight="duotone" aria-hidden="true" />
+                  <PlantIcon size={20} weight="duotone" aria-hidden="true" />
                   {SUPPLIER_LINK.label}
                 </Link>
               </motion.div>
@@ -303,7 +303,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
                   className="link-arrow font-ui rounded-xl flex items-center justify-center gap-2 w-full h-12 px-4 bg-brand-teal-600 text-white text-base font-semibold hover:bg-brand-teal-500 active:bg-brand-teal-700 transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-focus-dark"
                 >
                   {CTA_LINK.label}
-                  <ArrowRightIcon size={18} weight="bold" className="arrow-icon" aria-hidden="true" />
+                  <ArrowRightIcon size={20} weight="bold" className="arrow-icon" aria-hidden="true" />
                 </Link>
               </motion.div>
 

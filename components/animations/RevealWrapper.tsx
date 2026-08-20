@@ -18,11 +18,21 @@ import { cn } from '@/lib/utils'
 
 type RevealVariant = 'reveal-up' | 'reveal-scale' | 'reveal-left' | 'reveal-right'
 
+/** Batas atas stagger, ditegakkan di sini alih-alih dititipkan ke disiplin
+ *  21 pemanggil. Sebelumnya ada pemanggil dengan `delay={index * 150}`:
+ *  pada daftar 5 item, kartu terakhir baru muncul 750ms + 250ms transisi
+ *  setelah section masuk viewport. Itu masuk kategori "animasi yang menunda
+ *  akses informasi" (DESIGN-SYSTEM §7 — DILARANG). Stagger tetap berguna
+ *  untuk menandai arah baca, jadi tidak dihapus — hanya diberi langit-langit
+ *  yang tidak bisa ditembus siapa pun. */
+const MAX_DELAY_MS = 120
+
 interface RevealWrapperProps {
   children: React.ReactNode
   variant?: RevealVariant
   className?: string
-  /** Delay transisi dalam ms — untuk stagger manual antar sibling */
+  /** Delay transisi dalam ms — untuk stagger manual antar sibling.
+   *  Dibatasi MAX_DELAY di bawah, apa pun yang dikirim pemanggil. */
   delay?: number
   threshold?: number
   rootMargin?: string
@@ -42,7 +52,7 @@ export function RevealWrapper({
     <div
       ref={ref}
       className={cn(variant, className)}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      style={delay ? { transitionDelay: `${Math.min(delay, MAX_DELAY_MS)}ms` } : undefined}
     >
       {children}
     </div>

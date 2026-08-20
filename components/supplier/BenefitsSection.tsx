@@ -44,7 +44,7 @@ export function BenefitsSection() {
         <RevealWrapper className="text-center">
           <p className="rule-index font-ui justify-center text-sand-700">Manfaat Kemitraan</p>
           <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-            Kenapa Bermitra <span className="italic font-medium text-sand-600">dengan Kami</span>
+            Kenapa Bermitra <span className="font-medium text-sand-600">dengan Kami</span>
           </h2>
         </RevealWrapper>
 
@@ -55,7 +55,7 @@ export function BenefitsSection() {
               <RevealWrapper key={benefit.title} variant="reveal-up" delay={index * 80}>
                 <div className="panel-card group flex h-full flex-col items-center gap-3 rounded-2xl p-6 text-center">
                   <Icon
-                    size={32}
+                    size={40}
                     weight="duotone"
                     className="text-sand-600 transition-transform duration-300 group-hover:scale-110"
                     aria-hidden="true"

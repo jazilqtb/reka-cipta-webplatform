@@ -46,8 +46,8 @@ export function ArticlesPreview({ articles }: Props) {
           <p className="rule-index font-ui justify-center text-brand-teal-600">
             Publikasi
           </p>
-          <h2 className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-ink-700">
-            Wawasan &amp; Kabar <span className="italic font-medium text-brand-teal-600">Terbaru</span>
+          <h2 className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-ink-700">
+            Wawasan &amp; Kabar <span className="font-medium text-brand-teal-600">Terbaru</span>
           </h2>
           {/* RONDE Tahap 8: "bukan sekadar mengisi halaman" — frasa
               reaktif/defensif, pola yg sama dgn keluhan copywriting

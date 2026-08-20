@@ -4,21 +4,18 @@
 // (container mx-auto grid md:grid-cols-12) ke Hero gelap yg konsisten
 // dgn ProductCatalogHero.tsx: gradient VERTIKAL murni (bukan diagonal —
 // pelajaran seam Tahap 5, lihat catatan panjang di ProductCatalogHero),
-// mesh-gradient diklaster di atas, ParallaxBlob, breadcrumb DIGABUNG ke
 // sini (ProductBreadcrumb.tsx terpisah DIHAPUS — dulu section putih
 // sendiri di atas Hero, sekarang breadcrumb duduk natural di dalam Hero
 // gelap yg sama, pola identik dgn ProductCatalogHero.tsx).
 //
-// Jadi Client Component — panel foto pakai .spotlight-card (mouse-
+// Jadi Client Component — panel foto pakai .(mouse-
 // tracking, DNA yg sama dgn ProductCard katalog & Beranda), sisanya
 // tetap presentasi statis.
 'use client'
 
-import { useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CaretRightIcon, PackageIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import type { Product, ProductCategory } from '@/types/api'
 
@@ -34,17 +31,7 @@ const CATEGORY_LABELS: Record<ProductCategory, string> = {
 
 export function ProductHero({ product }: ProductHeroProps) {
   const paragraphs = product.description?.split('\n\n') ?? []
-  const photoRef = useRef<HTMLDivElement>(null)
 
-  function handlePhotoMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const el = photoRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const xPct = ((e.clientX - rect.left) / rect.width) * 100
-    const yPct = ((e.clientY - rect.top) / rect.height) * 100
-    el.style.setProperty('--spot-x', `${xPct}%`)
-    el.style.setProperty('--spot-y', `${yPct}%`)
-  }
 
   return (
     <>
@@ -63,14 +50,13 @@ export function ProductHero({ product }: ProductHeroProps) {
         }}
         aria-hidden="true"
       />
-      <ParallaxBlob range={26} className="right-[14%] top-[-12%] h-60 w-60 bg-brand-teal-400/12" />
 
       <div className="relative mx-auto max-w-6xl">
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">
           <Link href="/" className="link-animated transition-colors hover:text-brand-teal-200">Beranda</Link>
-          <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+          <CaretRightIcon size={16} weight="bold" aria-hidden="true" />
           <Link href="/produk" className="link-animated transition-colors hover:text-brand-teal-200">Produk</Link>
-          <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+          <CaretRightIcon size={16} weight="bold" aria-hidden="true" />
           <span aria-current="page" className="text-white/90">{product.name}</span>
         </nav>
 
@@ -80,9 +66,7 @@ export function ProductHero({ product }: ProductHeroProps) {
               putih (photo panel di atas Hero gelap). */}
           <div className="md:col-span-5">
             <div
-              ref={photoRef}
-              onMouseMove={handlePhotoMouseMove}
-              className="spotlight-card relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm"
+              className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm"
             >
               {product.photo_url ? (
                 <Image
@@ -95,7 +79,7 @@ export function ProductHero({ product }: ProductHeroProps) {
                 />
               ) : (
                 <div className="relative z-0 flex h-full w-full items-center justify-center">
-                  <PackageIcon size={64} weight="duotone" className="text-brand-teal-400/40" aria-hidden="true" />
+                  <PackageIcon size={40} weight="duotone" className="text-brand-teal-400/40" aria-hidden="true" />
                 </div>
               )}
             </div>
@@ -104,7 +88,7 @@ export function ProductHero({ product }: ProductHeroProps) {
           <div className="flex flex-col gap-4 md:col-span-7">
             <p className="rule-index font-ui text-brand-teal-300">{CATEGORY_LABELS[product.category]}</p>
 
-            <h1 className="text-balance font-ui text-[clamp(1.9rem,3vw+1rem,3rem)] font-semibold leading-[1.1] tracking-tight text-white">
+            <h1 className="text-balance font-ui text-2xl md:text-3xl font-semibold leading-[1.1] tracking-tight text-white">
               {product.name}
             </h1>
             <p className="mono-tech text-sm text-white/50">{product.code}</p>

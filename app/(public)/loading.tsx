@@ -15,7 +15,7 @@ export default function PublicLoading() {
     <div aria-busy="true" aria-label="Memuat halaman">
       {/* Hero — tinggi menyerupai hero asli agar tidak layout shift */}
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
-        <div className="skeleton h-6 w-36 rounded-full" />        {/* badge */}
+        <div className="skeleton h-6 w-36 rounded-sm" />        {/* badge */}
         <div className="skeleton h-12 w-full max-w-2xl" />        {/* headline baris 1 */}
         <div className="skeleton h-12 w-full max-w-xl" />         {/* headline baris 2 */}
         <div className="skeleton h-5 w-full max-w-lg" />          {/* sub-headline */}

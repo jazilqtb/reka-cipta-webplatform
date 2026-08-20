@@ -306,7 +306,10 @@ Set yang dipakai sekarang (`@phosphor-icons/react`) dipertahankan apa adanya.
 Yang dinormalkan hanya ukuran dan warnanya:
 
 - Ukuran: **16px** sebaris dengan teks · **20px** tombol & item navigasi ·
-  **24px** judul section. Tidak ada ukuran lain.
+  **24px** judul section · **40px** ilustrasi empty-state. Tidak ada ukuran
+  lain. (Audit CP1 menemukan **20 ukuran unik** di portal publik — 11, 12,
+  14, 17, 18, 19, 22, 26, 28, 30, 32, 36, 48, 56, 64, 80 dan seterusnya —
+  semuanya disnap ke tangga empat langkah ini.)
 - Warna: mewarisi `currentColor`. Ikon tidak pernah punya warna sendiri
   di luar `steel-400` (nonaktif) dan `teal-600` (aktif).
 - Weight: `regular` untuk antarmuka, `duotone` hanya untuk ilustrasi

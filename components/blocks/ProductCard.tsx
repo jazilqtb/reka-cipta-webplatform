@@ -9,7 +9,6 @@
 //
 // RONDE Tahap 3 (2026-08):
 // - Jadi Client Component (sebelumnya Server) — dibutuhkan utk
-//   mouse-tracking spotlight highlight (.spotlight-card, poin UMUM
 //   "Mouse Tracking/Hover"). Komponen ini leaf kecil murni presentasi,
 //   tidak ada fetch/logic server yang hilang dgn konversi ini.
 // - Prop `compact` baru — dipakai KHUSUS di carousel horizontal mobile
@@ -50,28 +49,14 @@ export function ProductCard({
 }: ProductCardProps) {
   const ref = useRef<HTMLAnchorElement>(null)
 
-  // Spotlight mouse-tracking — set posisi kursor relatif thd kartu ke
-  // custom property CSS, dibaca .spotlight-card::before di globals.css.
-  // Tidak pakai state React (akan re-render tiap gerakan mouse, mahal);
-  // langsung tulis ke style DOM node, pola standar utk animasi 60fps.
-  function handleMouseMove(e: React.MouseEvent<HTMLAnchorElement>) {
-    const el = ref.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const xPct = ((e.clientX - rect.left) / rect.width) * 100
-    const yPct = ((e.clientY - rect.top) / rect.height) * 100
-    el.style.setProperty('--spot-x', `${xPct}%`)
-    el.style.setProperty('--spot-y', `${yPct}%`)
-  }
 
   return (
     <Link
       ref={ref}
       href={`/produk/${slug}`}
       aria-label={`Lihat detail produk ${name}`}
-      onMouseMove={handleMouseMove}
       className={cn(
-        'panel-card spotlight-card group flex flex-col overflow-hidden rounded-2xl',
+        'panel-card group flex flex-col overflow-hidden rounded-2xl',
         className
       )}
     >
@@ -87,7 +72,7 @@ export function ProductCard({
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <PackageIcon
-              size={64}
+              size={40}
               weight="duotone"
               className="text-brand-teal-600/40"
               aria-hidden="true"
@@ -113,12 +98,12 @@ export function ProductCard({
       <div className={cn('relative z-10 flex flex-1 flex-col gap-1.5', compact ? 'p-3' : 'p-4 sm:p-5')}>
         <h3 className={cn(
           'font-ui text-balance font-bold leading-snug text-ink-700',
-          compact ? 'line-clamp-2 text-sm' : 'text-[15px] sm:text-base md:text-lg'
+          compact ? 'line-clamp-2 text-sm' : 'text-base sm:text-base md:text-lg'
         )}>
           {name}
         </h3>
         {!compact && (
-          <p className="mono-tech text-xs italic text-neutral-500">
+          <p className="mono-tech text-xs text-neutral-500">
             {spec}
           </p>
         )}

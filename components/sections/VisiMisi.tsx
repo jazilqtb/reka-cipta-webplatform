@@ -15,7 +15,7 @@ export function VisiMisi() {
           <div className="mb-12 text-center">
             <p className="rule-index font-ui justify-center text-brand-teal-600">Identitas</p>
             <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-              Visi &amp; <span className="italic font-medium text-brand-teal-600">Misi</span>
+              Visi &amp; <span className="font-medium text-brand-teal-600">Misi</span>
             </h2>
           </div>
         </RevealWrapper>
@@ -26,7 +26,7 @@ export function VisiMisi() {
             <div className="h-full rounded-2xl bg-brand-teal-50 p-8">
               <p className="rule-index font-ui text-brand-teal-600">Visi</p>
               <span className="mt-4 block font-display text-5xl leading-none text-brand-teal-600" aria-hidden="true">❝</span>
-              <p className="mt-4 text-pretty text-xl italic leading-relaxed text-ink-700">{COMPANY_VISION}</p>
+              <p className="mt-4 text-pretty text-xl leading-relaxed text-ink-700">{COMPANY_VISION}</p>
             </div>
           </RevealWrapper>
 

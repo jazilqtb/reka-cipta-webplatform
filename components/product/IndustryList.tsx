@@ -1,6 +1,6 @@
 // components/product/IndustryList.tsx
 // RONDE Tahap 6 (2026-08) — "samakan DNA desain /produk/[slug]": pill
-// rounded-full border-neutral-200 generik dipertahankan bentuknya (pil
+// rounded-sm border-neutral-200 generik dipertahankan bentuknya (pil
 // memang bahasa badge resmi situs — lihat .tag-pill di globals.css)
 // tapi diberi hover-lift + ikon Phosphor (lib/product-industry-icons.ts
 // sudah dimigrasi ke Phosphor di ronde ini juga), heading pakai pola
@@ -21,7 +21,7 @@ export function IndustryList({ industries }: IndustryListProps) {
         <RevealWrapper>
           <p className="rule-index font-ui text-brand-teal-600">Aplikasi Produk</p>
           <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-            Kegunaan per <span className="italic font-medium text-brand-teal-600">Industri</span>
+            Kegunaan per <span className="font-medium text-brand-teal-600">Industri</span>
           </h2>
         </RevealWrapper>
 
@@ -35,7 +35,7 @@ export function IndustryList({ industries }: IndustryListProps) {
             const Icon = getIndustryIcon(industry)
             return (
               <RevealWrapper key={industry} variant="reveal-up" delay={index * 50} className="inline-block">
-                <div role="listitem" className="group inline-flex items-center gap-2 rounded-full border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <div role="listitem" className="group inline-flex items-center gap-2 rounded-sm border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <Icon
                     size={16}
                     weight="duotone"

@@ -23,7 +23,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { CaretRightIcon } from '@phosphor-icons/react/ssr'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 
 export interface HeroCredential {
@@ -79,8 +78,6 @@ export function PageHero({
           }}
           aria-hidden="true"
         />
-        <ParallaxBlob range={28} className="left-[10%] top-[-12%] h-64 w-64 bg-brand-teal-400/14" />
-        <ParallaxBlob range={20} className="right-[8%] top-[-6%] h-52 w-52 bg-brand-teal-300/10" />
 
         <div className="relative mx-auto max-w-5xl">
           <nav
@@ -90,7 +87,7 @@ export function PageHero({
             <Link href="/" className="link-animated transition-colors hover:text-brand-teal-200">
               Beranda
             </Link>
-            <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+            <CaretRightIcon size={16} weight="bold" aria-hidden="true" />
             {breadcrumbParent && (
               <>
                 <Link
@@ -99,7 +96,7 @@ export function PageHero({
                 >
                   {breadcrumbParent.label}
                 </Link>
-                <CaretRightIcon size={12} weight="bold" aria-hidden="true" />
+                <CaretRightIcon size={16} weight="bold" aria-hidden="true" />
               </>
             )}
             <span aria-current="page" className="text-white/90">
@@ -109,12 +106,12 @@ export function PageHero({
 
           <p className="rule-index font-ui text-brand-teal-300">{eyebrow}</p>
 
-          <h1 className="mt-3 max-w-3xl text-balance font-ui text-[clamp(2rem,3.6vw+1rem,3.5rem)] font-semibold leading-[1.1] tracking-tight text-white">
+          <h1 className="mt-3 max-w-3xl text-balance font-ui text-3xl md:text-4xl font-semibold leading-[1.1] tracking-tight text-white">
             {title}
             {titleAccent && (
               <>
                 {' '}
-                <span className="italic font-medium text-brand-teal-300">{titleAccent}</span>
+                <span className="font-medium text-brand-teal-300">{titleAccent}</span>
               </>
             )}
             {titleTail}

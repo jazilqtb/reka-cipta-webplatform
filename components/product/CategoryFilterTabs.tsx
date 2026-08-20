@@ -93,12 +93,12 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
           Motion layoutId — bukan snap instan), konsisten dgn level
           interaksi Beranda baru. */}
       <div className="overflow-x-auto">
-        <Tabs.List className="mb-8 inline-flex gap-1 rounded-full border border-ink-900/10 bg-white p-1 font-ui md:mb-12">
+        <Tabs.List className="mb-8 inline-flex gap-1 rounded-md border border-ink-900/10 bg-white p-1 font-ui md:mb-12">
           {TAB_VALUES.map((value) => (
             <Tabs.Tab
               key={value}
               value={value}
-              className="relative whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-ink-700/60 transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus data-[active]:text-white"
+              className="relative whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium text-ink-700/60 transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus data-[active]:text-white"
             >
               {/* BUG (ditemukan & diperbaiki saat QA visual): `-z-10` di
                   sini bukan cuma menaruh indikator di belakang LABEL
@@ -114,13 +114,13 @@ export function CategoryFilterTabs({ products }: CategoryFilterTabsProps) {
               {activeTab === value && (
                 <motion.span
                   layoutId="category-tab-pill"
-                  className="absolute inset-0 rounded-full bg-brand-teal-600"
+                  className="absolute inset-0 rounded-md bg-brand-teal-600"
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                 />
               )}
               <span className="relative z-10 inline-flex items-center gap-1.5">
                 {TAB_LABELS[value]}
-                <span className="mono-tech text-[10px] opacity-70">{counts[value]}</span>
+                <span className="mono-tech text-xs opacity-70">{counts[value]}</span>
               </span>
             </Tabs.Tab>
           ))}

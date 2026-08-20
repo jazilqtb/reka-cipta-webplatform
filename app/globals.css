@@ -380,8 +380,8 @@
 /* reveal-up */
 .reveal-up {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .reveal-up.is-visible {
   opacity: 1;
@@ -392,8 +392,8 @@
 /* reveal-scale */
 .reveal-scale {
   opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: scale(0.98);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .reveal-scale.is-visible {
   opacity: 1;
@@ -403,8 +403,8 @@
 /* reveal-left */
 .reveal-left {
   opacity: 0;
-  transform: translateX(-24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateX(-10px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .reveal-left.is-visible {
   opacity: 1;
@@ -414,8 +414,8 @@
 /* reveal-right */
 .reveal-right {
   opacity: 0;
-  transform: translateX(24px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateX(10px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .reveal-right.is-visible {
   opacity: 1;
@@ -712,10 +712,10 @@
   align-items: center;
   gap: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.02em;
-  padding: 0.3rem 0.75rem;
-  border-radius: 9999px;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(12,17,17, 0.12);
   background: #FFFFFF;
   color: var(--color-steel-800);
@@ -731,11 +731,11 @@
   align-items: center;
   gap: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  padding: 0.35rem 0.8rem;
-  border-radius: 9999px;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: var(--color-teal-600);
   color: #FFFFFF;
@@ -931,6 +931,34 @@
   .prose-brand { font-size: 1rem; line-height: 1.7; }
   .prose-brand h2 { font-size: 1.4rem; }
   .prose-brand h3 { font-size: 1.2rem; }
+}
+
+/* ─── Target sentuh minimum (audit CP1) ───────────────────────────────
+   Audit CDP pada 414x896 menemukan 26 target interaktif di bawah 40px;
+   tombol "lg" dari shadcn pun hanya h-9 (36px), termasuk CTA konversi
+   utama "Minta Penawaran". WCAG 2.5.5 meminta 44px.
+
+   Diperbaiki di sini, bukan di components/ui/button.tsx — file itu tidak
+   boleh disunting (CLAUDE.md), dan menaikkan tinggi di 20+ pemanggil akan
+   pecah lagi pada pemanggil ke-21. `group/button` ada di SETIAP keluaran
+   buttonVariants, jadi satu selektor menjangkau tombol maupun <Link> yang
+   memakai buttonVariants.
+
+   Dibatasi ke penunjuk kasar: pada mouse, 36px sudah nyaman dan menaikkan
+   semuanya akan menggemukkan antarmuka admin yang padat tanpa alasan. */
+@media (pointer: coarse) {
+  [class~="group/button"]:not([class*="size-6"]):not([class*="size-8"]) {
+    min-height: 44px;
+  }
+  .form-brand input,
+  .form-brand select,
+  .form-brand textarea { min-height: 44px; }
+
+  /* Daftar tautan footer: tinggi kotak barisnya hanya 18px, dan di ponsel
+     tautan sepadat itu meleset terus. Diberi ruang vertikal alih-alih
+     diperbesar fontnya, supaya kepadatan visual footer tidak berubah. */
+  footer nav a,
+  footer li > a { padding-block: 0.4rem; }
 }
 
 /* .form-brand — styling field terpusat utk SELURUH form publik

@@ -25,7 +25,7 @@ export function SpecTable({ specs }: SpecTableProps) {
         <RevealWrapper>
           <p className="rule-index font-ui text-brand-teal-600">Data Teknis</p>
           <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-            Spesifikasi <span className="italic font-medium text-brand-teal-600">Teknis</span>
+            Spesifikasi <span className="font-medium text-brand-teal-600">Teknis</span>
           </h2>
         </RevealWrapper>
 

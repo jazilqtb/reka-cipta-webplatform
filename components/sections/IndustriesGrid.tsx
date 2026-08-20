@@ -115,9 +115,9 @@ export function IndustriesGrid() {
             </p>
             <h2
               id="industries-heading"
-              className="mt-3 text-balance font-ui text-[clamp(1.75rem,2.6vw+1rem,2.75rem)] font-semibold leading-tight text-ink-700"
+              className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-ink-700"
             >
-              Garam untuk Beragam <span className="italic font-medium text-brand-teal-600">Kebutuhan</span> Industri
+              Garam untuk Beragam <span className="font-medium text-brand-teal-600">Kebutuhan</span> Industri
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-neutral-700">
               Enam sektor utama, masing-masing dengan spesifikasi garam yang berbeda.
@@ -167,7 +167,7 @@ export function IndustriesGrid() {
                       ikon panah "lihat detail" menyesatkan. */}
                   <div className="relative z-10">
                     <Icon
-                      size={36}
+                      size={40}
                       weight="duotone"
                       className="text-white/90 transition-transform duration-300 group-hover:scale-110"
                       aria-hidden="true"

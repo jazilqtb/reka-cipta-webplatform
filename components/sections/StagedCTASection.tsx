@@ -39,7 +39,6 @@ import {
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
-import { ParallaxBlob } from '@/components/decorative/ParallaxBlob'
 import { generateWALink } from '@/lib/wa-link'
 import { COMPANY_INFO } from '@/constants/navigation'
 
@@ -149,10 +148,6 @@ export function StagedCTASection() {
           UMUM "Parallax & Background Kreatif". Diblur berat + opacity
           rendah supaya tetap dekoratif, tidak mengganggu keterbacaan
           teks kartu di atasnya. */}
-      <ParallaxBlob
-        range={40}
-        className="left-1/2 top-0 h-72 w-72 -translate-x-1/2 bg-brand-teal-300/20"
-      />
       <div className="relative mx-auto max-w-7xl">
         <RevealWrapper>
           <div className="mx-auto max-w-2xl text-center">
@@ -161,9 +156,9 @@ export function StagedCTASection() {
             </p>
             <h2
               id="next-step-heading"
-              className="mt-3 text-balance font-ui text-[clamp(1.9rem,3.2vw+1rem,3.25rem)] font-semibold leading-tight text-white"
+              className="mt-3 text-balance font-ui text-2xl md:text-3xl font-semibold leading-tight text-white"
             >
-              Pilih Langkah Sesuai <span className="italic font-medium text-brand-teal-200">Kesiapan</span> Anda
+              Pilih Langkah Sesuai <span className="font-medium text-brand-teal-200">Kesiapan</span> Anda
             </h2>
             <p className="mt-3 text-pretty text-base text-white/70">
               Empat jalur masuk, sesuai tahap Anda sekarang.
@@ -182,12 +177,12 @@ export function StagedCTASection() {
                 {/* RONDE 7: badge .icon-hex dihapus — ikon berdiri sendiri
                     + hover zoom, konsisten dgn pola Sektor Industri. */}
                 <Icon
-                  size={30}
+                  size={24}
                   weight="duotone"
                   className="text-brand-teal-300 transition-transform duration-300 group-hover:scale-110"
                   aria-hidden="true"
                 />
-                <p className="font-ui mt-4 text-[11px] font-bold uppercase tracking-wide text-white/40">
+                <p className="font-ui mt-4 text-xs font-bold uppercase tracking-wide text-white/40">
                   {s.stage}
                 </p>
                 <h3 className="font-ui mt-1.5 text-lg font-semibold text-white">
@@ -242,7 +237,7 @@ export function StagedCTASection() {
         <RevealWrapper variant="reveal-up" delay={340}>
           <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-sand-600/25 bg-sand-600/10 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
             <div className="flex flex-col items-center gap-3.5 sm:flex-row">
-              <PlantIcon size={28} weight="duotone" className="shrink-0 text-sand-300" aria-hidden="true" />
+              <PlantIcon size={24} weight="duotone" className="shrink-0 text-sand-300" aria-hidden="true" />
               <div>
                 <p className="font-ui text-sm font-semibold text-white">
                   Anda petani atau produsen garam lokal?

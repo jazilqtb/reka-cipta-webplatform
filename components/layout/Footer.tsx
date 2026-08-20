@@ -65,7 +65,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
             {/* font-display TERBATAS di sini + Navbar — bukan heading,
                 melainkan tagline mikro yang menyertai logo (bagian dari
                 brand lockup), bukan pengecualian tersembunyi. */}
-            <p className="font-display text-lg italic leading-snug text-brand-teal-300">
+            <p className="font-display text-lg leading-snug text-brand-teal-300">
               Garam Lokal, Standar Industri
             </p>
 
@@ -81,7 +81,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
             >
               <ChatCircleIcon size={16} weight="duotone" aria-hidden="true" />
               Chat Cepat via WhatsApp
-              <ArrowRightIcon size={14} weight="bold" className="arrow-icon" aria-hidden="true" />
+              <ArrowRightIcon size={16} weight="bold" className="arrow-icon" aria-hidden="true" />
             </a>
           </div>
 
@@ -170,7 +170,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
                   >
                     <ChatCircleIcon size={16} weight="duotone" aria-hidden="true" className="shrink-0 text-brand-teal-300" />
                     {whatsapp1}
-                    <span className="text-[10px] text-white/50 bg-white/10 rounded-full px-2 py-0.5">
+                    <span className="text-xs text-white/50 bg-white/10 rounded-sm px-2 py-0.5">
                       WA 1
                     </span>
                   </a>
@@ -186,7 +186,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
                     >
                       <ChatCircleIcon size={16} weight="duotone" aria-hidden="true" className="shrink-0 text-brand-teal-300" />
                       {whatsapp2}
-                      <span className="text-[10px] text-white/50 bg-white/10 rounded-full px-2 py-0.5">
+                      <span className="text-xs text-white/50 bg-white/10 rounded-sm px-2 py-0.5">
                         WA 2
                       </span>
                     </a>
@@ -238,7 +238,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
           className="rounded-xl absolute -top-5 right-4 flex h-10 w-10 items-center justify-center border border-white/15 bg-ink-800 text-white/70 shadow-lg transition-colors hover:bg-brand-teal-500 hover:text-white focus-visible:outline-none focus-visible:shadow-focus-dark md:right-8"
           aria-label="Kembali ke atas halaman"
         >
-          <ArrowUpIcon size={18} weight="bold" aria-hidden="true" />
+          <ArrowUpIcon size={20} weight="bold" aria-hidden="true" />
         </a>
       </div>
     </footer>

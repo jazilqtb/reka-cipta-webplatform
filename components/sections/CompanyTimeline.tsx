@@ -16,7 +16,7 @@ export function CompanyTimeline() {
           <div className="mb-12 text-center md:mb-16">
             <p className="rule-index font-ui justify-center text-brand-teal-600">Sejarah</p>
             <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
-              Perjalanan <span className="italic font-medium text-brand-teal-600">Kami</span>
+              Perjalanan <span className="font-medium text-brand-teal-600">Kami</span>
             </h2>
           </div>
         </RevealWrapper>

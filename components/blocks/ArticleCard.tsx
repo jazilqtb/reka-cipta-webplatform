@@ -67,7 +67,7 @@ export function ArticleCard({ article, className }: ArticleCardProps) {
       <div className="flex flex-col gap-2 p-4 sm:p-5">
         <span
           className={cn(
-            'font-ui inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
+            'font-ui inline-flex w-fit items-center rounded-sm border px-2.5 py-0.5 text-xs font-semibold',
             CATEGORY_BADGE_CLASS[article.category]
           )}
         >

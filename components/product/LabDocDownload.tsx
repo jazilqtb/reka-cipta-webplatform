@@ -18,7 +18,7 @@ export function LabDocDownload({ url, productName }: LabDocDownloadProps) {
         <RevealWrapper>
           <div className="flex flex-col items-start gap-5 rounded-2xl border border-brand-teal-600/15 bg-brand-teal-50/50 p-6 md:flex-row md:items-center md:justify-between md:p-8">
             <div className="flex items-center gap-4">
-              <FileTextIcon size={32} weight="duotone" className="shrink-0 text-brand-teal-600" aria-hidden="true" />
+              <FileTextIcon size={40} weight="duotone" className="shrink-0 text-brand-teal-600" aria-hidden="true" />
               <div>
                 <h3 className="font-ui font-semibold text-ink-700">Dokumen Hasil Uji Laboratorium</h3>
                 <p className="mt-0.5 text-sm text-neutral-600">
