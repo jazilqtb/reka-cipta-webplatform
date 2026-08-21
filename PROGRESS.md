@@ -10,7 +10,7 @@ dilanjutkan kalau sesi terputus. Branch: `feature/OPT-CP0-design-system`.
 | CP2 | Beranda: konten, divider, footer (2A, 7, 8, 9, 10) | **SELESAI** |
 | CP3 | CMS hero + statistik dinamis (2, 3) | **SELESAI** |
 | CP4 | Tentang Kami + CMS-nya (11) | **SELESAI** |
-| CP5 | Halaman publik lain (12, 13) | belum |
+| CP5 | Halaman publik lain (12, 13) | **SELESAI** |
 | CP6 | Admin: CORS LAN + pembersihan UI (14, 15, 16) | belum |
 
 ## CP0 — SELESAI
@@ -134,3 +134,18 @@ baru ke Supabase Storage.
 langsung. Diperbaiki dengan callback `patch` — bukan sekadar meredam lint.
 
 DESIGN-SYSTEM: §4.4 accordion, §4.5 foto orang, §4.3 diperluas.
+
+## CP5 — SELESAI
+
+**12 pagination /artikel.** Sudah ADA sebelumnya (tidak saya klaim sebagai
+pekerjaan baru). Yang diperbaiki dua cacat SEO nyata:
+- kanonik halaman 2+ menunjuk /artikel -> kini menunjuk dirinya sendiri
+- rel prev/next tidak ada -> ditambahkan (bobot kecil, jujur dicatat)
+Sitemap tidak diubah: sudah memuat tiap artikel satu per satu.
+
+**13 nomor WA pecah baris.** Penyebab terukur: `md:flex-row` menyandingkan
+dua tombol di kolom samping selebar ~275px pada 768px, jadi tiap tombol
+dapat 132px sementara teksnya butuh ~155px. BUKAN font-size/word-break.
+Sesudah: satu baris di 414/768/1024/1440 (terukur).
+
+DESIGN-SYSTEM: §4.6 pagination.

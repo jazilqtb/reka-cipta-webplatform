@@ -454,6 +454,27 @@ terpaksa mengunggah foto seadanya hanya supaya kisinya rapi.
 Batas ukuran dan jenis ditegakkan dua kali: di komponen unggah (pesan cepat)
 dan di konfigurasi bucket Supabase (tidak bisa dilewati dari klien mana pun).
 
+## 4.6 Pagination
+
+Dipakai di `/artikel`. Pola: nomor halaman + Sebelumnya/Berikutnya, 6 item
+per halaman.
+
+**Kontrak SEO — tiga aturan yang mengikat:**
+
+1. **Tiap halaman kanonik ke DIRINYA SENDIRI**, bukan ke halaman 1.
+   Meng-kanonik-kan halaman 2 ke halaman 1 memberi tahu mesin pencari bahwa
+   isinya duplikat — dan artikel yang hanya muncul di halaman 2 berisiko
+   tidak pernah terindeks. Cacat ini nyata ada di situs ini sampai
+   2026-08-21.
+2. **Sitemap memuat setiap artikel satu per satu**, bukan halaman daftarnya.
+   Penemuan artikel tidak boleh bergantung pada pagination.
+3. `rel="prev"`/`rel="next"` disertakan sebagai pelengkap. Bobotnya kecil —
+   Google menyatakan sejak 2019 tidak lagi memakainya sebagai sinyal indeks;
+   Bing masih. Kanonik per-halaman yang menentukan.
+
+Halaman kedua dan seterusnya memakai judul `— Halaman N` agar tidak
+bertabrakan sebagai judul duplikat di hasil pencarian.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**

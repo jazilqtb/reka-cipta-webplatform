@@ -32,16 +32,26 @@ export function WhatsAppButtons({ whatsapp1, whatsapp2, defaultMessage }: WhatsA
         Chat Langsung via WhatsApp
       </p>
 
-      <div className="mt-3 flex flex-col gap-3 md:flex-row">
+      {/* POIN 13 (2026-08-21) — nomor tidak boleh pecah baris.
+          Penyebab sebenarnya BUKAN ukuran font atau word-break, melainkan
+          `md:flex-row`: kedua tombol disandingkan di dalam kolom samping
+          yang lebarnya hanya ~275px pada 768px, jadi masing-masing dapat
+          132px sementara "WA +62 853-3651-3164" butuh sekitar 155px.
+          Terukur pada 414/768/1024/1440 sebelum diubah.
+          Perbaikannya menghapus penyandingan itu — dua tombol lebar penuh
+          di kolom sempit juga memberi area sentuh yang lebih besar —
+          ditambah `whitespace-nowrap` sebagai jaring pengaman supaya nomor
+          tidak pernah terpecah berapa pun lebar wadahnya nanti. */}
+      <div className="mt-3 flex flex-col gap-3">
         <Link href={generateWALink(whatsapp1, defaultMessage)} target="_blank" rel="noopener noreferrer" className={BUTTON_CLASS}>
           <ChatCircleIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
-          WA {formatPhoneDisplay(whatsapp1)}
+          <span className="whitespace-nowrap">WA {formatPhoneDisplay(whatsapp1)}</span>
         </Link>
 
         {whatsapp2 && (
           <Link href={generateWALink(whatsapp2, defaultMessage)} target="_blank" rel="noopener noreferrer" className={BUTTON_CLASS}>
             <ChatCircleIcon size={20} weight="duotone" className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
-            WA {formatPhoneDisplay(whatsapp2)}
+            <span className="whitespace-nowrap">WA {formatPhoneDisplay(whatsapp2)}</span>
           </Link>
         )}
       </div>
