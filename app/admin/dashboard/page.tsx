@@ -31,6 +31,8 @@ import {
 } from '@phosphor-icons/react/ssr'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { formatKg } from '@/lib/rfq-units'
+import { TaskList } from '@/components/admin/task/TaskList'
+import { getOpenTasks, bucketTasks } from '@/lib/data/tasks'
 
 export const metadata = { title: 'Dashboard' }
 export const dynamic = 'force-dynamic'
@@ -120,6 +122,10 @@ export default async function DashboardPage() {
    * 20260815090100). Sebelum itu policy-nya USING (TRUE) dan query nyaris
    * tidak mungkin gagal; sesudahnya, sesi apa pun yang tidak lolos
    * allowlist menerima nol baris. */
+  const openTasks = await getOpenTasks(50)
+  const taskBuckets = bucketTasks(openTasks)
+  const urgentTasks = [...taskBuckets.overdue, ...taskBuckets.today]
+
   const countQueries = [leadsRes, suppliersRes, articlesRes, productsRes, staleRes, pendingSupRes, draftRes]
   const failed = countQueries.filter((r) => r.error)
   const actionDataFailed = [staleRes, pendingSupRes, draftRes].some((r) => r.error)
@@ -247,6 +253,33 @@ export default async function DashboardPage() {
               <StatTile key={s.label} label={s.label} value={s.value} hint={s.hint} href={s.href} icon={s.icon} />
             ))}
           </div>
+
+          {/* ══ TUGAS MENDESAK — CP4 ronde 3 ══
+              Ditaruh DI ATAS RFQ terbaru dengan sengaja: tugas yang
+              terlewat adalah janji yang sudah lewat waktunya, dan itu lebih
+              mendesak daripada permintaan yang baru masuk.
+              Inilah setengah dari mekanisme "pengingat tanpa cron" — separuh
+              lainnya ada di /admin/tugas. Keduanya berbasis tampilan, bukan
+              penjadwal, jadi tidak ada ketergantungan baru yang dipasang. */}
+          {urgentTasks.length > 0 && (
+            <section className="rounded-md border border-ink-900/[0.07] bg-white">
+              <div className="flex items-center justify-between border-b border-ink-900/[0.06] px-4 py-3">
+                <h2 className="font-ui text-xs font-bold uppercase tracking-wider text-danger-600">
+                  Tugas terlewat &amp; hari ini · {urgentTasks.length}
+                </h2>
+                <Link
+                  href="/admin/tugas"
+                  className="font-ui flex items-center gap-1 text-xs font-medium text-brand-teal-600 hover:text-brand-teal-500"
+                >
+                  Semua tugas
+                  <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+                </Link>
+              </div>
+              <div className="px-4">
+                <TaskList tasks={urgentTasks} />
+              </div>
+            </section>
+          )}
 
           {/* ══ RFQ terbaru — mengisi paruh bawah halaman dengan hal yang
                  benar-benar dipakai, bukan widget kosong sekadar penuh ══ */}

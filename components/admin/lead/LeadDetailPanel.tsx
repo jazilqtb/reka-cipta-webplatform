@@ -48,6 +48,7 @@ import {
 import { LEAD_STATUSES, LABEL_MAP } from '@/lib/constants/lead-status'
 import { frequencyLabel, industryLabel, saltTypeLabels } from '@/lib/lead-format'
 import type { LeadStatus, RFQLead } from '@/types/api'
+import { TaskComposer } from '@/components/admin/task/TaskComposer'
 
 interface Props {
   lead: RFQLead | null
@@ -168,6 +169,14 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
             </p>
           </Group>
         )}
+
+        {/* CP4 ronde 3 — follow-up dibuat DI SINI, tepat saat operator
+            sedang melihat leadnya. Tugas yang dibuat dari halaman terpisah
+            hampir selalu kehilangan konteks: "hubungi lagi" tanpa menyebut
+            siapa. Tugasnya melekat ke RFQ ini lewat foreign key sungguhan. */}
+        <Group title="Follow-up">
+          <TaskComposer parentKind="rfq" parentId={lead.id} />
+        </Group>
 
         <Group title="Jejak">
           <p className="text-xs text-neutral-600">

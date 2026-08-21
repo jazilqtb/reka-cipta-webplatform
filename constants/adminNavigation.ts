@@ -15,6 +15,7 @@ import {
   LayoutIcon,
   BuildingsIcon,
   TruckIcon,
+  CheckSquareIcon,
   SquaresFourIcon,      // Dashboard
   ClipboardTextIcon,    // Leads & RFQ
   PlantIcon,            // Supplier
@@ -38,6 +39,7 @@ export const ADMIN_NAV_MAIN: AdminNavItem[] = [
   { label: 'Leads & RFQ',  href: '/admin/leads',      icon: ClipboardTextIcon, matchExact: false },
   { label: 'Perusahaan',   href: '/admin/perusahaan', icon: BuildingsIcon,     matchExact: true  },
   { label: 'Distribusi',   href: '/admin/distribusi', icon: TruckIcon,         matchExact: true  },
+  { label: 'Tugas',        href: '/admin/tugas',      icon: CheckSquareIcon,   matchExact: true  },
   { label: 'Supplier',     href: '/admin/suppliers',  icon: PlantIcon,         matchExact: false },
   { label: 'Artikel',      href: '/admin/articles',   icon: BookOpenIcon,      matchExact: false },
   { label: 'Produk',       href: '/admin/products',   icon: PackageIcon,       matchExact: false },
@@ -65,6 +67,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/leads':              'Leads & RFQ',
   '/admin/perusahaan':         'Perusahaan',
   '/admin/distribusi':         'Distribusi',
+  '/admin/tugas':              'Tugas & Follow-up',
   '/admin/suppliers':          'Manajemen Supplier',
   '/admin/articles':           'Manajemen Artikel',
   '/admin/products':           'Manajemen Produk',

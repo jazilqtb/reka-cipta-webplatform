@@ -160,3 +160,26 @@ Terbukti setelah .next/cache/fetch-cache dibersihkan.
 kanonik kg dan menyertakan periode. Terverifikasi lewat sesi admin nyata.
 
 DESIGN-SYSTEM: §4.11 tabel padat & grafik, §4.3 diperluas.
+
+## CP4 — SELESAI (tugas & follow-up)
+
+**Tabel `tasks`** (`20260821140000`, ADDITIVE, diterapkan). Tugas melekat
+pada TEPAT SATU entitas lewat lima kolom FK nullable + CHECK — BUKAN pola
+polimorfik (entity_type, entity_id), yang tidak bisa dijaga foreign key dan
+akan meninggalkan baris yatim saat induknya dihapus.
+Constraint kedua menjaga `completed_at` dan `status` tidak berselisih.
+
+**Terverifikasi di UI nyata:** 4 kelompok tampil benar — Terlewat (merah,
+"terlewat 3 hari"), Jatuh tempo hari ini (amber), Akan datang ("5 hari
+lagi"), Tanpa tenggat. Induk tiap tugas ikut tertulis.
+Dashboard menampilkan "TUGAS TERLEWAT & HARI INI · 3" di ATAS RFQ terbaru.
+
+**Pengingat tanpa penjadwal:** berbasis tampilan di dua tempat yang pasti
+dibuka admin. Batasnya dinyatakan terus terang di dokumen dan di kode:
+kalau panel tidak dibuka, tidak ada yang mengingatkan. Rancangan pengingat
+email masuk ACTION REQUIRED — tidak dipasang diam-diam.
+
+**Composer dipasang di panel detail lead**, tepat saat operator melihat
+leadnya — tugas yang dibuat dari halaman terpisah kehilangan konteks.
+
+DESIGN-SYSTEM: §4.12 tugas & pengingat.

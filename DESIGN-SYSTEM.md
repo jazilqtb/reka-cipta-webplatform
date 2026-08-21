@@ -645,6 +645,52 @@ menyamakannya membuat admin mengambil keputusan atas dasar yang salah —
 misalnya menyimpulkan pasokan gagal padahal pengirimannya cuma belum
 dicatat.
 
+## 4.12 Tugas & pengingat
+
+Ditetapkan 2026-08-21 (CP4 ronde 3).
+
+### Tugas selalu melekat pada TEPAT SATU entitas
+
+Tidak ada tugas mengambang. Tugas tanpa induk kehilangan konteksnya —
+"hubungi lagi" tanpa menyebut siapa tidak bisa ditindaklanjuti siapa pun,
+termasuk oleh yang menulisnya seminggu kemudian.
+
+Ditegakkan di **database**, bukan hanya di form: lima kolom foreign key
+nullable + `CHECK` "tepat satu terisi". Pola polimorfik
+`(entity_type, entity_id)` sengaja ditolak — ia tidak bisa dijaga foreign
+key, jadi menghapus satu perusahaan meninggalkan tugas yatim yang menunjuk
+UUID yang sudah tidak ada, tanpa error dan tanpa terlihat.
+
+### Empat kelompok, diurutkan menurut desakan
+
+`Terlewat` (danger) → `Jatuh tempo hari ini` (warning) → `Akan datang` →
+`Tanpa tenggat`. Yang tanpa tenggat ditaruh terakhir, bukan dibuang: ia
+tetap pekerjaan, hanya tidak bersaing dengan yang punya tanggal.
+
+### Tenggat boleh kosong — disengaja
+
+Memaksa tanggal membuat orang mengisi asal supaya formulirnya lolos, dan
+tanggal asal-asalan lebih buruk daripada tidak ada tanggal: ia memenuhi
+daftar "terlewat" dengan hal yang sebenarnya tidak mendesak, sampai daftar
+itu berhenti dipercaya.
+
+Tenggat ditawarkan sebagai **pilihan cepat** (Besok · 3 hari · 1 minggu)
+plus pemilih tanggal. Follow-up hampir selalu dipikirkan sebagai "berapa
+hari lagi", bukan "tanggal berapa".
+
+### Pengingat TANPA penjadwal — dan batasnya dinyatakan
+
+Tidak ada cron, worker, atau layanan penjadwalan. Mekanismenya berbasis
+**tampilan**: tugas terlewat dan jatuh tempo hari ini muncul paling atas di
+`/admin/tugas` **dan** di dashboard — dua tempat yang pasti dibuka setiap
+kali admin masuk.
+
+**Batasnya jujur: kalau admin tidak membuka panel, tidak ada yang
+mengingatkan.** Untuk tim 1–2 orang yang membuka panel setiap hari, itu
+cukup. Pengingat email terjadwal membutuhkan cron/worker — rancangannya
+ditulis ke ACTION REQUIRED, bukan dipasang diam-diam sebagai
+ketergantungan baru.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**
