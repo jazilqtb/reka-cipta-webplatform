@@ -20,7 +20,22 @@ export const rfqSubmitSchema = z.object({
     'lainnya',
   ]),
   salt_types: z.array(z.string()).min(1, 'Pilih minimal 1 jenis garam'),
-  volume_per_month: z.number().positive('Volume harus lebih dari 0'),
+  /* CP2 ronde 3 — volume PER JENIS GARAM.
+     Dulu satu angka gabungan untuk semua jenis yang dicentang: tidak bisa
+     dipecah kembali, sehingga pertanyaan "berapa garam halus yang diminta
+     bulan ini" tidak pernah bisa dijawab. */
+  items: z
+    .array(
+      z.object({
+        product_slug: z.string().min(1),
+        quantity: z.number().positive('Isi volume'),
+        unit: z.enum(['kg', 'ton', 'sak_25', 'sak_50']),
+      })
+    )
+    .min(1, 'Isi volume untuk setiap jenis garam yang dipilih'),
+  /* Tetap dikirim selama fase transisi (backend masih menulis rfq_leads).
+     Nilainya DIHITUNG dari items dalam ton, bukan diketik pengguna. */
+  volume_per_month: z.number().positive(),
   delivery_frequency: z.enum(['weekly', 'biweekly', 'monthly']),
   delivery_city: z.string().min(1, 'Wajib diisi').max(100),
   email: z.string().email('Format email tidak valid'),

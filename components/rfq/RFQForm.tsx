@@ -12,6 +12,8 @@ import { toast } from 'sonner'
 import { CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { submitRFQ, ApiFetchError } from '@/lib/api'
 import { rfqSubmitSchema, type RFQSubmitFormData, INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
+import { SaltVolumeRows, type SaltVolumeItem } from '@/components/rfq/SaltVolumeRows'
+import { toKg, type RFQUnit } from '@/lib/rfq-units'
 import type { RFQSubmitRequest } from '@/types/api'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -84,6 +86,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       position: null,
       industry_type: 'makanan-minuman',
       salt_types: [],
+      items: [],
       volume_per_month: 0,
       delivery_frequency: 'monthly',
       delivery_city: '',
@@ -107,6 +110,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       position: null,
       industry_type: 'makanan-minuman',
       salt_types: prefilledSaltTypes,
+      items: [],
       volume_per_month: prefilledVolume ?? 0,
       delivery_frequency: 'monthly',
       delivery_city: '',
@@ -118,11 +122,25 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
   }, [prefilledSaltTypes.join(','), prefilledVolume])
 
   const notesLength = watch('notes')?.length ?? 0
+  const watchedSaltTypes = watch('salt_types') ?? []
+  /* Peta slug -> nama, supaya baris volume menampilkan nama produk dan
+     bukan slug mentah. */
+  const productNameMap = Object.fromEntries(
+    availableProducts.map((p) => [p.slug, p.name])
+  ) as Record<string, string>
 
   async function onSubmit(values: RFQSubmitFormData) {
     try {
+      /* volume_per_month DIHITUNG, bukan diketik. Backend masih menulis
+         `rfq_leads` yang kolomnya bersatuan ton, jadi total seluruh item
+         dikonversi ke kg lalu dibagi 1000. Angka ini murni untuk menjaga
+         struktur lama tetap konsisten; sumber kebenarannya adalah `items`. */
+      const totalKg = (values.items ?? []).reduce(
+        (sum, it) => sum + toKg(it.quantity, it.unit as RFQUnit), 0
+      )
       const payload: RFQSubmitRequest = {
         ...values,
+        volume_per_month: Math.max(totalKg / 1000, 0.001),
         position: values.position || null,
         notes: values.notes || null,
       }
@@ -225,26 +243,24 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
           )}
         />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="volume_per_month">
-            Volume per Bulan (ton) <span className="text-danger-600">*</span>
-          </Label>
-          <Input
-            {...register('volume_per_month', { valueAsNumber: true })}
-            id="volume_per_month"
-            type="number"
-            step="0.01"
-            min="0"
-            disabled={isSubmitting}
-            aria-invalid={!!errors.volume_per_month}
-            aria-describedby={errors.volume_per_month ? 'volume-error' : undefined}
-          />
-          {errors.volume_per_month && (
-            <p id="volume-error" className="text-sm text-danger-600">
-              {errors.volume_per_month.message}
-            </p>
+        {/* CP2 ronde 3 — satu baris volume per jenis garam, menggantikan
+            satu angka gabungan. `volume_per_month` tetap dikirim ke backend
+            (struktur lama masih ditulis) tapi kini DIHITUNG dari items,
+            bukan diketik pengguna. */}
+        <Controller
+          name="items"
+          control={control}
+          render={({ field, fieldState }) => (
+            <SaltVolumeRows
+              selectedSlugs={watchedSaltTypes}
+              productNames={productNameMap}
+              value={(field.value ?? []) as SaltVolumeItem[]}
+              onChange={field.onChange}
+              error={fieldState.error?.message}
+              disabled={isSubmitting}
+            />
           )}
-        </div>
+        />
 
         <div className="space-y-1.5">
           <Label htmlFor="delivery_frequency">

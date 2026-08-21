@@ -30,6 +30,7 @@ import {
   CheckCircleIcon, ArrowRightIcon, PlusIcon, GearIcon, EnvelopeSimpleIcon,
 } from '@phosphor-icons/react/ssr'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
+import { formatKg } from '@/lib/rfq-units'
 
 export const metadata = { title: 'Dashboard' }
 export const dynamic = 'force-dynamic'
@@ -81,8 +82,8 @@ export default async function DashboardPage() {
   // tanpa alasan.
   const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes, recentRes] =
     await Promise.all([
-      supabase.from('rfq_leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
-      supabase.from('rfq_leads').select('*', { count: 'exact', head: true })
+      supabase.from('rfqs').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+      supabase.from('rfqs').select('*', { count: 'exact', head: true })
         .eq('status', 'new').lt('updated_at', staleSince),
       supabase.from('supplier_registrations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       supabase.from('supplier_registrations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -96,8 +97,10 @@ export default async function DashboardPage() {
          yang menghubungi semalam" adalah pertanyaan pertama, dan tanpa ini
          ia harus membuka halaman lain untuk menjawabnya. Dibatasi 5 supaya
          tetap ringkasan, bukan duplikat halaman Leads. */
-      supabase.from('rfq_leads')
-        .select('id, company_name, industry_type, volume_per_month, delivery_city, status, created_at')
+      /* Nama perusahaan kini datang dari relasi, bukan kolom teks di baris
+         RFQ — itulah inti perubahan model data CP1. */
+      supabase.from('rfqs')
+        .select('id, delivery_city, status, created_at, legacy_total_qty_kg, companies(name)')
         .order('created_at', { ascending: false })
         .limit(5),
     ])
@@ -276,10 +279,10 @@ export default async function DashboardPage() {
                     >
                       <span className="min-w-0 flex-1">
                         <span className="font-ui block truncate text-sm font-medium text-ink-700">
-                          {(lead.company_name as string) || '(tanpa nama perusahaan)'}
+                          {((lead.companies as { name?: string } | null)?.name) || '(tanpa nama perusahaan)'}
                         </span>
                         <span className="mono-tech block truncate text-xs text-neutral-500">
-                          {lead.volume_per_month as number} ton · {lead.delivery_city as string}
+                          {formatKg(lead.legacy_total_qty_kg as number | null)} · {lead.delivery_city as string}
                         </span>
                       </span>
                       <span className="mono-tech shrink-0 text-xs text-neutral-400">

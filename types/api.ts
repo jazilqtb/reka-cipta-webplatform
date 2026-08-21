@@ -192,6 +192,9 @@ export interface RFQSubmitRequest {
   position: string | null
   industry_type: IndustryType
   salt_types: string[]
+  /** CP2 ronde 3 — volume per jenis garam. Mirror RFQItemIn di
+   *  backend/schemas/rfq.py (ARCHITECTURE.md §16). */
+  items?: { product_slug: string; quantity: number; unit: 'kg' | 'ton' | 'sak_25' | 'sak_50' }[]
   volume_per_month: number
   delivery_frequency: DeliveryFrequency
   delivery_city: string

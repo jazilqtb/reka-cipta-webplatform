@@ -43,6 +43,7 @@ from schemas.rfq import (
     LeadStatusHistory,
 )
 from services.email_service import EmailService
+from services import crm_service as CRMService
 from services.pdf_service import apply_layout, html_to_pdf
 from services.proposal_generator import ProposalGeneratorError, get_proposal_service
 from services.proposal_settings_service import ProposalSettingsService
@@ -78,9 +79,11 @@ async def submit_rfq(
 ) -> RFQSubmitResponse:
     supabase = get_supabase()
 
-    # 1. Insert ke DB
+    # 1. Insert ke DB (struktur LAMA — tetap ditulis selama fase transisi
+    #    supaya kode yang belum berpindah tidak patah)
     try:
-        result = supabase.table("rfq_leads").insert(payload.model_dump()).execute()
+        legacy_payload = payload.model_dump(exclude={"items"})
+        result = supabase.table("rfq_leads").insert(legacy_payload).execute()
     except Exception as e:
         logger.error(f"rfq_insert_failed: {e!r}")
         raise HTTPException(500, detail="Gagal menyimpan permintaan. Silakan coba lagi.")
@@ -91,6 +94,47 @@ async def submit_rfq(
 
     lead = result.data[0]
     lead_id = lead["id"]
+
+    # 1b. Tempatkan ke struktur CRM baru: Company -> Contact -> RFQ.
+    #
+    #     DIBUNGKUS try/except LEBAR dengan sengaja. Kalau penempatan CRM
+    #     gagal, permintaan pelanggan TIDAK boleh ikut gagal — barisnya
+    #     sudah aman di `rfq_leads`, dan penempatannya bisa diperbaiki
+    #     belakangan lewat migrasi MIGRATE yang idempoten. Kehilangan satu
+    #     RFQ jauh lebih mahal daripada kehilangan penautannya.
+    try:
+        company_id = CRMService.resolve_company(
+            supabase, payload.company_name, payload.email,
+            payload.delivery_city, payload.industry_type,
+        )
+        contact_id = CRMService.resolve_contact(
+            supabase, company_id, payload.full_name, payload.position,
+            payload.email, payload.whatsapp,
+        )
+        items = (
+            [i.model_dump() for i in payload.items]
+            if payload.items
+            else [{"product_slug": slug, "quantity": None, "unit": None}
+                  for slug in payload.salt_types]
+        )
+        CRMService.create_rfq_with_items(
+            supabase,
+            company_id=company_id,
+            contact_id=contact_id,
+            legacy_lead_id=lead_id,
+            delivery_city=payload.delivery_city,
+            delivery_frequency=payload.delivery_frequency,
+            notes=payload.notes,
+            items=items,
+        )
+        # Usulkan kandidat duplikat SETELAH company baru mungkin lahir.
+        # Fungsi ini hanya mengusulkan; tidak pernah menggabungkan.
+        try:
+            supabase.rpc("refresh_company_merge_candidates", {}).execute()
+        except Exception as e:
+            logger.warning("merge_candidate_refresh_failed: %r", e)
+    except Exception as e:
+        logger.error("crm_placement_failed: lead_id=%s error=%r", lead_id, e)
 
     # 2. Fetch nama produk untuk personalisasi email (best-effort — kalau
     # gagal, email tetap terkirim tanpa nama produk lengkap)

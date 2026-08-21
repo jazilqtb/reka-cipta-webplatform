@@ -8,6 +8,8 @@
 
 import re
 from datetime import datetime
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 INDUSTRY_TYPES = {
@@ -26,6 +28,23 @@ LEAD_STATUSES = {
 }
 
 
+class RFQItemIn(BaseModel):
+    """Satu jenis garam dengan volume & satuannya sendiri (CP2 poin 1A/1B).
+
+    Sebelum ini form hanya mengirim SATU `volume_per_month` untuk SEMUA
+    jenis yang dicentang — angka gabungan yang tidak bisa dipecah kembali,
+    sehingga mustahil menjawab "berapa ton garam halus yang diminta bulan
+    ini". Sekarang tiap jenis membawa angkanya sendiri.
+    """
+    model_config = ConfigDict(extra='forbid')
+
+    product_slug: str = Field(min_length=1, max_length=120)
+    quantity: float = Field(gt=0)
+    # Kontainer TIDAK ada dalam daftar: bobotnya berubah menurut jenis garam
+    # dan cara muat, jadi konversinya ke satuan kanonik akan selalu tebakan.
+    unit: Literal['kg', 'ton', 'sak_25', 'sak_50']
+
+
 class RFQSubmitRequest(BaseModel):
     """Payload POST /rfq/submit — form Minta Penawaran publik."""
     model_config = ConfigDict(extra='forbid')  # security: reject unknown fields
@@ -35,7 +54,15 @@ class RFQSubmitRequest(BaseModel):
     position: str | None = Field(default=None, max_length=100)
     industry_type: str
     salt_types: list[str] = Field(min_length=1)
+    # DIPERTAHANKAN selama fase transisi: kolom ini masih ditulis ke
+    # `rfq_leads` supaya struktur lama tetap utuh dan bisa dibaca kode lama.
+    # Nilainya kini dihitung frontend sebagai TOTAL dari items (dalam ton),
+    # bukan angka yang diketik pengguna.
     volume_per_month: float = Field(gt=0)
+    # Sumber kebenaran yang baru. Opsional supaya klien lama (kalau ada
+    # yang belum diperbarui) tidak langsung ditolak — kalau kosong, RFQ
+    # tetap tersimpan, hanya tanpa rincian per jenis.
+    items: list[RFQItemIn] | None = Field(default=None)
     delivery_frequency: str
     delivery_city: str = Field(min_length=1, max_length=100)
     email: EmailStr

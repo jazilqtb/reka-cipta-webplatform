@@ -85,7 +85,12 @@ export async function getHeroStats(
     const supabase = createPublic()
     const [prodRes, dealRes] = await Promise.all([
       supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('rfq_leads').select('delivery_city').eq('status', 'deal'),
+      /* CP1 ronde 3: sumbernya berpindah rfq_leads -> rfqs. Nilainya WAJIB
+         sama — diverifikasi sebelum & sesudah migrasi: COUNT(deal) dan
+         jumlah kota unik keduanya identik. Kalau angka statistik beranda
+         bergeser diam-diam gara-gara refactor, pengunjung melihat klaim
+         yang berubah tanpa ada yang mengubahnya. */
+      supabase.from('rfqs').select('delivery_city').eq('status', 'deal'),
     ])
     products = prodRes.error ? 0 : (prodRes.count ?? 0)
     if (!dealRes.error && dealRes.data) {

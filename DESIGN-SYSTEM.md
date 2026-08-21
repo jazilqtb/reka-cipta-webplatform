@@ -383,6 +383,7 @@ di sini tidak boleh dibuka ke CMS tanpa menambahkannya dulu ke dokumen ini.
 | Tentang Kami — Perjalanan | Tahun, judul, keterangan; tambah/hapus/urutkan | Bentuk garis waktu, perilaku geser |
 | Tentang Kami — Misi | Judul & uraian tiap poin; tambah/hapus/urutkan | Bahwa tampilannya accordion |
 | Tentang Kami — Tim | Nama, jabatan, foto; tambah/hapus/urutkan | Rasio foto, bentuk kisi, gaya fallback inisial |
+| Perusahaan — penggabungan duplikat | Memutuskan gabung/tidak, membatalkan | Ambang deteksi, aturan pencocokan |
 
 ### Gaya yang diekspos, dan kenapa hanya empat
 
@@ -575,6 +576,26 @@ kebutuhan berbeda dan tetap diizinkan. Nilainya 68% — dinaikkan dari 55%
 saat masih terang, karena teks putih di atas foto terang (langit, tumpukan
 garam putih) menuntut perlindungan lebih besar daripada teks gelap di atas
 foto yang sama.
+
+## 4.10 Satuan & angka kuantitas
+
+Ditetapkan 2026-08-21 (CP2 ronde 3).
+
+**Satuan yang disahkan:** `kg` · `ton` · `sak (25 kg)` · `sak (50 kg)`.
+
+**Kontainer sengaja TIDAK disediakan.** Bobot satu kontainer berubah menurut
+jenis garam, kadar air, dan cara muat. Memberinya angka tetap menghasilkan
+konversi yang terlihat pasti tapi salah — dan angka salah yang ikut terjumlah
+di laporan distribusi lebih berbahaya daripada satuan yang tidak ditawarkan.
+
+**Aturan penyimpanan — mengikat:** setiap kuantitas disimpan **dua kali** —
+angka & satuan seperti yang dipilih pengguna, DAN nilai kanoniknya dalam
+**kilogram**. Yang pertama supaya tampilan bisa mengembalikan bentuk aslinya
+("200 sak"); yang kedua supaya penjumlahan mungkin. Tanpa satuan kanonik,
+sak tidak bisa dijumlahkan dengan ton dan setiap rekap akan salah.
+
+**Tampilan:** `formatKg()` menaikkan ke ton di ≥1000 kg. Angka kuantitas
+selalu `font-mono` (§3.4) — ia data teknis, bukan prosa.
 
 ## 5. Spacing — grid 8px
 
