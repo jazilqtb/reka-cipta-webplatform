@@ -528,6 +528,54 @@ ditulis di sini agar form berikutnya tidak lahir ad-hoc lagi.
 6. Lebar kolom teks panjang mengikuti isinya: teks berformat (HTML,
    template) memakai `font-mono`; kalimat biasa tidak.
 
+## 4.9 Permukaan gelap (`.surface-dark`)
+
+Ditetapkan 2026-08-21 (ronde 3). Satu kelas untuk **seluruh** bidang gelap:
+hero beranda, hero semua halaman dalam, panel hasil kalkulator, halaman
+terima kasih, drawer navigasi ponsel, dan blok CTA penutup.
+
+**Warna: `steel-900` solid.** Bukan marine gelap — §2.5 melarang primary
+sebagai latar bidang besar, dan aturan itu tidak dilonggarkan hanya karena
+bidangnya gelap.
+
+| Peran | Token | Kontras di atas steel-900 |
+|---|---|---|
+| Judul (h1–h3) | `#FFFFFF` | 17,5:1 |
+| Teks isi | `steel-200` | 10,7:1 |
+| Teks sekunder | `steel-300` | 8,0:1 |
+| Aksen / kata kunci | `marine-200` | 10,2:1 |
+| Garis pemisah | `rgba(255,255,255,.12)` | — |
+| Tombol primary | `marine-600` + teks putih | 7,3:1 |
+| Tombol sekunder | `border-white/30 bg-white/10` + teks putih | — |
+
+**Aturan yang tidak boleh dilanggar:** `marine-600` **tidak pernah menjadi
+warna teks** di atas permukaan gelap. Ia hanya 2,39:1 di sana — di bawah
+ambang 3:1 bahkan untuk teks besar. Untuk teks di atas gelap, pakai
+`marine-200`. Ini bukan dugaan: diukur pada halaman ter-render, dan justru
+ditemukan sebagai satu-satunya kegagalan nyata saat hero dipindah ke gelap.
+
+**Apa yang digantikan.** Sebelumnya tiap bidang gelap adalah
+`bg-gradient-to-b from-ink-950 to-ink-900` ditumpuk dua *mesh gradient*
+radial. Dua pelanggaran sekaligus: gradien sebagai latar section (§9), dan
+mesh-nya memakai **rgba hijau lama yang ditulis literal** —
+`rgba(15,158,139)`, `rgba(27,191,170)`, `rgba(4,43,38)`. Karena literal,
+penyetelan ulang token pada ronde sebelumnya tidak menyentuhnya, dan sapuan
+verifikasi waktu itu hanya mencari bentuk hex serta `rgba(11,125,110)`
+sehingga ketiganya lolos. **Itulah "gradien hijau" yang masih terlihat:
+bukan warna dasarnya, melainkan lapisan di atasnya.**
+
+**Pelajaran yang masuk §9 sebagai anti-pattern #16.**
+
+### Lapisan keterbacaan di atas foto — bukan pelanggaran §9
+
+Hero beranda memakai `bg-steel-950/68` (dan gradasi ke kanan di `lg`) **di
+atas foto**, bukan sebagai latar section. Larangan §9 menyasar gradien
+sebagai *permukaan*; melindungi keterbacaan teks di atas gambar adalah
+kebutuhan berbeda dan tetap diizinkan. Nilainya 68% — dinaikkan dari 55%
+saat masih terang, karena teks putih di atas foto terang (langit, tumpukan
+garam putih) menuntut perlindungan lebih besar daripada teks gelap di atas
+foto yang sama.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**
@@ -664,6 +712,13 @@ Ditulis supaya kesalahan yang sama tidak lahir kembali di ronde berikutnya.
     (teks editor terkurung 68ch), dan `.carousel-row` (carousel versi ponsel
     ikut tampil di desktop 1440px). Setiap kelas komponen baru di
     `globals.css` wajib berada di dalam `@layer components`.
+16. **Jangan menulis warna sebagai literal `rgba()`/`hex` di komponen —
+    termasuk di dalam `style={{ backgroundImage: … }}`.** Nilai literal
+    tidak ikut berubah saat token disetel ulang, dan tidak tertangkap
+    sapuan verifikasi yang mencari nama token. Tiga warna hijau lama
+    bertahan sembilan bulan persis lewat celah ini, tersembunyi di dalam
+    string `radial-gradient(...)`. Kalau butuh warna di dalam `style`,
+    ambil dari `var(--color-…)`.
 15. **Jangan memakai pembatas section melengkung** — wave, curve, blob,
     atau miring. Bentuk industri bersisi lurus. Lihat §4.2.
 14. **Jangan memakai `.mono-tech` untuk kalimat.** Monospace hanya untuk

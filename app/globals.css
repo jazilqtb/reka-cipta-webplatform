@@ -922,6 +922,43 @@
   .prose-brand h3 { font-size: 1.2rem; }
 }
 
+/* ─── .surface-dark — SATU permukaan gelap untuk seluruh situs ────────
+   Ditetapkan 2026-08-21 (CP0 ronde 3). Dipakai hero beranda, hero seluruh
+   halaman dalam, panel hasil kalkulator, halaman terima kasih, dan blok CTA
+   penutup.
+
+   APA YANG DIGANTIKAN, dan kenapa bukan sekadar ganti warna:
+   Sebelumnya tiap permukaan gelap adalah `bg-gradient-to-b from-ink-950
+   to-ink-900` DITUMPUK dua "mesh gradient" radial. Dua masalah sekaligus:
+
+     1. Gradien sebagai latar section dilarang anti-pattern §9.
+     2. Mesh-nya memakai rgba HIJAU LAMA yang ditulis literal —
+        rgba(15,158,139), rgba(27,191,170), rgba(4,43,38) — bukan token.
+        Karena literal, penyetelan ulang token pada ronde sebelumnya tidak
+        menyentuhnya sama sekali, dan sapuan verifikasi waktu itu hanya
+        mencari bentuk hex serta rgba(11,125,110) sehingga ketiganya lolos.
+        Itulah "gradien hijau" yang masih terlihat: bukan warna dasarnya,
+        melainkan lapisan di atasnya.
+
+   Diganti warna SOLID. Tidak ada lapisan, tidak ada mesh, tidak ada
+   literal — satu token, satu bidang. */
+@layer components {
+  .surface-dark {
+    background-color: var(--color-steel-900);
+    color: var(--color-steel-200);
+  }
+  /* Judul di atas permukaan gelap: putih penuh. steel-200 untuk badan teks
+     sudah 10,7:1, tapi judul menuntut kontras maksimum karena ukurannya
+     besar dan sering berada di atas foto. */
+  .surface-dark h1,
+  .surface-dark h2,
+  .surface-dark h3 { color: #FFFFFF; }
+  /* Garis pemisah di atas gelap TIDAK memakai steel-200 (terlalu terang,
+     terbaca sebagai elemen). Putih transparan menyatu dengan bidangnya. */
+  .surface-dark hr,
+  .surface-dark .rule { border-color: rgba(255,255,255,0.12); }
+}
+
 /* ─── .carousel-row — SATU pola untuk semua deret geser horizontal ─────
    Dipakai di: katalog produk, Sektor yang Kami Layani, Langkah Berikutnya,
    dan Artikel Terbaru. Sebelumnya keempatnya menyalin rangkaian kelas yang

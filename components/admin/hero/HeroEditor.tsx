@@ -75,13 +75,15 @@ export function HeroEditor({ initialHeadline, initialSubheadline }: Props) {
         </div>
         {/* Pratinjau memakai KELAS YANG SAMA dengan halaman publik, jadi
             yang terlihat di sini benar-benar yang akan tayang. */}
-        <div className="rounded-md bg-steel-50 p-4">
-          <p className="text-balance font-display text-2xl font-semibold leading-tight tracking-tight text-ink-900">
+        {/* Latar GELAP, sama dengan hero sungguhan. Pratinjau yang
+            berlatar terang akan membohongi admin soal keterbacaan. */}
+        <div className="surface-dark rounded-md p-4">
+          <p className="text-balance font-display text-2xl font-semibold leading-tight tracking-tight text-white">
             {headline.map((s, i) => (
               <span key={i} className={heroStyleClass(s.style)}>{s.text}</span>
             ))}
           </p>
-          <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-ink-700/80">
+          <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-steel-200">
             {sub.map((s, i) => (
               <span key={i} className={heroStyleClass(s.style)}>{s.text}</span>
             ))}

@@ -31,6 +31,7 @@ import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { SealCheckIcon, ShieldCheckIcon, PlantIcon, LightningIcon } from '@phosphor-icons/react/ssr'
 import { ACTIVE_CLIENTS } from '@/constants/clients'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
+import { HOMEPAGE_SECTIONS } from '@/constants/homepage-sections'
 
 // Duplicate array → seamless loop (CSS translateX(-50%) bekerja
 // karena konten = 2× isi aslinya, transisi balik tidak terlihat)
@@ -85,6 +86,12 @@ export function CredibilitySection() {
       aria-labelledby="credibility-heading"
     >
       <div className="mx-auto max-w-7xl px-4">
+        {/* Pilar kepercayaan — dimatikan lewat SATU titik kendali di
+            constants/homepage-sections.ts. Marquee mitra di bawah TIDAK
+            ikut dimatikan: keduanya kebetulan tinggal di berkas yang sama,
+            tapi marquee itu justru diminta dikembalikan ronde lalu. */}
+        {HOMEPAGE_SECTIONS.trustPillars && (
+          <>
         {/* Heading */}
         <RevealWrapper>
           <div className="mx-auto mb-8 max-w-2xl text-center md:mb-12">
@@ -143,6 +150,9 @@ export function CredibilitySection() {
         </div>
 
         {/* Divider ke showcase mitra */}
+          </>
+        )}
+
         {/* Garis lurus polos. Dulu dua garis mengapit ikon daun — pembatas
             berhias yang tidak sebahasa dengan pembatas lurus di seluruh
             situs (§4.2), dan ikon daun membawa nuansa "organik" yang justru

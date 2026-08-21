@@ -95,7 +95,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
 
       {/* Strip aksen tipis — penanda "dokumen resmi", bukan navbar generik
           flat. Garis, bukan shadow, sebagai unit pemisah utama. */}
-      <div className="sticky top-0 z-[1001] h-[3px] bg-gradient-to-r from-ink-950 via-brand-teal-600 to-ink-950" aria-hidden="true" />
+      <div className="sticky top-0 z-[1001] h-[3px] bg-marine-600" aria-hidden="true" />
 
       <header
         className={[
@@ -222,25 +222,13 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: EASE }}
-            className="fixed inset-0 z-[1001] overflow-y-auto bg-gradient-to-br from-ink-950 via-ink-900 to-ink-900 lg:hidden"
+            className="fixed inset-0 z-[1001] overflow-y-auto surface-dark lg:hidden"
           >
-            {/* RONDE Tahap 3: .bg-salt-texture sempat dipasang di sini,
-                sekaligus memicu bug cascade-layer (unlayered custom class
-                menang mutlak atas utility `fixed` — didiagnosis & di-fix
-                saat itu dgn memisah tekstur ke child <div> terpisah).
-                RONDE Tahap 8: tekstur itu sendiri DICABUT TOTAL — klien
-                tidak suka motif garis di section manapun. Diganti mesh
-                gradient lembut, pola sama dgn Hero /produk & /tentang-kami
-                (radial-gradient diklaster, bukan garis berulang). */}
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle 320px at 90% -10%, rgba(15,158,139,0.22), transparent), ' +
-                  'radial-gradient(circle 260px at 10% 100%, rgba(27,191,170,0.12), transparent)',
-              }}
-              aria-hidden="true"
-            />
+            {/* Catatan sejarah: di sini pernah ada .bg-salt-texture (memicu
+                bug cascade-layer), lalu diganti mesh gradient radial. Mesh
+                itu DICABUT di CP0 ronde 3 — rgba-nya hijau lama yang
+                ditulis literal, dan gradien sebagai latar melanggar §9.
+                Panelnya kini permukaan solid. */}
             <motion.div
               initial={{ y: -16 }}
               animate={{ y: 0 }}

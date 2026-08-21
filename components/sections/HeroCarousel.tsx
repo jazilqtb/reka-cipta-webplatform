@@ -133,7 +133,7 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-salt-50"
+      className="surface-dark relative overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Hero"
@@ -174,10 +174,15 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
             solusinya glass panel khusus mobile di sekitar blok teks (lihat
             di bawah) — legibility datang dari blur lokal, bukan menutup
             foto secara global lagi. */}
-        <div className="absolute inset-0 bg-white/55 lg:bg-gradient-to-r lg:from-white lg:from-35% lg:via-white/45 lg:via-55% lg:to-white/5" />
+        {/* Lapisan keterbacaan di ATAS FOTO — bukan latar section, jadi tidak
+            termasuk larangan §9. Dibalik dari putih ke gelap di CP0 ronde 3.
+            Nilainya dinaikkan dari 55% ke 68% karena teks putih di atas foto
+            terang (langit, tumpukan garam putih) butuh lebih banyak
+            perlindungan daripada teks gelap di atas foto yang sama. */}
+        <div className="absolute inset-0 bg-steel-950/68 lg:bg-gradient-to-r lg:from-steel-950 lg:from-30% lg:via-steel-950/78 lg:via-58% lg:to-steel-950/35" />
         {/* Fade bawah — batas Hero jangan garis lurus, foto meluruh halus
             ke warna dasar section (salt-50) di 3 baris terakhir. */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-salt-50 to-transparent md:h-36" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-steel-900 to-transparent md:h-36" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16 lg:py-20">
@@ -188,15 +193,19 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
             pun kecerahan foto di baliknya, sekaligus tetap "nuansa cerah"
             (bukan overlay gelap). Netral di sm+ (bg/blur/padding dilepas),
             layout desktop 100% tidak berubah. */}
-        <div className="rounded-3xl bg-white/60 p-5 backdrop-blur-md sm:rounded-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        {/* Panel kaca putih khusus ponsel DICABUT: ia ada untuk menjamin
+            kontras teks GELAP di atas foto terang. Dengan permukaan gelap,
+            teks sudah putih di atas overlay 68% — panelnya jadi lapisan
+            tambahan tanpa tugas. */}
+        <div>
         <motion.div
           variants={container}
           initial={prefersReduced ? 'visible' : 'hidden'}
           animate="visible"
           className="max-w-2xl"
         >
-          <motion.div variants={item} className="rule-index font-ui inline-flex items-center gap-1.5 text-brand-teal-600">
-            <SealCheckIcon size={16} weight="fill" aria-hidden="true" className="text-brand-teal-600" />
+          <motion.div variants={item} className="rule-index font-ui inline-flex items-center gap-1.5 text-marine-200">
+            <SealCheckIcon size={16} weight="fill" aria-hidden="true" className="text-marine-200" />
             Distributor Bersertifikasi SNI
           </motion.div>
 
@@ -216,7 +225,7 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
               HTML-injection: tidak pernah ada HTML untuk disuntik. */}
           <motion.h1
             variants={item}
-            className="mt-5 text-balance font-display text-3xl md:text-4xl font-semibold leading-[1.06] tracking-tight text-ink-900"
+            className="mt-5 text-balance font-display text-3xl md:text-4xl font-semibold leading-[1.06] tracking-tight text-white"
           >
             {hero.headline.map((span, i) => (
               <span key={i} className={heroStyleClass(span.style)}>
@@ -227,7 +236,7 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
 
           <motion.p
             variants={item}
-            className="mt-5 max-w-xl text-pretty text-base md:text-lg leading-relaxed text-ink-700/80"
+            className="mt-5 max-w-xl text-pretty text-base md:text-lg leading-relaxed text-steel-200"
           >
             {hero.subheadline.map((span, i) => (
               <span key={i} className={heroStyleClass(span.style)}>
@@ -256,7 +265,7 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
               aria-label="Lihat lima produk garam kami"
               className={cn(
                 buttonVariants({ variant: 'outline', size: 'lg' }),
-                'font-ui rounded-xl border-ink-900/20 bg-white/70 text-ink-900 hover:bg-white hover:text-ink-900'
+                'font-ui rounded-md border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white'
               )}
             >
               Lihat 5 Produk Garam
@@ -269,13 +278,13 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
               beraksen mono, bukan blok kartu terpisah dari narasi. */}
           <motion.div
             variants={item}
-            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink-900/10 pt-5"
+            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/12 pt-5"
             aria-label="Statistik perusahaan"
           >
             {stats.map((s) => (
               <div key={s.label} className="flex items-baseline gap-1.5">
                 {s.isStatic ? (
-                  <span className="mono-tech text-base font-bold text-brand-teal-700">
+                  <span className="mono-tech text-base font-bold text-marine-200">
                     {s.value}{s.suffix}
                   </span>
                 ) : (
@@ -283,10 +292,10 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
                     target={s.value}
                     suffix={s.suffix}
                     staggerDelay={s.delay}
-                    className="mono-tech text-base font-bold text-brand-teal-700"
+                    className="mono-tech text-base font-bold text-marine-200"
                   />
                 )}
-                <span className="font-ui text-xs font-medium text-ink-900/50">{s.label}</span>
+                <span className="font-ui text-xs font-medium text-steel-300">{s.label}</span>
               </div>
             ))}
           </motion.div>

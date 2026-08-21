@@ -59,22 +59,7 @@ const BREADCRUMB: BreadcrumbItem[] = [
 export function ProductCatalogHero() {
   return (
     <>
-    <section className="relative overflow-hidden bg-gradient-to-b from-ink-950 to-ink-900 px-4 pb-14 pt-14 md:pb-20 md:pt-20">
-      {/* Mesh gradient — beberapa radial-gradient lembut warna teal/
-          ocean-blue brand, KHUSUS di area atas (radius+posisi dijaga
-          supaya falloff selesai jauh sebelum tepi bawah section) — bukan
-          motif garis, dan tidak mengganggu tepi divider yg harus tetap
-          ink-900 murni (lihat catatan Tahap 5 di atas). */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle 340px at 16% -8%, rgba(15,158,139,0.28), transparent), ' +
-            'radial-gradient(circle 380px at 88% 2%, rgba(27,191,170,0.18), transparent), ' +
-            'radial-gradient(circle 300px at 55% -12%, rgba(4,43,38,0.5), transparent)',
-        }}
-        aria-hidden="true"
-      />
+    <section className="relative overflow-hidden surface-dark px-4 pb-14 pt-14 md:pb-20 md:pt-20">
 
       <div className="relative mx-auto max-w-5xl">
         <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">

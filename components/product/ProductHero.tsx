@@ -35,21 +35,7 @@ export function ProductHero({ product }: ProductHeroProps) {
 
   return (
     <>
-    <section className="relative overflow-hidden bg-gradient-to-b from-ink-950 to-ink-900 px-4 pb-14 pt-8 md:pb-20 md:pt-10">
-      {/* Mesh gradient + blob — pola & alasan IDENTIK dgn
-          ProductCatalogHero.tsx: diklaster di area ATAS saja supaya
-          tepi BAWAH section tetap flat ink-900 murni, match 1:1 dgn
-          fill-ink-900 di SectionDivider (lihat catatan panjang di
-          ProductCatalogHero soal bug seam Tahap 5). */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle 320px at 85% -10%, rgba(15,158,139,0.24), transparent), ' +
-            'radial-gradient(circle 260px at 10% -6%, rgba(27,191,170,0.14), transparent)',
-        }}
-        aria-hidden="true"
-      />
+    <section className="relative overflow-hidden surface-dark px-4 pb-14 pt-8 md:pb-20 md:pt-10">
 
       <div className="relative mx-auto max-w-6xl">
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">

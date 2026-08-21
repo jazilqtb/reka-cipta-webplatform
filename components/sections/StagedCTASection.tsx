@@ -135,14 +135,6 @@ export function StagedCTASection() {
           bikin section jadi putih polos & teks putih tak terbaca. Fix:
           glow jadi overlay <div> terpisah, radius FIXED (px, bukan %) —
           radial-gradient dgn stop persen di section selebar viewport bisa
-          membengkak jadi ratusan px dan "mencuci" konten. */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: 'radial-gradient(circle 260px at 12% 0%, rgba(255,255,255,0.12), transparent), radial-gradient(circle 300px at 90% 6%, rgba(95,225,203,0.14), transparent)',
-        }}
-        aria-hidden="true"
-      />
       {/* Catatan lama soal blob parallax dihapus bersama komponennya di CP1.
           di atas — bergerak halus mengikuti scroll (bukan diam), poin
           UMUM "Parallax & Background Kreatif". Diblur berat + opacity

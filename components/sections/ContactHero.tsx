@@ -16,16 +16,7 @@ import { SectionDivider } from '@/components/decorative/SectionDivider'
 export function ContactHero() {
   return (
     <>
-    <section className="relative overflow-hidden bg-gradient-to-b from-ink-950 to-ink-900 px-4 pb-14 pt-14 md:pb-20 md:pt-20">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle 340px at 88% -10%, rgba(15,158,139,0.26), transparent), ' +
-            'radial-gradient(circle 280px at 8% 0%, rgba(27,191,170,0.14), transparent)',
-        }}
-        aria-hidden="true"
-      />
+    <section className="relative overflow-hidden surface-dark px-4 pb-14 pt-14 md:pb-20 md:pt-20">
 
       <div className="relative mx-auto max-w-5xl">
         <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">

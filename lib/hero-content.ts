@@ -35,11 +35,21 @@ export const HERO_LIMITS = {
  *  gaya yang tidak dikenal jatuh ke 'plain', tidak pernah ke kelas bebas.
  *  Inilah yang membuat CMS tidak bisa merusak sistem desain — admin memilih
  *  PERAN, bukan warna. */
+/* CATATAN PENTING (CP0 ronde 3): hero beranda kini berlatar GELAP.
+ * `primary` semula memetakan ke marine-600 — biru tua yang benar di atas
+ * putih, tapi hanya 2,39:1 di atas steel-900. Itu di bawah ambang 3:1 untuk
+ * teks besar, dan terukur pada halaman ter-render, bukan diperkirakan.
+ * Dipindah ke marine-200: 10,2:1 di atas steel-900.
+ *
+ * Konsekuensinya pratinjau di panel admin JUGA harus berlatar gelap —
+ * kalau tidak, admin melihat teks terang di atas kartu putih dan mengira
+ * pilihannya salah. Pratinjau itu mengklaim "seperti yang dilihat
+ * pengunjung", jadi ia wajib memakai permukaan yang sama. */
 export const HERO_STYLE_CLASS: Record<HeroSpanStyle, string> = {
   plain: '',
   bold: 'font-semibold',
   italic: 'italic',
-  primary: 'font-medium text-brand-teal-600',
+  primary: 'font-medium text-marine-200',
 }
 
 export function heroStyleClass(style: string): string {

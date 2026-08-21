@@ -193,20 +193,15 @@ export default function HowItWorks() {
             })}
           </div>
 
-          {/* Panel konten aktif — RONDE 7: motif garis-garis silang
-              (.bg-salt-texture) dihapus (dinilai tidak profesional oleh
-              klien), diganti radial glow sangat lembut (gradasi, bukan
-              garis) + panel solid tipis. */}
+          {/* Panel konten aktif. Radial glow dicabut di CP0 ronde 3 —
+              rgba-nya hijau lama yang ditulis literal, dan gradien sebagai
+              latar melanggar §9. Kini panel solid tipis di atas bidang
+              gelap, dibedakan hanya oleh garis dan sedikit terang. */}
           <div
             id="howitworks-panel"
             role="tabpanel"
             aria-labelledby={`howitworks-tab-${active.num}`}
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-8 md:p-12"
-            style={{
-              // Radius FIXED (px) — lihat catatan di StagedCTASection.tsx,
-              // stop persen bisa membengkak & "mencuci" konten di section lebar.
-              backgroundImage: 'radial-gradient(circle 260px at 85% 10%, rgba(95,225,203,0.12), transparent)',
-            }}
+            className="relative overflow-hidden rounded-md border border-white/10 bg-white/[0.04] p-8 md:p-12"
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -217,8 +212,7 @@ export default function HowItWorks() {
                 transition={{ duration: 0.35, ease: EASE }}
                 className="relative z-10"
               >
-                {/* RONDE 6: badge .icon-hex dihapus — ikon polos & besar */}
-                <ActiveIcon size={40} weight="duotone" className="mb-6 text-brand-teal-400" aria-hidden="true" />
+                <ActiveIcon size={40} weight="duotone" className="mb-6 text-marine-200" aria-hidden="true" />
                 <p className="mono-tech text-xs text-white/40">
                   Langkah {String(active.num).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
                 </p>

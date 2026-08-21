@@ -35,15 +35,7 @@ export function CalculatorResult({ result, onReset }: Props) {
     <div className="animate-in fade-in-0 slide-in-from-bottom-4 mx-auto max-w-2xl space-y-5 duration-300">
       {/* Panel angka — gelap & tegas supaya hasil kalkulasi terbaca
           sebagai "output", bukan sekadar paragraf lain di halaman. */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-ink-950 to-ink-900 p-8 text-center">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle 240px at 50% -20%, rgba(15,158,139,0.30), transparent)',
-          }}
-          aria-hidden="true"
-        />
+      <div className="relative overflow-hidden rounded-2xl surface-dark p-8 text-center">
         <div className="relative">
           <p className="rule-index font-ui justify-center text-brand-teal-300">
             Estimasi Kebutuhan Anda

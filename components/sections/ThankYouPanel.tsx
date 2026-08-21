@@ -52,16 +52,7 @@ export function ThankYouPanel({
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-b from-ink-950 to-ink-900 px-4 pb-16 pt-16 md:pb-24 md:pt-24">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle 360px at 50% -10%, rgba(15,158,139,0.28), transparent), ' +
-              'radial-gradient(circle 280px at 88% 4%, rgba(27,191,170,0.14), transparent)',
-          }}
-          aria-hidden="true"
-        />
+      <section className="relative overflow-hidden surface-dark px-4 pb-16 pt-16 md:pb-24 md:pt-24">
 
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Checkmark beranimasi — lingkaran menggambar dulu, lalu centang */}
