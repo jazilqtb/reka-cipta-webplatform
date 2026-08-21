@@ -124,3 +124,39 @@ Dipindah ke `asyncio.to_thread`.
 DUA KALI alat ukur saya menipu: `.test` ditolak pydantic (mengukur 422),
 lalu rate limit 5/jam (mengukur 429). Keduanya ketahuan karena angkanya
 mustahil (3,6 ms untuk sebuah insert).
+
+## CP3 — SELESAI (distribusi: janji vs realisasi)
+
+**DIAGNOSIS DITERIMA, dan benar:** sistem tidak menyimpan realisasi
+distribusi sama sekali. Yang kurang ENTITASNYA, bukan grafiknya.
+
+**Dua tabel baru** (`20260821120000`, ADDITIVE, diterapkan):
+`supply_commitments` (janji berulang per periode) + `shipments` (realisasi
+bertanggal, dengan supplier). Kapasitas supplier TIDAK dibuat tabel baru —
+sudah ada di `supplier_registrations.capacity_per_month`.
+
+**YANG SENGAJA TIDAK DIBANGUN:** stok/inventaris/gudang (Jazil distributor,
+bukan pabrik; angka yang tidak pernah dihitung akan salah dalam sebulan lalu
+dipercaya setahun), purchase order, invoice, harga.
+
+**BUG SERIUS YANG DITEMUKAN DI SEPANJANG JALAN:** `getHeroStats` membaca
+`rfqs`/`shipments` dengan anon key, sementara RLS-nya admin-only. PostgREST
+mengembalikan NOL BARIS, bukan error — jadi statistik dinamis beranda
+SELALU 0 tanpa tanda apa pun. Verifikasi CP1 saya lolos karena memakai
+service key yang melewati RLS. Pelajarannya: memverifikasi jalur publik
+dengan kunci istimewa = tidak memverifikasi jalur publik.
+Ditutup dengan `get_public_hero_stats()` SECURITY DEFINER yang hanya
+mengembalikan ANGKA agregat.
+
+**"Ton Distribusi" AKHIRNYA punya sumber.** Terbukti: 353 baseline + 70 ton
+dari 2 pengiriman = 423 di halaman ter-render. (Data demo lalu dihapus.)
+
+**Sempat terlihat seperti bug, ternyata bukan:** build melaporkan 0
+pengiriman padahal DB punya 2. Sebabnya Next.js men-cache `fetch` global
+dan supabase-js memakainya — respons ter-cache dari sebelum data ada.
+Terbukti setelah .next/cache/fetch-cache dibersihkan.
+
+**Ekspor** CSV (BOM UTF-8 utk Excel) + JSON, keduanya menghormati satuan
+kanonik kg dan menyertakan periode. Terverifikasi lewat sesi admin nyata.
+
+DESIGN-SYSTEM: §4.11 tabel padat & grafik, §4.3 diperluas.

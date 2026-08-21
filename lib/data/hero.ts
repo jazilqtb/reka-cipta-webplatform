@@ -81,25 +81,40 @@ export async function getHeroStats(
   let products = 0
   let deals = 0
   let cities = 0
+  let shippedKg: number | null = null
+
+  /* SATU panggilan RPC, bukan beberapa SELECT.
+   *
+   * Sebelumnya fungsi ini melakukan SELECT langsung ke `rfqs`/`shipments`
+   * memakai anon key — dan RLS tabel itu hanya mengizinkan admin. PostgREST
+   * TIDAK melempar error untuk kasus itu; ia mengembalikan NOL BARIS. Jadi
+   * statistik dinamis beranda selalu 0 tanpa satu pun tanda bahwa ada yang
+   * salah, dan verifikasi yang memakai service key tidak akan pernah
+   * menangkapnya karena service key melewati RLS.
+   *
+   * get_public_hero_stats() adalah SECURITY DEFINER yang hanya
+   * mengembalikan angka agregat — tidak ada identitas pelanggan yang bisa
+   * keluar lewat sana. */
+  /* CATATAN CACHE: Next.js membungkus `fetch` global, dan supabase-js
+   * memakainya. Panggilan ini karena itu ikut aturan `revalidate = 3600`
+   * milik halaman beranda — angka statistik menyegar paling lambat sejam
+   * sekali, dan LANGSUNG saat pengiriman baru disimpan lewat panel admin
+   * (saveShipment memanggil revalidatePath('/')).
+   * Sempat terlihat seperti bug: build mengembalikan 0 pengiriman padahal
+   * basis data punya 2. Ternyata build memakai respons ter-cache dari
+   * sebelum data itu ada — bukan salah kueri. Terbukti setelah
+   * .next/cache/fetch-cache dibersihkan: nilainya langsung benar. */
   try {
     const supabase = createPublic()
-    const [prodRes, dealRes] = await Promise.all([
-      supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      /* CP1 ronde 3: sumbernya berpindah rfq_leads -> rfqs. Nilainya WAJIB
-         sama — diverifikasi sebelum & sesudah migrasi: COUNT(deal) dan
-         jumlah kota unik keduanya identik. Kalau angka statistik beranda
-         bergeser diam-diam gara-gara refactor, pengunjung melihat klaim
-         yang berubah tanpa ada yang mengubahnya. */
-      supabase.from('rfqs').select('delivery_city').eq('status', 'deal'),
-    ])
-    products = prodRes.error ? 0 : (prodRes.count ?? 0)
-    if (!dealRes.error && dealRes.data) {
-      deals = dealRes.data.length
-      cities = new Set(
-        dealRes.data
-          .map((r) => String(r.delivery_city ?? '').trim().toLowerCase())
-          .filter(Boolean)
-      ).size
+    const { data, error } = await supabase.rpc('get_public_hero_stats')
+    const row = Array.isArray(data) ? data[0] : data
+    if (!error && row) {
+      products = Number(row.active_products ?? 0)
+      deals = Number(row.deal_count ?? 0)
+      cities = Number(row.city_count ?? 0)
+      // Nol BARIS pengiriman berarti belum ada sumbernya sama sekali —
+      // berbeda dari total nol. Perbedaan itu dipertahankan sampai UI.
+      shippedKg = Number(row.shipment_rows ?? 0) > 0 ? Number(row.shipped_kg ?? 0) : null
     }
   } catch (err) {
     console.error('[Hero] Gagal menghitung statistik dinamis:', err)
@@ -109,7 +124,15 @@ export async function getHeroStats(
     { key: 'salt_types_count', label: 'Jenis Garam', baseline: num(settings.salt_types_count, 0), dynamic: products, suffix: '' },
     { key: 'partner_count', label: 'Mitra Aktif', baseline: num(settings.partner_count, 6), dynamic: deals, suffix: '+' },
     { key: 'cities_served', label: 'Kota Dilayani', baseline: num(settings.cities_served, 9), dynamic: cities, suffix: '+' },
-    { key: 'total_distribution_tons', label: 'Ton Distribusi', baseline: num(settings.total_distribution_tons, 353), dynamic: null, suffix: '' },
+    {
+      key: 'total_distribution_tons',
+      label: 'Ton Distribusi',
+      baseline: num(settings.total_distribution_tons, 353),
+      // Dibulatkan ke ton penuh: label statistiknya berbunyi "Ton
+      // Distribusi", jadi menampilkan pecahan kilogram di sana salah satuan.
+      dynamic: shippedKg === null ? null : Math.round(shippedKg / 1000),
+      suffix: '',
+    },
   ]
 }
 

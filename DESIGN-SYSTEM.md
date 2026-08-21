@@ -384,6 +384,7 @@ di sini tidak boleh dibuka ke CMS tanpa menambahkannya dulu ke dokumen ini.
 | Tentang Kami — Misi | Judul & uraian tiap poin; tambah/hapus/urutkan | Bahwa tampilannya accordion |
 | Tentang Kami — Tim | Nama, jabatan, foto; tambah/hapus/urutkan | Rasio foto, bentuk kisi, gaya fallback inisial |
 | Perusahaan — penggabungan duplikat | Memutuskan gabung/tidak, membatalkan | Ambang deteksi, aturan pencocokan |
+| Distribusi — komitmen & pengiriman | Menambah/menghapus baris, satuan | Cara rekap dihitung, penyetaraan periode |
 
 ### Gaya yang diekspos, dan kenapa hanya empat
 
@@ -596,6 +597,53 @@ sak tidak bisa dijumlahkan dengan ton dan setiap rekap akan salah.
 
 **Tampilan:** `formatKg()` menaikkan ke ton di ≥1000 kg. Angka kuantitas
 selalu `font-mono` (§3.4) — ia data teknis, bukan prosa.
+
+## 4.11 Tabel data padat & grafik
+
+Ditetapkan 2026-08-21 (CP3 ronde 3).
+
+### Aturan utama: tabel dulu, grafik hanya kalau bentuknya membantu
+
+**Tabel yang rapi mengalahkan pie chart untuk angka yang perlu dibaca
+persis.** Pertanyaan yang dijawab dashboard distribusi adalah "jenis garam
+mana yang kurang pasokan, dan berapa kurangnya" — itu dijawab angka, bukan
+luas juring. Grafik dipakai hanya kalau BENTUK datanya memang lebih terbaca
+sebagai bentuk (tren sepanjang waktu, perbandingan proporsi kasar).
+
+**Yang tetap dipakai di sini:** bilah pemenuhan sepanjang 96px di kolom
+terakhir. Ia menjawab "seberapa jauh dari target" dalam sekali lihat, dan
+**angkanya tetap tertulis di sebelahnya** — bilahnya mempercepat pemindaian,
+bukan menggantikan angka.
+
+### Palet grafik — dari token yang ada, bukan warna baru
+
+| Keadaan | Token | Ambang |
+|---|---|---|
+| Terpenuhi | `success-600` | ≥ 100% |
+| Kurang sedikit | `warning-600` | 70–99% |
+| Kurang jauh | `danger-600` | < 70% |
+| Jalur/latar bilah | `neutral-200` | — |
+
+Tidak ada warna baru diperkenalkan untuk grafik. Kalau suatu saat butuh
+seri kategori (bukan keadaan), pakai `marine-600` → `steel-500` →
+`ochre-600` dan berhenti di tiga: seri keempat berarti grafiknya salah
+bentuk.
+
+### Tabel padat
+
+- Angka **selalu** rata kanan dan `font-mono` — kolom angka yang rata kiri
+  tidak bisa dibandingkan sekilas.
+- Setiap tabel berada di dalam `overflow-x-auto` dengan `min-width` — badan
+  halaman tidak pernah menggulir mendatar (§ aturan responsif).
+- Kepala kolom `text-xs` netral, bukan tebal berwarna.
+
+### Kejujuran angka — mengikat
+
+Sel yang tidak punya sumber menulis **"belum ada catatan"**, bukan `0`.
+"Tidak ada datanya" dan "datanya nol" adalah dua kenyataan berbeda, dan
+menyamakannya membuat admin mengambil keputusan atas dasar yang salah —
+misalnya menyimpulkan pasokan gagal padahal pengirimannya cuma belum
+dicatat.
 
 ## 5. Spacing — grid 8px
 
