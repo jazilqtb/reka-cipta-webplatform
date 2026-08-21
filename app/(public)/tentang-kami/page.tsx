@@ -4,6 +4,7 @@ import { CompanyTimeline } from '@/components/sections/CompanyTimeline'
 import { VisiMisi } from '@/components/sections/VisiMisi'
 import { OrgStructure } from '@/components/sections/OrgStructure'
 import { AboutCTA } from '@/components/sections/AboutCTA'
+import { getAboutTimeline, getAboutMission, getAboutTeam, getAboutVision } from '@/lib/data/about'
 
 export const revalidate = 86400 // 24 jam
 
@@ -18,7 +19,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default function TentangKamiPage() {
+export default async function TentangKamiPage() {
+  const [timeline, mission, team, vision] = await Promise.all([
+    getAboutTimeline(),
+    getAboutMission(),
+    getAboutTeam(),
+    getAboutVision(),
+  ])
+
   return (
     <main>
       {/* RONDE Tahap 8: section Legalitas (LegalDocsGrid) DIHAPUS TOTAL —
@@ -27,9 +35,9 @@ export default function TentangKamiPage() {
           LegalDocCard.tsx, LegalDocModal.tsx) juga sudah dihapus dari
           repo, bukan cuma disembunyikan dari sini. */}
       <AboutHero />
-      <CompanyTimeline />
-      <VisiMisi />
-      <OrgStructure />
+      <CompanyTimeline timeline={timeline} />
+      <VisiMisi vision={vision} mission={mission} />
+      <OrgStructure team={team} />
       <AboutCTA />
     </main>
   )

@@ -379,6 +379,10 @@ di sini tidak boleh dibuka ke CMS tanpa menambahkannya dulu ke dokumen ini.
 |---|---|---|
 | Hero beranda | Teks headline & sub-headline; label gaya per potongan | Ukuran, jenis huruf, tata letak, warna sebagai nilai |
 | Angka statistik hero | Angka **dasar** tiap statistik | Label, urutan, cara angka dinamisnya dihitung |
+| Tentang Kami — Visi | Teks satu paragraf (maks 400 karakter) | Tata letak, ukuran kutipan |
+| Tentang Kami — Perjalanan | Tahun, judul, keterangan; tambah/hapus/urutkan | Bentuk garis waktu, perilaku geser |
+| Tentang Kami — Misi | Judul & uraian tiap poin; tambah/hapus/urutkan | Bahwa tampilannya accordion |
+| Tentang Kami — Tim | Nama, jabatan, foto; tambah/hapus/urutkan | Rasio foto, bentuk kisi, gaya fallback inisial |
 
 ### Gaya yang diekspos, dan kenapa hanya empat
 
@@ -415,6 +419,40 @@ ada HTML.
 Batas panjang ditegakkan **tiga kali**: di form, di Server Action, dan di
 `CHECK` constraint tabel. Masing-masing melindungi jalur masuk yang berbeda;
 form bisa dilewati, action bisa dipanggil langsung, tabel tidak bisa dihindari.
+
+## 4.4 Accordion
+
+Ditetapkan 2026-08-21 (poin misi di /tentang-kami).
+
+**Dibangun di atas `<details>`/`<summary>` native, bukan div + `useState`.**
+Elemen native sudah membawa peran ARIA, keadaan expanded, fokus keyboard,
+Enter/Space, dan — yang paling sering terlupa — **pencarian dalam halaman**:
+Ctrl+F membuka `<details>` yang tertutup untuk menampilkan hasilnya.
+Menirunya dengan div menuntut menulis ulang semuanya, dan bagian terakhir
+itu praktis tidak pernah ditulis ulang.
+
+| Aspek | Ketetapan |
+|---|---|
+| Banyak terbuka | **Boleh.** Poin misi bukan pilihan yang saling meniadakan; pembaca yang membandingkan dua poin tidak boleh dipaksa menutup salah satunya. Atribut `name` (accordion eksklusif) sengaja tidak dipakai |
+| Keadaan awal | Item pertama terbuka — supaya bagian itu tidak terbaca sebagai daftar judul kosong |
+| Ikon | `CaretDown`, berputar 180° saat terbuka |
+| Durasi | 150ms `ease-out` — transisi keadaan, bukan animasi masuk |
+| Keyboard | Ditangani native. Jangan menambah handler `onKeyDown` |
+
+**Kapan dipakai:** daftar berisi judul yang bisa berdiri sendiri, dengan
+uraian yang panjangnya menghalangi kalau ditampilkan sekaligus.
+**Kapan TIDAK:** informasi yang harus dibaca semua (spesifikasi, harga,
+langkah proses), atau daftar berisi kurang dari tiga item.
+
+## 4.5 Foto orang
+
+Rasio **1:1**, maksimal **2 MB**, format JPG/PNG/WebP. Dipotong dari tengah
+(`object-cover`). Anggota tanpa foto tampil dengan **inisial namanya** di
+atas bidang primary — entri baru tidak pernah kosong, dan admin tidak
+terpaksa mengunggah foto seadanya hanya supaya kisinya rapi.
+
+Batas ukuran dan jenis ditegakkan dua kali: di komponen unggah (pesan cepat)
+dan di konfigurasi bucket Supabase (tidak bisa dilewati dari klien mana pun).
 
 ## 5. Spacing — grid 8px
 

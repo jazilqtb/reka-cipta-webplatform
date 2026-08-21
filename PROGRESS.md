@@ -9,7 +9,7 @@ dilanjutkan kalau sesi terputus. Branch: `feature/OPT-CP0-design-system`.
 | CP1 | Beranda: bug interaksi & layout mobile (5A, 5B, 6, 17) | **SELESAI** |
 | CP2 | Beranda: konten, divider, footer (2A, 7, 8, 9, 10) | **SELESAI** |
 | CP3 | CMS hero + statistik dinamis (2, 3) | **SELESAI** |
-| CP4 | Tentang Kami + CMS-nya (11) | belum |
+| CP4 | Tentang Kami + CMS-nya (11) | **SELESAI** |
 | CP5 | Halaman publik lain (12, 13) | belum |
 | CP6 | Admin: CORS LAN + pembersihan UI (14, 15, 16) | belum |
 
@@ -108,3 +108,29 @@ Server Action, CHECK constraint).
 -> teks muncul di H1 halaman publik -> dipulihkan.
 
 DESIGN-SYSTEM: §4.3 permukaan CMS + amandemen §3.4 (italic).
+
+## CP4 — SELESAI
+
+**Tabel baru** (migrasi 20260821100000, SUDAH di-push): `about_timeline`,
+`about_mission`, `about_team` + kunci `about_vision` di company_settings +
+bucket storage `team-photos` (publik, 2MB, jpeg/png/webp).
+RLS ketiganya: publik BACA, tulis/hapus hanya `public.is_admin()`.
+Di-seed dari constants/company-profile.ts sehingga halaman tidak pernah
+kosong; berkas TS itu kini berperan sebagai cadangan saat query gagal.
+
+**/admin/tentang-kami** — satu editor dipakai tiga daftar (struktur
+ketiganya identik). Urut naik/turun pakai tombol, BUKAN drag-and-drop:
+DnD tidak bisa dioperasikan keyboard tanpa lapisan panjang, dan di ponsel
+bertabrakan dengan gerakan menggulir.
+
+**Timeline:** desktop `grid-cols-3` (dipatok ke jumlah entri yang kebetulan
+tiga) -> deret geser `.carousel-row`; ponsel lencana tahun 4px dari tepi ->
+16px, sejajar judul (terukur).
+**Misi:** accordion `<details>` native — 5 item, 1 terbuka, keyboard OK.
+**Tim:** foto lama tetap tampil (path diawali '/' = aset lokal), unggahan
+baru ke Supabase Storage.
+
+**Bug yang dicegah React Compiler:** versi pertama memutasi prop `row`
+langsung. Diperbaiki dengan callback `patch` — bukan sekadar meredam lint.
+
+DESIGN-SYSTEM: §4.4 accordion, §4.5 foto orang, §4.3 diperluas.

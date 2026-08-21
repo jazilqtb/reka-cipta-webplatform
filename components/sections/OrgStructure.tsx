@@ -2,11 +2,11 @@
 // RONDE Tahap 7 (2026-08) — "samakan DNA desain /tentang-kami": heading
 // eyebrow + aksen italic, sisanya (grid foto tim) lihat perubahan di
 // TeamMember.tsx.
-import { TEAM_MEMBERS } from '@/constants/company-profile'
+import type { TeamEntry } from '@/lib/data/about'
 import { TeamMember } from '@/components/blocks/TeamMember'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 
-export function OrgStructure() {
+export function OrgStructure({ team }: { team: TeamEntry[] }) {
   return (
     <section className="bg-white px-4 py-14 md:py-20">
       <div className="mx-auto max-w-5xl">
@@ -19,9 +19,12 @@ export function OrgStructure() {
           </div>
         </RevealWrapper>
 
+        {/* grid-cols-4 di desktop tetap, tapi kini tumbuh ke baris kedua
+            saat anggota bertambah — sebelumnya jumlah kolomnya kebetulan
+            sama dengan jumlah anggota. */}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          {TEAM_MEMBERS.map((member, index) => (
-            <RevealWrapper key={member.name} variant="reveal-scale" delay={index * 100}>
+          {team.map((member, index) => (
+            <RevealWrapper key={member.id} variant="reveal-up" delay={index * 60}>
               <TeamMember member={member} />
             </RevealWrapper>
           ))}

@@ -3,11 +3,16 @@
 // eyebrow + aksen italic, ikon Lucide (CheckCircle) → Phosphor duotone,
 // section bg-neutral-50 generik → bg-salt-50 (palet mineral yg sama
 // dipakai seluruh situs, bukan neutral-50 default Tailwind).
-import { CheckCircleIcon } from '@phosphor-icons/react/ssr'
-import { COMPANY_VISION, COMPANY_MISSION } from '@/constants/company-profile'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
+import { Accordion } from '@/components/brand/Accordion'
+import type { MissionEntry } from '@/lib/data/about'
 
-export function VisiMisi() {
+interface VisiMisiProps {
+  vision: string
+  mission: MissionEntry[]
+}
+
+export function VisiMisi({ vision, mission }: VisiMisiProps) {
   return (
     <section className="bg-salt-50 px-4 py-14 md:py-20">
       <div className="mx-auto max-w-5xl">
@@ -26,7 +31,7 @@ export function VisiMisi() {
             <div className="h-full rounded-2xl bg-brand-teal-50 p-8">
               <p className="rule-index font-ui text-brand-teal-600">Visi</p>
               <span className="mt-4 block font-display text-5xl leading-none text-brand-teal-600" aria-hidden="true">❝</span>
-              <p className="mt-4 text-pretty text-xl leading-relaxed text-ink-700">{COMPANY_VISION}</p>
+              <p className="mt-4 text-pretty text-lg leading-relaxed text-ink-700 md:text-xl">{vision}</p>
             </div>
           </RevealWrapper>
 
@@ -34,22 +39,17 @@ export function VisiMisi() {
           <RevealWrapper variant="reveal-right">
             <div className="h-full rounded-2xl border border-ink-900/10 bg-white p-8">
               <p className="rule-index font-ui text-brand-teal-600">Misi Kami</p>
-              <ul className="mt-6 space-y-5">
-                {COMPANY_MISSION.map((point, index) => (
-                  <li key={index} className="group flex gap-3">
-                    <CheckCircleIcon
-                      size={20}
-                      weight="duotone"
-                      className="mt-0.5 shrink-0 text-brand-teal-600 transition-transform duration-300 group-hover:scale-110"
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className="font-ui text-sm font-semibold text-ink-700">{point.title}</p>
-                      <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{point.description}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {/* ACCORDION (CP4). Dulu kelima poin misi tampil terbuka
+                  sekaligus — lima judul plus lima paragraf, dan yang
+                  terjadi bukan "dibaca semua" melainkan "tidak dibaca satu
+                  pun". Judulnya sendiri sudah menyampaikan isi misi; uraian
+                  adalah bacaan lanjutan bagi yang benar-benar ingin tahu.
+                  Poin pertama dibiarkan terbuka supaya bagian ini tidak
+                  terbaca sebagai daftar judul kosong. */}
+              <Accordion
+                className="mt-4"
+                items={mission.map((m) => ({ id: m.id, title: m.title, body: m.description }))}
+              />
             </div>
           </RevealWrapper>
         </div>

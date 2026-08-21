@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import type { TeamMember as TeamMemberType } from '@/constants/company-profile'
+import type { TeamEntry as TeamMemberType } from '@/lib/data/about'
 
 interface TeamMemberProps {
   member: TeamMemberType
@@ -22,9 +22,12 @@ export function TeamMember({ member }: TeamMemberProps) {
     <div className="flex flex-col items-center text-center">
       {/* Foto dengan hover effect atau fallback avatar */}
       <div className={cn('photo-teal-hover aspect-square w-full overflow-hidden rounded-xl')}>
-        {!imgError ? (
+        {/* photoUrl kini boleh null (anggota baru yang fotonya belum
+            diunggah), jadi fallback inisial dipakai untuk DUA hal: foto
+            gagal dimuat DAN foto belum ada. */}
+        {member.photoUrl && !imgError ? (
           <Image
-            src={member.photoPath}
+            src={member.photoUrl}
             alt={`Foto ${member.name}`}
             width={240}
             height={240}
