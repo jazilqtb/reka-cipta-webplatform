@@ -43,7 +43,6 @@ interface Industry {
   /** Contoh kegunaan spesifik — bukan deskripsi generik (Fondasi Brand §5.1) */
   useCase: string
   /** Gradient duotone khas — dari palet teal/ink/sand yang sudah ada, bukan warna baru */
-  gradient: string
   featured?: boolean
 }
 
@@ -57,7 +56,6 @@ const INDUSTRIES: Industry[] = [
     name: 'Makanan & Minuman',
     icon: ForkKnifeIcon,
     useCase: 'Garam beryodium untuk pengolahan makanan kemasan dan minuman industri.',
-    gradient: 'from-brand-teal-600 to-brand-teal-900',
     featured: true,
   },
   {
@@ -65,7 +63,6 @@ const INDUSTRIES: Industry[] = [
     name: 'Pengasinan Ikan',
     icon: FishIcon,
     useCase: 'Garam kasar SPO/M untuk proses fermentasi dan pengawetan ikan asin.',
-    gradient: 'from-ink-700 to-ink-950',
     featured: true,
   },
   {
@@ -73,28 +70,24 @@ const INDUSTRIES: Industry[] = [
     name: 'Water Treatment',
     icon: DropIcon,
     useCase: 'Garam murni untuk regenerasi resin dan pengolahan air industri.',
-    gradient: 'from-brand-teal-500 to-ink-800',
   },
   {
     slug: 'pakan-ternak',
     name: 'Pakan Ternak',
     icon: PlantIcon,
     useCase: 'Garam halus GHPT sebagai suplemen mineral pakan ternak.',
-    gradient: 'from-sand-600 to-sand-900',
   },
   {
     slug: 'pulp-kertas',
     name: 'Pulp & Kertas',
     icon: FileTextIcon,
     useCase: 'Garam industri untuk proses pemutihan dan produksi bubur kertas.',
-    gradient: 'from-ink-600 to-brand-teal-900',
   },
   {
     slug: 'penyamakan-kulit',
     name: 'Penyamakan Kulit',
     icon: StackIcon,
     useCase: 'Garam kasar untuk pengawetan kulit mentah sebelum proses penyamakan.',
-    gradient: 'from-sand-700 to-ink-900',
   },
 ]
 
@@ -155,7 +148,16 @@ export function IndustriesGrid() {
                   // halaman detail industri per-sektor dibuat.
                   href="/produk"
                   aria-label={`Lihat produk garam untuk industri ${industry.name}: ${industry.useCase}`}
-                  className={`card-hover-lift group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 text-white ${industry.gradient} ${
+                  /* SATU permukaan untuk keenam kartu (2026-08-21).
+                     Sebelumnya tiap kartu punya gradient dua-stop sendiri —
+                     enam perlakuan warna untuk enam hal yang setara, dan
+                     tiga di antaranya memakai primary sebagai bidang penuh
+                     kartu. Itu melanggar dua aturan sekaligus: gradient
+                     sebagai latar (§9 anti-pattern #9) dan primary sebagai
+                     bidang lebih besar dari tombol/badge (§2.5). Warna
+                     bukan pembeda yang bermakna di sini — keenam sektor
+                     setara, yang membedakan cuma ikon dan namanya. */
+                  className={`card-hover-lift group relative flex h-full flex-col justify-between overflow-hidden rounded-md bg-steel-900 p-6 text-white ${
                     industry.featured ? 'min-h-[220px] md:p-8' : 'min-h-[200px]'
                   }`}
                 >
@@ -169,7 +171,7 @@ export function IndustriesGrid() {
                     <Icon
                       size={40}
                       weight="duotone"
-                      className="text-white/90 transition-transform duration-300 group-hover:scale-110"
+                      className="text-marine-200 transition-transform duration-150 group-hover:scale-105"
                       aria-hidden="true"
                     />
                   </div>

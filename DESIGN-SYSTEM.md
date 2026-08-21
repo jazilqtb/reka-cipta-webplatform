@@ -344,6 +344,32 @@ dibandingkan berdampingan — tabel spesifikasi, langkah proses, harga.
 
 **Dibungkus `@layer components` — wajib.** Lihat §9 anti-pattern #13.
 
+## 4.2 Pembatas antar-section (`SectionDivider`)
+
+**Bentuk resmi: sisi LURUS.** Perpindahan warna latar, ditambah garis rambut
+`steel-200` ketika kedua sisi sama-sama terang.
+
+Ditetapkan 2026-08-21, menggantikan tiga `<path>` SVG melengkung (`wave`,
+`curve`, `diagonal`) setinggi 40–80px yang dipakai **21 kali di 20 berkas**.
+Lengkungan setinggi 80px bukan aksen kecil — ia salah satu bentuk terbesar
+di halaman, dan ia melawan §1.3 secara langsung.
+
+**Aturan:**
+- Kedua sisi terang → garis rambut `steel-200` di tepi atas.
+- Salah satu sisi gelap (`ink/steel-800/900/950`) → **tanpa garis**.
+  Perpindahan warnanya sendiri sudah menjadi pembatas; menambah garis di
+  situ hanya derau.
+- Tinggi membawa jarak antar-section: `wave` 40/56px · `curve` 32/48px ·
+  `diagonal` 24/40px. Nama variannya dipertahankan hanya demi kompatibilitas
+  21 pemanggil dan **tidak lagi berarti bentuk**.
+
+**Kenapa tidak dihapus saja:** pembatas ini juga membawa jarak. Menghapus
+komponennya membuat dua bidang warna bertumbukan tanpa napas. Yang dibuang
+lengkungannya, bukan ruangnya.
+
+**Dilarang:** pembatas melengkung, bergelombang, miring, atau berbentuk apa
+pun selain garis lurus — lihat §9 anti-pattern #15.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**
@@ -480,6 +506,8 @@ Ditulis supaya kesalahan yang sama tidak lahir kembali di ronde berikutnya.
     (teks editor terkurung 68ch), dan `.carousel-row` (carousel versi ponsel
     ikut tampil di desktop 1440px). Setiap kelas komponen baru di
     `globals.css` wajib berada di dalam `@layer components`.
+15. **Jangan memakai pembatas section melengkung** — wave, curve, blob,
+    atau miring. Bentuk industri bersisi lurus. Lihat §4.2.
 14. **Jangan memakai `.mono-tech` untuk kalimat.** Monospace hanya untuk
     nilai teknis: kode produk, angka lab, nomor sertifikat. Kalimat bergaya
     monospace terbaca seperti keluaran terminal — itulah sebab keluhan

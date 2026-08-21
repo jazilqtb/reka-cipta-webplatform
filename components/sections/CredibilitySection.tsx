@@ -62,7 +62,7 @@ const PILLARS: Pillar[] = [
   {
     icon: PlantIcon,
     title: 'Mitra Petani Langsung',
-    proof: 'Bermitra dengan sentra produksi Madura, Sampang, dan Sumenep sejak 2018.',
+    proof: 'Bermitra langsung dengan petani di sentra produksi garam nasional sejak 2018.',
   },
   {
     icon: LightningIcon,
@@ -103,14 +103,29 @@ export function CredibilitySection() {
         {/* Pilar kepercayaan — baris bullet 2-kolom, TANPA kartu/border/
             frame ikon & TANPA label "Bukti NN" (RONDE 6). Lebih ringkas
             secara vertikal, ikon polos besar langsung membawa karakter. */}
-        <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2">
+        {/* POIN 7 (2026-08-21) — DI PONSEL: 2x2 tanpa kalimat detail.
+            Empat pilar bertumpuk satu kolom, masing-masing dengan kalimat
+            sepanjang dua baris, memakan hampir satu layar penuh untuk
+            informasi yang perannya cuma "kami bisa dipercaya". Di ponsel
+            judul pilarnya sudah menyampaikan itu; kalimat buktinya adalah
+            bacaan lanjutan, bukan pembuka.
+
+            Kalimatnya DISEMBUNYIKAN LEWAT CSS, tidak dihapus dari DOM.
+            Alasannya SEO: teks itu satu-satunya tempat di beranda yang
+            menyebut "SNI 3556:2016", "Akta Notaris, NIB, NPWP", dan
+            "sejak 2018" — istilah yang persis diketik pembeli procurement
+            saat mencari pemasok. Google merayapi versi mobile lebih dulu
+            (mobile-first indexing), jadi menghapusnya dari DOM ponsel sama
+            dengan menghapusnya dari indeks. `hidden sm:block` menjaga teks
+            tetap ada di HTML dan tetap terbaca pembaca layar. */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-10">
           {PILLARS.map((pillar, index) => {
             const Icon = pillar.icon
             return (
               <RevealWrapper key={pillar.title} variant="reveal-up" delay={index * 70}>
                 {/* RONDE 7: group-hover scale pada ikon — konsisten dgn
                     micro-interaction ikon Sektor Industri. */}
-                <div className="group flex items-start gap-4">
+                <div className="group flex flex-col items-start gap-2 sm:flex-row sm:gap-4">
                   <Icon
                     size={24}
                     weight="duotone"
@@ -118,8 +133,8 @@ export function CredibilitySection() {
                     aria-hidden="true"
                   />
                   <div>
-                    <h3 className="font-ui text-base font-bold text-ink-700">{pillar.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">{pillar.proof}</p>
+                    <h3 className="font-ui text-sm font-semibold text-ink-700 sm:text-base">{pillar.title}</h3>
+                    <p className="mt-1 hidden text-sm leading-relaxed text-neutral-600 sm:block">{pillar.proof}</p>
                   </div>
                 </div>
               </RevealWrapper>
@@ -128,11 +143,11 @@ export function CredibilitySection() {
         </div>
 
         {/* Divider ke showcase mitra */}
-        <div className="mx-auto mb-6 mt-8 flex max-w-md items-center gap-4 md:mt-10" aria-hidden="true">
-          <span className="h-px flex-1 bg-ink-900/10" />
-          <PlantIcon size={20} weight="duotone" className="text-sand-600" aria-hidden="true" />
-          <span className="h-px flex-1 bg-ink-900/10" />
-        </div>
+        {/* Garis lurus polos. Dulu dua garis mengapit ikon daun — pembatas
+            berhias yang tidak sebahasa dengan pembatas lurus di seluruh
+            situs (§4.2), dan ikon daun membawa nuansa "organik" yang justru
+            dijauhi saat hue primary diganti. */}
+        <div className="mx-auto mb-6 mt-8 h-px max-w-md bg-ink-900/10 md:mt-10" aria-hidden="true" />
 
         {/* RONDE 7: reveal-scale (bukan reveal-up default) — sedikit lebih
             dinamis utk heading section Mitra sesuai permintaan klien.
@@ -162,30 +177,39 @@ export function CredibilitySection() {
         </ul>
       </div>
 
-      {/* Dinding logo statis. Dulu marquee bergerak dengan dua salinan
-          daftar + dua mask gradient di tepi. Setelah geraknya dicabut
-          (motion policy §7), mask itu hanya menutupi nama mitra yang diam,
-          dan salinan kedua hanya mengulanginya. Keduanya dihapus: daftar
-          membungkus dan seluruh mitra terbaca sekaligus, juga di ponsel.
-          Tetap aria-hidden — <ul className="sr-only"> di atas sudah
+      {/* Marquee logo mitra — SATU-SATUNYA auto-scroll yang disahkan di
+          seluruh situs (AMANDEMEN DESIGN-SYSTEM §7.1, 2026-08-21).
+          Empat syaratnya mengikat dan seluruhnya dipenuhi:
+            - berhenti saat hover DAN focus-within  -> .marquee-partners
+            - berhenti di prefers-reduced-motion    -> .marquee-partners
+            - 42 detik satu putaran (tenang)        -> .marquee-partners
+            - tidak ada logo terpotong -> trek digandakan TEPAT 2x lalu
+              bergeser -50%, sehingga sambungannya tidak pernah terlihat.
+              Inilah alasan daftar dirender dua kali di bawah; salinan
+              kedua aria-hidden dan bukan pengulangan konten.
+          Seluruh blok aria-hidden — <ul className="sr-only"> di atas sudah
           menyampaikan daftar yang sama ke pembaca layar. */}
-      <div className="mx-auto max-w-5xl px-4" aria-hidden="true">
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 md:gap-x-12">
-          {ACTIVE_CLIENTS.map((client) => (
-            <div key={client.name} className="flex h-12 items-center justify-center">
-              {client.logoUrl ? (
-                <Image
-                  src={client.logoUrl}
-                  alt={client.name}
-                  width={140}
-                  height={48}
-                  className="h-9 w-auto object-contain grayscale transition-all duration-150 hover:grayscale-0"
-                />
-              ) : (
-                <span className="font-ui whitespace-nowrap text-base font-semibold tracking-tight text-ink-900/35 transition-colors duration-150 hover:text-ink-900/70">
-                  {client.name}
-                </span>
-              )}
+      <div className="overflow-hidden" aria-hidden="true">
+        <div className="marquee-partners">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex shrink-0 items-center gap-x-10 pr-10 md:gap-x-16 md:pr-16">
+              {ACTIVE_CLIENTS.map((client) => (
+                <div key={`${copy}-${client.name}`} className="flex h-12 shrink-0 items-center justify-center">
+                  {client.logoUrl ? (
+                    <Image
+                      src={client.logoUrl}
+                      alt=""
+                      width={140}
+                      height={48}
+                      className="h-9 w-auto object-contain grayscale"
+                    />
+                  ) : (
+                    <span className="font-ui whitespace-nowrap text-base font-semibold tracking-tight text-ink-900/35">
+                      {client.name}
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -193,7 +217,11 @@ export function CredibilitySection() {
 
       <div className="mx-auto max-w-7xl px-4">
         {/* Kalimat penutup */}
-        <p className="mt-6 text-center text-sm text-neutral-700 md:mt-8">
+        {/* POIN 8 (2026-08-21) — disembunyikan di ponsel. Deretan logo
+            mitra tepat di atasnya sudah menyampaikan hal yang sama secara
+            visual; kalimat ini mengulanginya dengan kata-kata. Tetap di DOM
+            (bukan dihapus) karena angkanya berguna untuk mesin pencari. */}
+        <p className="mt-6 hidden text-center text-sm text-neutral-700 sm:block md:mt-8">
           {ACTIVE_CLIENTS.length}+ mitra industri mempercayakan pasokan garam mereka
           kepada kami — bergabunglah sebagai berikutnya.
         </p>

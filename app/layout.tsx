@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: '%s — CV Reka Cipta Indonesia',
   },
   description:
-    'Distributor garam lokal bersertifikat SNI untuk kebutuhan industri Indonesia. Menghubungkan petani garam Madura dengan mitra industri.',
+    'Distributor garam lokal bersertifikat SNI untuk kebutuhan industri Indonesia. Menghubungkan petani garam dengan mitra industri.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rekaciptaindonesia.com'
   ),

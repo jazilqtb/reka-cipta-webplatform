@@ -82,7 +82,7 @@ const PRODUCT_BLURBS: Record<string, string> = {
   'garam-kasar-industri':
     'Garam kasar SPO/M untuk kebutuhan industri berskala besar — pengasinan, water treatment, hingga proses teknis lainnya.',
   'garam-kasar-petani':
-    'Garam kasar hasil panen petani mitra di Madura, diproses dengan kualitas terjaga untuk kebutuhan industri menengah.',
+    'Garam kasar hasil panen petani mitra, diproses dengan kualitas terjaga untuk kebutuhan industri menengah.',
   'garam-ghpt':
     'Formulasi garam halus khusus pakan ternak dengan komposisi mineral yang disesuaikan kebutuhan peternakan.',
 }

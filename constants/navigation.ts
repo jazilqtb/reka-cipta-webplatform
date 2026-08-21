@@ -56,7 +56,7 @@ export const COMPANY_INFO = {
   name: 'CV Reka Cipta Indonesia',
   tagline: 'Garam Lokal, Standar Industri',
   description:
-    'Distributor garam lokal bersertifikat SNI untuk kebutuhan industri Indonesia. Menghubungkan petani garam Madura dengan mitra industri di seluruh Nusantara.',
+    'Distributor garam lokal bersertifikat SNI untuk kebutuhan industri Indonesia. Menghubungkan petani garam dengan mitra industri di seluruh Nusantara.',
   address: {
     street: 'Jl. Bratang Gede III-I No. 16A',
     district: 'Kel. Ngagel Rejo, Kec. Wonokromo',

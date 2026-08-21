@@ -12,9 +12,16 @@ export interface TimelineMilestone {
 export const COMPANY_TIMELINE: TimelineMilestone[] = [
   {
     year: 2018,
-    title: 'Studi Banding di Sentra Garam Madura',
+    // CATATAN (2026-08-21): nama daerah dilepas mengikuti instruksi
+    // mencabut SELURUH klaim geografis. Entri ini sebenarnya PERISTIWA
+    // BERSEJARAH bertanggal — ia menyebut ke mana tim pergi pada 2018,
+    // bukan dari mana garam berasal hari ini, jadi ia tidak menciptakan
+    // utang yang sama seperti klaim di hero. Substansinya dipertahankan;
+    // kalau Jazil ingin nama daerahnya kembali, timeline ini menjadi
+    // editable dari admin sejak CP4.
+    title: 'Studi Banding ke Sentra Garam Nasional',
     description:
-      'Tim melakukan survei langsung ke Kalianget & Sampang untuk memahami ekosistem petani garam lokal dan membuka jaringan kemitraan pertama.',
+      'Tim melakukan survei langsung ke sentra produksi untuk memahami ekosistem petani garam lokal dan membuka jaringan kemitraan pertama.',
   },
   {
     year: 2019,
@@ -49,7 +56,7 @@ export const COMPANY_MISSION: MissionPoint[] = [
   {
     title: 'Kemitraan yang adil dengan petani',
     description:
-      'Membangun hubungan distribusi yang konsisten dan adil dengan petani garam lokal di sentra produksi Madura dan Sampang, sebagai bentuk komitmen terhadap keberlanjutan rantai pasok domestik.',
+      'Membangun hubungan distribusi yang konsisten dan adil dengan petani garam lokal di sentra produksi nasional, sebagai bentuk komitmen terhadap keberlanjutan rantai pasok domestik.',
   },
   {
     title: 'Respons yang tidak membuat menunggu',

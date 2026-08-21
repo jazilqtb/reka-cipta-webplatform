@@ -209,7 +209,7 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
             className="mt-5 text-balance font-display text-3xl md:text-4xl font-semibold leading-[1.06] tracking-tight text-ink-900"
           >
             Garam industri bermutu{' '}
-            <span className="font-medium text-brand-teal-600">konsisten</span>, dari tambak Madura ke pabrik Anda.
+            <span className="font-medium text-brand-teal-600">konsisten</span>, dari tambak petani ke lini produksi Anda.
           </motion.h1>
 
           <motion.p

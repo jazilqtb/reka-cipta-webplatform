@@ -7,7 +7,7 @@ dilanjutkan kalau sesi terputus. Branch: `feature/OPT-CP0-design-system`.
 |---|---|---|
 | CP0 | Revisi design system (hue, marquee, tipografi) | **SELESAI** |
 | CP1 | Beranda: bug interaksi & layout mobile (5A, 5B, 6, 17) | **SELESAI** |
-| CP2 | Beranda: konten, divider, footer (2A, 7, 8, 9, 10) | belum |
+| CP2 | Beranda: konten, divider, footer (2A, 7, 8, 9, 10) | **SELESAI** |
 | CP3 | CMS hero + statistik dinamis (2, 3) | belum |
 | CP4 | Tentang Kami + CMS-nya (11) | belum |
 | CP5 | Halaman publik lain (12, 13) | belum |
@@ -56,3 +56,33 @@ proyek ini 3x → dicatat sebagai anti-pattern #13.
 **17 dua kolom — DILEWATI**, alasan di laporan akhir.
 
 DESIGN-SYSTEM: §4.1 (.carousel-row) + anti-pattern #13, #14.
+
+## CP2 — SELESAI
+
+**2A Madura.** 8 penyebutan di kode dibersihkan (hero, 2 meta description,
+pilar kepercayaan, CTA supplier, deskripsi produk, profil perusahaan,
+timeline). Terukur: 0 di halaman ter-render.
+SISA DI DATABASE (bukan kode, masuk ACTION REQUIRED): 2 artikel + tagline
+& deskripsi produk "Garam Kasar Petani Premium".
+
+**7 Bukti & Dokumentasi.** Ponsel: grid 2x2, kalimat detail disembunyikan
+lewat CSS (`hidden sm:block`) — TIDAK dihapus dari DOM karena teks itu
+satu-satunya tempat di beranda yang menyebut "SNI 3556:2016" dan "Akta
+Notaris, NIB, NPWP", dan Google merayapi versi mobile lebih dulu.
+
+**8 Mitra.** Marquee dikembalikan lewat `.marquee-partners` (42s, berhenti
+saat hover/focus, mati di reduced-motion, trek ganda -50%). Kalimat penutup
+disembunyikan di ponsel, tetap di DOM.
+
+**9 Divider.** 21 pemakaian di 20 berkas. Geometri diganti di dalam
+komponen (sisi lurus + garis rambut), API dipertahankan → nol pemanggil
+disentuh. Divider daun di CredibilitySection ikut diluruskan.
+
+**10 Footer.** Motif heksagon+garis diganti satu garis rambut.
+
+**BONUS (temuan visual):** 6 kartu sektor punya 6 gradient berbeda, 3 di
+antaranya memakai primary sebagai bidang penuh kartu — melanggar §9 (#9)
+dan §2.5 sekaligus. Diseragamkan ke satu permukaan steel-900.
+
+Tinggi beranda mobile: 6509px -> 5961px.
+DESIGN-SYSTEM: §4.2 (pembatas), anti-pattern #15.

@@ -1,64 +1,71 @@
 // components/decorative/SectionDivider.tsx
-// RONDE 7 (2026-08) — pembatas antar-section homepage. Keluhan klien:
-// pemisah antar-section yang cuma garis lurus flat terkesan basic,
-// terutama di titik transisi warna kontras tinggi (terang↔gelap).
 //
-// Teknik: elemen ini adalah <div> ber-background warna section DI BAWAH,
-// berisi <svg><path> terisi warna section DI ATAS yang "menjorok turun"
-// membentuk kurva — sehingga terlihat sbg tepi section atas yang
-// melengkung/miring, bukan potongan lurus. Murni dekoratif (aria-hidden),
-// tidak menyentuh data/layout section manapun — disisipkan sbg elemen
-// sibling independen di antara section di app/(public)/page.tsx.
+// RONDE 2026-08-21 — GEOMETRI DIGANTI TOTAL, API DIPERTAHANKAN.
 //
-// 3 variant BERBEDA (bukan 1 bentuk diulang — permintaan eksplisit klien
-// "jangan statis, bervariasi sesuai konteks"), tiap variant juga bisa
-// di-flip supaya pemakaian ulang (mis. wave dipakai 2×) tetap terasa beda.
+// Versi sebelumnya menggambar tiga <path> SVG melengkung (wave, curve,
+// diagonal) setinggi 40–80px di antara section. Itu bertentangan langsung
+// dengan prinsip §1.3 DESIGN-SYSTEM ("Geometri yang tegas. Sudut kecil,
+// garis tipis, sisi lurus. Bahan industri tidak membulat") — dan lengkung
+// setinggi 80px bukan aksen kecil, ia salah satu bentuk terbesar di
+// halaman. Dipakai 21 kali di 20 berkas.
 //
-// RONDE Tahap 5 (2026-08) — perbaikan "seam"/garis tempelan yg dilaporkan
-// klien di /produk. Root cause SEBENARNYA di kasus itu adalah warna fill
-// yg tidak match section gradient di atasnya (lihat catatan di
-// ProductCatalogHero.tsx) — TAPI selain itu, teknik shape-divider ini
-// juga rentan celah sub-pixel rendering murni (svg discretize/antialias
-// beda 1 nilai dgn box induknya, terutama saat browser di-zoom atau di
-// breakpoint non-integer). Sbg lapisan pengaman KEDUA (bukan pengganti
-// fix warna, tambahan): svg digeser -1px ke atas + ditinggikan +1px,
-// overlap sedikit ke section DI ATAS — aman selama warna fill sudah
-// benar-benar cocok (kalau tidak cocok, overlap ini malah memperlebar
-// pita warna salah 1px, makanya fix warna di section pemanggil tetap
-// wajib jadi prioritas utama, ini murni jaring pengaman tambahan).
+// PENGGANTINYA: perpindahan warna bersisi LURUS, plus garis rambut
+// steel-200 ketika kedua sisi sama-sama terang. Ketika kontras kedua sisi
+// sudah kuat (mis. putih -> steel-900 footer), perpindahan warnanya SENDIRI
+// sudah menjadi pembatas — menambah garis di situ hanya derau.
+//
+// Kenapa bukan "hapus saja": pembatas ini juga membawa jarak antar-section.
+// Menghapus komponennya akan membuat dua bidang warna bertumbukan tanpa
+// napas. Yang dibuang lengkungannya, bukan ruangnya.
+//
+// Prop `variant` dan `flip` DIPERTAHANKAN supaya 21 pemanggil tidak perlu
+// disentuh — keduanya kini tidak memengaruhi bentuk, hanya tinggi. Prop
+// `fromClassName` (dulu `fill-*`) juga dipertahankan dan sekarang diabaikan;
+// dibersihkan saat pemanggil ditata ulang di ronde berikutnya.
 
 interface SectionDividerProps {
+  /** Dipertahankan utk kompatibilitas pemanggil. Kini hanya mengatur tinggi. */
   variant: 'wave' | 'curve' | 'diagonal'
-  /** Kelas `fill-*` — warna section DI ATAS pembatas ini */
-  fromClassName: string
-  /** Kelas `bg-*` — warna section DI BAWAH (jadi latar elemen ini) */
+  /** Dulu kelas `fill-*`. Diabaikan sejak bentuknya tidak lagi digambar SVG. */
+  fromClassName?: string
+  /** Kelas `bg-*` — warna section DI BAWAH pembatas ini. */
   toClassName: string
-  /** Mirror horizontal — variasi tambahan tanpa nambah path baru */
+  /** Dipertahankan utk kompatibilitas. Tidak berpengaruh pada sisi lurus. */
   flip?: boolean
+  /** Garis rambut di tepi atas. Default: hanya saat kedua sisi terang. */
+  hairline?: boolean
 }
 
-const PATHS: Record<SectionDividerProps['variant'], string> = {
-  // Gelombang dua-lengkung halus.
-  wave: 'M0,0H1440V40C1200,90 960,90 720,50C480,10 240,10 0,60Z',
-  // Satu kurva besar asimetris.
-  curve: 'M0,0H1440V15C1000,100 440,100 0,25Z',
-  // Miring tegas dengan sedikit lengkung — kesan lebih dinamis/tajam.
-  diagonal: 'M0,0H1440V10C900,0 600,85 0,65Z',
+/** `wave` dulu paling tinggi, `diagonal` paling rendah. Tinggi relatifnya
+ *  dipertahankan supaya ritme halaman tidak berubah drastis — yang hilang
+ *  hanya lengkungannya. */
+const HEIGHT: Record<SectionDividerProps['variant'], string> = {
+  wave: 'h-10 md:h-14',
+  curve: 'h-8 md:h-12',
+  diagonal: 'h-6 md:h-10',
 }
 
-export function SectionDivider({ variant, fromClassName, toClassName, flip }: SectionDividerProps) {
+/** Sisi gelap tidak butuh garis: perpindahan warnanya sudah jadi pembatas. */
+function isDarkSurface(cls: string): boolean {
+  return /(ink|steel)-(800|900|950)/.test(cls)
+}
+
+export function SectionDivider({
+  variant,
+  toClassName,
+  hairline,
+}: SectionDividerProps) {
+  const showRule = hairline ?? !isDarkSurface(toClassName)
+
   return (
     <div
-      className={`relative h-10 w-full overflow-hidden sm:h-16 md:h-20 ${toClassName}`}
       aria-hidden="true"
-    >
-      <svg
-        viewBox="0 0 1440 90"
-        preserveAspectRatio="none"
-        className={`absolute -top-px inset-x-0 h-[calc(100%+1px)] w-full ${flip ? '-scale-x-100' : ''}`}
-      >
-        <path d={PATHS[variant]} className={fromClassName} />
-      </svg>
-    </div>
+      className={[
+        'w-full',
+        HEIGHT[variant],
+        toClassName,
+        showRule ? 'border-t border-steel-200' : '',
+      ].join(' ')}
+    />
   )
 }

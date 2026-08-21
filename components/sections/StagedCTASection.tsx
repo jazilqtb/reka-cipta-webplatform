@@ -242,7 +242,7 @@ export function StagedCTASection() {
                   Anda petani atau produsen garam lokal?
                 </p>
                 <p className="mt-0.5 text-sm text-white/60">
-                  Kami aktif mencari mitra supplier dari sentra produksi Madura, Sampang, dan Sumenep.
+                  Kami aktif mencari mitra supplier dari sentra produksi garam di seluruh Indonesia.
                 </p>
               </div>
             </div>

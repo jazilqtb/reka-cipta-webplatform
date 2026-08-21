@@ -207,15 +207,13 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
           </div>
         </div>
 
-        {/* Divider berfaset — signature visual, .icon-hex konsisten dgn
-            seluruh beranda (bukan lagi .facet-frame). */}
-        <div className="mt-12 flex items-center gap-4 md:mt-16" aria-hidden="true">
-          <span className="h-px flex-1 bg-white/10" />
-          <span className="icon-hex flex h-7 w-7 items-center justify-center bg-brand-teal-400/15">
-            <span className="h-2 w-2 rounded-full bg-brand-teal-300" />
-          </span>
-          <span className="h-px flex-1 bg-white/10" />
-        </div>
+        {/* POIN 10 (2026-08-21) — motif geometri dihapus.
+            Dulu: dua garis mengapit heksagon berisi titik teal. Heksagon
+            adalah bentuk hias yang tidak membawa makna apa pun di footer,
+            dan pada latar gelap ia menarik mata ke pembatas — bagian paling
+            tidak penting di halaman. Diganti satu garis rambut lurus: tugas
+            memisahkan tetap dikerjakan, tanpa meminta perhatian. */}
+        <div className="mt-12 h-px w-full bg-white/10 md:mt-16" aria-hidden="true" />
       </div>
 
       {/* Bottom bar — RONDE 6: badge SNI/NIB dihapus dari sini (keluhan
