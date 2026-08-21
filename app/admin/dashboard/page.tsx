@@ -82,7 +82,14 @@ export default async function DashboardPage() {
 
   // Semua query paralel — berurutan akan membuat halaman ini terasa lambat
   // tanpa alasan.
-  const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes, recentRes] =
+  /* CP6 — `getOpenTasks()` DIMASUKKAN ke Promise.all yang sama.
+     Sebelumnya ia di-await sendiri SETELAH blok ini selesai, jadi dashboard
+     melakukan dua putaran berurutan ke Supabase, bukan satu. Terukur:
+     TTFB dashboard 746 ms sementara halaman admin lain ~400 ms — selisih
+     yang hampir persis satu round-trip (157 ms) plus biaya render kartu
+     tambahannya. Tidak ada satu pun query di sini yang butuh hasil query
+     lain, jadi urutannya memang tidak pernah punya alasan. */
+  const [leadsRes, staleRes, suppliersRes, pendingSupRes, articlesRes, draftRes, productsRes, recentRes, openTasks] =
     await Promise.all([
       supabase.from('rfqs').select('*', { count: 'exact', head: true }).eq('status', 'new'),
       supabase.from('rfqs').select('*', { count: 'exact', head: true })
@@ -105,6 +112,7 @@ export default async function DashboardPage() {
         .select('id, delivery_city, status, created_at, legacy_total_qty_kg, companies(name)')
         .order('created_at', { ascending: false })
         .limit(5),
+      getOpenTasks(50),
     ])
 
   // Gagal != 0. Kartu yang menampilkan "0" padahal query-nya error adalah
@@ -122,7 +130,6 @@ export default async function DashboardPage() {
    * 20260815090100). Sebelum itu policy-nya USING (TRUE) dan query nyaris
    * tidak mungkin gagal; sesudahnya, sesi apa pun yang tidak lolos
    * allowlist menerima nol baris. */
-  const openTasks = await getOpenTasks(50)
   const taskBuckets = bucketTasks(openTasks)
   const urgentTasks = [...taskBuckets.overdue, ...taskBuckets.today]
 

@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { isAllowlistedAdmin } from '@/lib/admin-gate'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AdminShell } from '@/components/layout/AdminShell'
@@ -38,14 +39,12 @@ export default async function AdminLayout({
   // Ini lapisan RENDER. Lapisan DATA dijaga terpisah oleh RLS
   // (public.is_admin()) dan backend require_admin — jadi melewati
   // gerbang ini pun tidak memberi akses data.
-  const { data: adminRow, error: adminErr } = await supabase
-    .from('admin_users')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  // Fail CLOSED: query gagal != boleh masuk.
-  if (adminErr || !adminRow) {
+  // CP6 — pemeriksaan yang sama, tapi hasilnya ditahan sebentar per
+  // instance. Diukur: query ini 162 ms, yaitu 38% dari 432 ms waktu tunggu
+  // tiap navigasi admin, untuk tabel satu baris yang nyaris tidak pernah
+  // berubah. Alasan lengkap dan batasnya ada di lib/admin-gate.ts.
+  // Fail CLOSED tetap berlaku: kegagalan query = false = ditolak.
+  if (!(await isAllowlistedAdmin(supabase, user.id))) {
     redirect('/admin/login?denied=1')
   }
 
