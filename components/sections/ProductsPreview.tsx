@@ -133,7 +133,7 @@ function FeaturedProductCard({ product }: { product: ProductCardData }) {
       {/* Narasi */}
       <div className="flex flex-1 flex-col justify-center gap-3 p-7 md:p-10 lg:p-12">
         <p className="rule-index font-ui text-brand-teal-600">Katalog Utama</p>
-        <h3 className="text-balance font-ui text-2xl font-bold tracking-tight text-ink-700 md:text-3xl">
+        <h3 className="text-balance font-ui text-lg font-semibold tracking-tight text-ink-700 md:text-xl">
           {product.name}
         </h3>
         <p className="mono-tech text-xs text-neutral-500">{product.spec}</p>

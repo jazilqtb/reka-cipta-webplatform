@@ -72,43 +72,87 @@ Tiga keluarga. Tidak ada yang keempat.
 
 ### 2.1 Steel — netral, dominan (≈90% permukaan)
 
-Abu sejuk dengan undertone teal yang sangat samar, supaya rukun dengan
-primary tanpa pernah terbaca sebagai warna.
+Abu sejuk dengan undertone **biru** yang sangat samar, supaya rukun dengan
+primary tanpa pernah terbaca sebagai warna. Undertone netral wajib
+mengikuti primary: abu ber-undertone teal di sebelah primary biru terbaca
+sebagai dua suhu warna yang berselisih. Disetel ulang 2026-08-21 bersama
+pergantian hue.
 
 | Token | Hex | Dipakai untuk |
 |---|---|---|
-| `steel-50` | `#F7F8F8` | Latar halaman |
-| `steel-100` | `#EFF1F1` | Latar section bergantian, baris tabel zebra |
-| `steel-200` | `#E1E5E5` | **Garis & pembatas** — nilai default untuk semua border |
-| `steel-300` | `#C7CDCD` | Garis pada keadaan hover, border input |
-| `steel-400` | `#9AA3A3` | Ikon nonaktif, teks placeholder |
-| `steel-500` | `#6E7878` | Teks sekunder di atas terang |
-| `steel-600` | `#525C5C` | Teks bantu, label |
-| `steel-700` | `#3A4342` | Teks isi |
-| `steel-800` | `#252D2C` | Judul |
-| `steel-900` | `#161C1C` | Latar gelap — sidebar, footer |
-| `steel-950` | `#0C1111` | Latar gelap paling dalam |
+| `steel-50` | `#F7F8FA` | Latar halaman |
+| `steel-100` | `#EEF0F4` | Latar section bergantian, baris tabel zebra |
+| `steel-200` | `#E0E4EA` | **Garis & pembatas** — nilai default untuk semua border |
+| `steel-300` | `#C5CBD5` | Garis pada keadaan hover, border input |
+| `steel-400` | `#98A0AD` | Ikon nonaktif, teks placeholder |
+| `steel-500` | `#6C7482` | Teks sekunder di atas terang |
+| `steel-600` | `#505863` | Teks bantu, label |
+| `steel-700` | `#3A414B` | Teks isi |
+| `steel-800` | `#242A31` | Judul |
+| `steel-900` | `#151A1F` | Latar gelap — sidebar, footer |
+| `steel-950` | `#0B0E12` | Latar gelap paling dalam |
 
-### 2.2 Teal — primary, hemat (≈8% permukaan)
+### 2.2 Marine — primary, hemat (≈8% permukaan)
 
 Lima langkah. Ramp 11 langkah dipangkas karena tujuh di antaranya hanya
 lahir dari kebiasaan menyalin skala Tailwind, bukan dari kebutuhan nyata.
 
 | Token | Hex | Dipakai untuk |
 |---|---|---|
-| `teal-700` | `#075247` | Teks link di atas terang, keadaan `:active` |
-| `teal-600` | `#0B7D6E` | **Isi tombol primary, ring fokus, indikator aktif** |
-| `teal-500` | `#0F9184` | Hover tombol primary |
-| `teal-200` | `#B4CFCA` | Border badge/chip berstatus |
-| `teal-50` | `#EDF3F2` | Latar badge/chip, baris tabel tersorot |
+| `marine-700` | `#0C3F63` | Teks link di atas terang, keadaan `:active` |
+| `marine-600` | `#125A8C` | **Isi tombol primary, ring fokus, indikator aktif** |
+| `marine-500` | `#1A6EA8` | Hover tombol primary |
+| `marine-200` | `#B3C9DA` | Border badge/chip, aksen teks di atas latar gelap |
+| `marine-50` | `#EDF2F7` | Latar badge/chip, baris tabel tersorot |
 
-`#0B7D6E` dipertahankan tanpa perubahan: itu warna logo, dan mengubahnya
-berarti membuat situs berselisih dengan berkas cetak dan tanda tangan email
-yang sudah beredar.
+#### KOREKSI (2026-08-21) — kenapa hue-nya berganti dari teal
 
-**Yang dihapus dari ramp lama:** `teal-400` `#1BBFAA`, `teal-300` `#52D6C4`,
-`teal-100` `#C7F2EE`, dan `crystal-400` `#5FE1CB`. Semuanya mint
-bersaturasi tinggi — sumber utama kesan "cerah/friendly" yang dikeluhkan.
+Versi dokumen ini sebelumnya menyatakan `#0B7D6E` dipertahankan karena
+*"itu warna logo, dan mengubahnya berarti membuat situs berselisih dengan
+berkas cetak dan tanda tangan email yang sudah beredar."*
+
+**Premis itu keliru dan kalimatnya dicabut.** Logo yang terpasang di situs
+adalah placeholder; identitas visual final belum ada, dan tidak ada berkas
+cetak atau tanda tangan email yang perlu diselaraskan. Tidak pernah ada
+kendala yang menahan penggantian hue — yang ada hanyalah alasan yang
+terdengar meyakinkan dan tidak pernah diperiksa. Dicatat di sini apa
+adanya supaya ronde berikutnya tidak mewarisi lagi.
+
+#### Kenapa biru laut
+
+Dipilih dari kesesuaian dengan pembacanya, bukan dari warisan:
+
+- **Hijau-teal membawa muatan yang salah.** Pada kategori produk pangan
+  dan bahan baku, hijau dibaca sebagai *organik / alami / ramah lingkungan*.
+  Yang dijual di sini adalah konsistensi mutu dan kelengkapan dokumen uji —
+  janji tentang presisi, bukan tentang alam.
+- **Biru adalah warna sektor yang dilayani.** Water treatment, pengolahan
+  pangan, dan laboratorium mutu memakai biru sebagai warna alat, seragam,
+  dan sertifikat. Ia terbaca sebagai lingkungan kerja pembacanya sendiri.
+- **Biru laut menyambung ke asal produk tanpa mengklaim tempat.** Garam
+  datang dari laut di mana pun tambaknya berada — hue ini menyampaikan
+  provenance tanpa mengunci diri ke satu daerah (lihat §12).
+- **Dipilih deep, bukan azure.** `#125A8C` gelap dan hanya bersaturasi
+  sedang. Biru cerah adalah warna SaaS; biru dalam adalah warna industri.
+
+#### Kontras — diverifikasi, bukan diperkirakan
+
+Empat belas pasangan pemakaian nyata diukur sebelum nilai ini ditetapkan.
+Yang paling ketat: teks putih di atas `marine-500` (hover tombol) = **5,47:1**,
+dan `steel-500` di atas putih = **4,71:1**. Semuanya melewati WCAG AA.
+
+#### Penamaan token
+
+Keluarga ini dulu bernama `teal`. Nama lama **tetap hidup sebagai alias**
+(`--color-teal-*` → `--color-marine-*`, dan `--color-brand-teal-*` mengikuti
+lewat rantai yang sama), karena di Tailwind v4 kelas yang tokennya hilang
+tidak menghasilkan CSS **dan tidak memunculkan error**. Alias dicabut
+bersama alias `ink`/`sand`/`salt` setelah nama kelas di komponen
+diseragamkan.
+
+**Yang dihapus:** seluruh ramp teal lama. Nol literal `#0B7D6E` /
+`#0F9184` / `rgba(11,125,110,…)` tersisa di bundle CSS — diverifikasi
+dengan meng-grep hasil build, bukan dengan membaca kode.
 
 ### 2.3 Ochre — aksen, sangat hemat (≈2% permukaan)
 
@@ -127,7 +171,12 @@ Empat peran × 3 langkah = 12 token. Dipakai **hanya** untuk mengomunikasikan
 hasil sistem (berhasil / perhatian / gagal / informasi). Tidak pernah dipakai
 sebagai warna dekoratif.
 
-`success` `#15803D` · `warning` `#B45309` · `danger` `#B91C1C` · `info` `#1D4ED8`
+`success` `#15803D` · `warning` `#B45309` · `danger` `#B91C1C` · `info` `#3E3175`
+
+**`info` digeser dari biru ke indigo (2026-08-21).** Sejak primary menjadi
+biru laut, badge berstatus "info" berwarna biru tidak lagi bisa dibedakan
+dari elemen primary — dan status yang tertukar dengan tombol adalah
+kegagalan makna, bukan sekadar selera.
 Masing-masing dengan pasangan `-50` (latar) dan `-200` (garis).
 
 Nilai teks sengaja diambil dari langkah gelap (700) supaya kontras di atas
@@ -191,6 +240,38 @@ kelas yang mati diam-diam.
 
 `text-5xl` ke atas ditiadakan. Judul di atas 45px pada layar desktop
 memaksa baris yang terlalu pendek dan mendorong isi penting ke bawah lipatan.
+
+#### AMANDEMEN (2026-08-21) — hierarki heading ditegakkan, skala TIDAK dinaikkan
+
+Keluhan: di desktop, nama produk di katalog terbaca sama besar atau lebih
+besar daripada heading section. Diukur pada halaman ter-render, bukan dibaca
+dari kode:
+
+| Elemen | Sebelum | Sesudah |
+|---|---|---|
+| H2 "5 Pilihan Garam Bersertifikasi" | 36px | 36px |
+| H3 nama produk unggulan | **36px** | 22px |
+| H3 judul panel langkah (HowItWorks) | **36px** | 22px |
+| H3 nama produk di kartu grid | 18px | 18px |
+| H3 nama produk di kartu carousel (mobile) | **14px** | 16px |
+
+Dua H3 ternyata **persis sebesar H2** di section yang sama, dan nama produk
+yang identik tampil di tiga ukuran berbeda tergantung kartunya.
+
+**Skala global sengaja TIDAK dinaikkan.** Setelah rasionya benar, H2 36px
+memimpin dengan jelas (36 : 22 = 1,64) dan H1 45px tetap di puncak. Menaikkan
+skala untuk menutupi hierarki yang rusak akan memperbesar masalahnya, bukan
+menyelesaikannya. Batas 45px di §3.2 tetap berlaku.
+
+**Aturan turunan yang sekarang mengikat:**
+- H2 section: `text-2xl md:text-3xl` (28 / 36px). Satu per section.
+- H3 judul kartu & panel: **maksimal** `text-lg md:text-xl` (18 / 22px).
+- Judul kartu tidak pernah melebihi 60% ukuran H2 di section yang sama.
+- Varian `compact` (kartu carousel sempit di ponsel) boleh turun satu langkah
+  ke `text-base` (16px), tapi tidak lebih rendah — 14px membuat nama produk
+  terbaca seperti metadata, bukan seperti judul.
+- Judul yang berperan sebagai judul section ditulis `<h2>`, bukan `<h3>`
+  yang dibesarkan — CredibilitySection melanggar ini dan sudah dibetulkan.
 
 ### 3.3 Weight — tiga
 
@@ -281,6 +362,30 @@ Bayangan hanya untuk yang benar-benar melayang di atas halaman.
 | Transisi halaman | ≤200ms, fade saja | `ease-out` |
 
 Semuanya berhenti total di bawah `prefers-reduced-motion: reduce`.
+
+### 7.1 AMANDEMEN (2026-08-21) — marquee logo mitra
+
+Larangan "animasi berulang tak berhingga" di bawah, dan anti-pattern #7,
+**diberi satu pengecualian yang disahkan**: marquee auto-scroll pada dinding
+logo mitra di section Mitra Distribusi.
+
+Alasannya berdiri sendiri, bukan pelonggaran umum: daftar logo mitra tidak
+membawa informasi yang harus dibaca berurutan — pembaca menangkap "ada
+beberapa perusahaan nyata" dalam sekali lihat. Gerak lambat di sana tidak
+menunda akses ke informasi apa pun, dan pada layar sempit ia justru
+menampilkan mitra yang jika diam akan terpotong di tepi.
+
+Empat syarat mengikat. **Ketiadaan salah satunya membatalkan pengecualian:**
+
+1. Berhenti saat `hover` **dan** `focus-within` — pengguna keyboard ikut dilayani.
+2. Berhenti total di `prefers-reduced-motion: reduce`.
+3. Kecepatan tenang — satu putaran **42 detik**, bukan gerak yang menarik mata.
+4. Tidak ada logo terpotong: trek digandakan tepat 2× lalu bergeser −50%,
+   sehingga sambungannya tidak pernah terlihat.
+
+Marquee dan auto-scroll di **tempat lain tetap dilarang**. Pengecualian ini
+tidak berlaku untuk carousel produk, timeline, testimoni, atau apa pun yang
+isinya perlu dibaca.
 
 ### DILARANG
 

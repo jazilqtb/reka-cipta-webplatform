@@ -144,9 +144,9 @@ export function CredibilitySection() {
           <RevealWrapper variant="reveal-scale" className="relative">
             <div className="mb-6 text-center md:mb-8">
               <p className="rule-index font-ui justify-center text-brand-teal-600">Dipercaya Oleh</p>
-              <h3 className="mt-3 font-ui text-2xl font-bold text-ink-700 md:text-3xl">
+              <h2 className="mt-3 font-ui text-2xl font-semibold text-ink-700 md:text-3xl">
                 Mitra Distribusi <span className="font-medium text-brand-teal-600">Aktif</span> Kami
-              </h3>
+              </h2>
             </div>
           </RevealWrapper>
         </div>

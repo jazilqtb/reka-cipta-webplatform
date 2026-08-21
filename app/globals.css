@@ -50,29 +50,51 @@
   --font-mono:    'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
 
   /* ─── A2. Steel — netral dominan, ±90% permukaan ─────────────────
-     Abu sejuk dengan undertone teal yang sangat samar: rukun dengan
-     primary tanpa pernah terbaca sebagai warna tersendiri. */
-  --color-steel-50:  #F7F8F8;
-  --color-steel-100: #EFF1F1;
-  --color-steel-200: #E1E5E5;
-  --color-steel-300: #C7CDCD;
-  --color-steel-400: #9AA3A3;
-  --color-steel-500: #6E7878;
-  --color-steel-600: #525C5C;
-  --color-steel-700: #3A4342;
-  --color-steel-800: #252D2C;
-  --color-steel-900: #161C1C;
-  --color-steel-950: #0C1111;
+     Abu sejuk dengan undertone BIRU yang sangat samar (disetel ulang
+     2026-08-21 mengikuti pergantian hue primary): rukun dengan primary
+     tanpa pernah terbaca sebagai warna tersendiri. Undertone-nya harus
+     mengikuti primary — netral ber-undertone teal di sebelah primary biru
+     akan terbaca sebagai dua suhu warna yang berselisih. */
+  --color-steel-50:  #F7F8FA;
+  --color-steel-100: #EEF0F4;
+  --color-steel-200: #E0E4EA;
+  --color-steel-300: #C5CBD5;
+  --color-steel-400: #98A0AD;
+  --color-steel-500: #6C7482;
+  --color-steel-600: #505863;
+  --color-steel-700: #3A414B;
+  --color-steel-800: #242A31;
+  --color-steel-900: #151A1F;
+  --color-steel-950: #0B0E12;
 
-  /* ─── A3. Teal — primary, hemat ──────────────────────────────────
-     Lima langkah, bukan sebelas. #0B7D6E dipertahankan persis: itu
-     warna logo, dan mengubahnya membuat situs berselisih dengan berkas
-     cetak serta tanda tangan email yang sudah beredar. */
-  --color-teal-700: #075247;
-  --color-teal-600: #0B7D6E;
-  --color-teal-500: #0F9184;
-  --color-teal-200: #B4CFCA;
-  --color-teal-50:  #EDF3F2;
+  /* ─── A3. Marine — primary, hemat ────────────────────────────────
+     Lima langkah, bukan sebelas.
+
+     RONDE 2026-08-21: hue diganti dari teal ke biru laut. Alasan lengkap
+     di DESIGN-SYSTEM.md §2.2. Ringkasnya: justifikasi lama ("dipertahankan
+     karena itu warna logo") ternyata BERDIRI DI ATAS PREMIS KELIRU — logo
+     yang terpasang hanya placeholder, tidak ada berkas cetak atau tanda
+     tangan email yang perlu diselaraskan. Tanpa kendala itu, hue dipilih
+     murni dari kesesuaian dengan pembeli B2B industrial.
+
+     Seluruh 14 pasangan pemakaian nyata diperiksa kontrasnya terhadap
+     WCAG AA sebelum nilai ini ditetapkan, bukan diperkirakan. Yang paling
+     ketat: teks putih di atas marine-500 (hover tombol) = 5,47:1. */
+  --color-marine-700: #0C3F63;
+  --color-marine-600: #125A8C;
+  --color-marine-500: #1A6EA8;
+  --color-marine-200: #B3C9DA;
+  --color-marine-50:  #EDF2F7;
+
+  /* Alias nama lama. Di Tailwind v4 kelas tanpa token tidak menghasilkan
+     CSS DAN tidak memunculkan error, jadi mengganti nama tanpa alias akan
+     mematikan ratusan kelas secara diam-diam. Dicabut bersama alias
+     brand-teal, ink, dan sand setelah nama kelas di komponen diseragamkan. */
+  --color-teal-700: var(--color-marine-700);
+  --color-teal-600: var(--color-marine-600);
+  --color-teal-500: var(--color-marine-500);
+  --color-teal-200: var(--color-marine-200);
+  --color-teal-50:  var(--color-marine-50);
 
   /* ─── A4. Ochre — aksen, sangat hemat ────────────────────────────
      Menandai jalur supplier. Tiga langkah, tidak untuk apa pun lain. */
@@ -107,12 +129,16 @@
   --color-danger-600:  #A82B2B;
   --color-danger-700:  #B91C1C;
 
-  --color-info-50:     #EDF1F8;
-  --color-info-100:    #DBEAFE;
-  --color-info-200:    #C0CDE4;
-  --color-info-500:    #2E5AA8;
-  --color-info-600:    #24488C;
-  --color-info-700:    #1D4ED8;
+  /* info digeser dari biru ke INDIGO pada 2026-08-21. Sejak primary
+     menjadi biru laut, badge "info" berwarna biru tidak lagi bisa
+     dibedakan dari elemen primary — dan status yang tertukar dengan
+     tombol adalah kegagalan makna, bukan sekadar selera. */
+  --color-info-50:     #F1EFF8;
+  --color-info-100:    #E4E0F0;
+  --color-info-200:    #C9C1E0;
+  --color-info-500:    #5B4B9E;
+  --color-info-600:    #4C3D8A;
+  --color-info-700:    #3E3175;
 
   /* ─── A6. Skala tipografi — rasio 1.25, tujuh langkah ────────────
      text-5xl ke atas ditiadakan: judul >45px memaksa baris terlalu
@@ -161,8 +187,8 @@
   --shadow-md:   0 2px 6px rgba(12,17,17,0.08);
   --shadow-lg:   0 8px 24px rgba(12,17,17,0.12);
   --shadow-xl:   0 8px 24px rgba(12,17,17,0.12);   /* alias → lg */
-  --shadow-focus:      0 0 0 2px #FFFFFF, 0 0 0 4px #0B7D6E;
-  --shadow-focus-dark: 0 0 0 2px rgba(255,255,255,0.15), 0 0 0 4px #0F9184;
+  --shadow-focus:      0 0 0 2px #FFFFFF, 0 0 0 4px var(--color-marine-600);
+  --shadow-focus-dark: 0 0 0 2px rgba(255,255,255,0.15), 0 0 0 4px var(--color-marine-500);
   --shadow-glow-md:    0 2px 6px rgba(12,17,17,0.08);  /* glow dihapus → md */
 
   /* ─── A10. Easing ───────────────────────────────────────────────
@@ -562,7 +588,7 @@
    bukan scroll-jacked). Pulse halus, berhenti di reduced-motion. */
 /* DILARANG §7 — pulse tak berhingga. Diganti ring statis: penanda
    "langkah aktif" tetap terbaca, tanpa gerak yang menarik mata terus. */
-.step-pulse-ring { box-shadow: 0 0 0 4px rgba(12,17,17,0.18); }
+.step-pulse-ring { box-shadow: 0 0 0 4px rgba(18, 90, 140, 0.20); }
 @media (prefers-reduced-motion: reduce) {
   .step-pulse-ring { animation: none; }
 }
@@ -896,6 +922,49 @@
   .prose-brand h3 { font-size: 1.2rem; }
 }
 
+/* ─── Marquee logo mitra — PENGECUALIAN motion policy §7 ──────────────
+   Motion policy melarang animasi berulang tak berhingga. Ini SATU-SATUNYA
+   pengecualian yang disahkan (AMANDEMEN 2026-08-21, DESIGN-SYSTEM §7.1),
+   dan hanya untuk dinding logo mitra di section Mitra Distribusi.
+
+   Alasan pengecualiannya berdiri sendiri: daftar logo mitra tidak membawa
+   informasi yang harus dibaca berurutan — pembaca menangkap "ada beberapa
+   perusahaan nyata" dalam sekali lihat. Gerak lambat di sini tidak menunda
+   akses ke informasi apa pun, dan pada layar sempit ia menampilkan mitra
+   yang jika tidak, terpotong di tepi.
+
+   Empat syarat yang mengikat, dan ketiadaan salah satunya membatalkan
+   pengecualian ini:
+     1. berhenti saat hover DAN focus-within (keyboard ikut dilayani)
+     2. berhenti total di prefers-reduced-motion
+     3. kecepatan tenang — 42s satu putaran, bukan gerak yang menarik mata
+     4. tidak ada logo terpotong: trek digandakan tepat 2x dan bergeser
+        -50%, sehingga sambungannya tidak pernah terlihat
+   Marquee/auto-scroll di tempat LAIN tetap dilarang. */
+@keyframes marquee-partners {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-partners {
+  display: flex;
+  width: max-content;
+  animation: marquee-partners 42s linear infinite;
+}
+.marquee-partners:hover,
+.marquee-partners:focus-within {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-partners {
+    animation: none;
+    /* Tanpa gerak, trek ganda hanya mengulang nama yang sama. Salinan
+       kedua disembunyikan lewat :nth-child di komponen, bukan di sini. */
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 /* ─── Target sentuh minimum (audit CP1) ───────────────────────────────
    Audit CDP pada 414x896 menemukan 26 target interaktif di bawah 40px;
    tombol "lg" dari shadcn pun hanya h-9 (36px), termasuk CTA konversi
@@ -992,7 +1061,7 @@
 .form-brand textarea:focus-visible,
 .form-brand select:focus-visible {
   border-color: var(--color-teal-500);
-  box-shadow: 0 0 0 3px rgba(11, 125, 110, 0.18);
+  box-shadow: 0 0 0 3px rgba(18, 90, 140, 0.20);
   outline: none;
 }
 

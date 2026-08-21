@@ -97,8 +97,8 @@ export function ProductCard({
           rapat & spec disembunyikan, biar kartu ringkas discan cepat. */}
       <div className={cn('relative z-10 flex flex-1 flex-col gap-1.5', compact ? 'p-3' : 'p-4 sm:p-5')}>
         <h3 className={cn(
-          'font-ui text-balance font-bold leading-snug text-ink-700',
-          compact ? 'line-clamp-2 text-sm' : 'text-base sm:text-base md:text-lg'
+          'font-ui text-balance font-semibold leading-snug text-ink-700',
+          compact ? 'line-clamp-2 text-base' : 'text-base md:text-lg'
         )}>
           {name}
         </h3>

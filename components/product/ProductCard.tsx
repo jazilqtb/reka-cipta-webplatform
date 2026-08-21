@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
           "sembunyikan deskripsi panjang, foto+nama saja") — kartu tetap
           full di sm+ ke atas. */}
       <div className="relative z-10 flex flex-1 flex-col gap-1.5 p-3 sm:p-5">
-        <h3 className="font-ui text-balance text-sm font-bold leading-snug text-ink-700 transition-colors group-hover:text-brand-teal-700 sm:text-base md:text-lg">
+        <h3 className="font-ui text-balance text-base font-semibold leading-snug text-ink-700 transition-colors group-hover:text-brand-teal-700 md:text-lg">
           {product.name}
         </h3>
         <p className="mono-tech text-xs text-neutral-500">{product.code}</p>

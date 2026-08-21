@@ -26,7 +26,7 @@ export function Logo({
 
   const fallbackTextClass = variant === 'dark'
     ? 'text-white'
-    : 'text-brand-teal-700'
+    : 'text-steel-800'
 
   const content = imgError ? (
     <div
@@ -47,7 +47,14 @@ export function Logo({
       height={height}
       width={height * 4}
       onError={() => setImgError(true)}
-      className={cn('h-auto w-auto object-contain', className)}
+      /* MONOKROM SENGAJA (2026-08-21). Berkas logo yang terpasang adalah
+         PLACEHOLDER — identitas visual final belum ada. Warnanya (biru tua
+         + hijau) tidak pernah dipilih untuk menemani palet mana pun, dan
+         setelah primary berganti ke marine ia justru berselisih: dua biru
+         berbeda bersebelahan terbaca sebagai kesalahan cetak, bukan merek.
+         Grayscale menetralkannya sampai logo asli tersedia. Saat itu tiba,
+         cukup hapus dua kelas di bawah — lihat ACTION REQUIRED. */
+      className={cn('h-auto w-auto object-contain grayscale contrast-125', className)}
       style={{ height, maxHeight: height }}
       priority
     />

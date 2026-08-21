@@ -222,7 +222,7 @@ export default function HowItWorks() {
                 <p className="mono-tech text-xs text-white/40">
                   Langkah {String(active.num).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
                 </p>
-                <h3 className="mt-2 font-ui text-2xl font-semibold text-white md:text-3xl">
+                <h3 className="mt-2 font-ui text-lg font-semibold text-white md:text-xl">
                   {active.title}
                 </h3>
                 <p className="mt-4 max-w-xl text-pretty text-base leading-relaxed text-white/75">
