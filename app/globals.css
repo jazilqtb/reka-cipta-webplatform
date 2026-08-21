@@ -922,6 +922,71 @@
   .prose-brand h3 { font-size: 1.2rem; }
 }
 
+/* ─── .carousel-row — SATU pola untuk semua deret geser horizontal ─────
+   Dipakai di: katalog produk, Sektor yang Kami Layani, Langkah Berikutnya,
+   dan Artikel Terbaru. Sebelumnya keempatnya menyalin rangkaian kelas yang
+   sama, jadi setiap perbaikan harus diulang empat kali — dan terlewat.
+
+   DUA CACAT YANG DITUTUP DI SINI:
+
+   1. GERAK VERTIKAL TERKUNCI. `overflow-x: auto` dengan `overflow-y: visible`
+      TIDAK menghasilkan yang dikira: spesifikasi CSS memaksa sumbu `visible`
+      menjadi `auto` begitu sumbu lain menjadi `auto`. Terverifikasi pada
+      halaman ter-render — keempat deret melapor `overflow-y: auto` padahal
+      tidak ada satu pun kelas yang memintanya. Akibatnya tiap deret adalah
+      wadah gulir DUA sumbu, dan di layar sentuh browser bisa menyerap
+      gerakan vertikal jari ke wadah itu alih-alih menggulirkan halaman.
+      Ditutup dengan `overflow-y: hidden` eksplisit + `touch-action: pan-x`,
+      yang menyatakan tegas: deret ini hanya melayani gerak mendatar,
+      sisanya milik halaman.
+
+   2. KARTU PERTAMA MENEMPEL TEPI. Terukur sebelum perbaikan: kartu pertama
+      di x=0 sementara judul section di x=16, pada keempat deret.
+      Penyebabnya BUKAN margin/padding-nya — nilainya identik dengan yang
+      dipakai di sini. Yang hilang adalah `scroll-snap-align` pada ANAK-nya:
+      wadahnya meminta `scroll-snap-type: x mandatory` tanpa satu pun anak
+      yang menyatakan titik snap, jadi posisi diam deret itu tidak
+      terdefinisi dan browser boleh berhenti di mana saja — termasuk
+      tergeser 16px sehingga kartu pertama tampak menempel tepi.
+      Ditutup dengan `.carousel-row > * { scroll-snap-align: start }` plus
+      `scroll-padding-left` supaya titik snap-nya jatuh di gutter, bukan di
+      tepi layar. Terverifikasi sesudahnya: kartu pertama x=16, sama
+      dengan judul section, dan kartu terakhir tetap bisa digeser habis. */
+/* WAJIB di dalam @layer components. Utility Tailwind hidup di layer
+   `utilities` yang datang SESUDAH `components`, jadi `md:hidden`,
+   `sm:overflow-visible`, dan `sm:px-0` di pemanggil tetap menang.
+   Tanpa layer ini, aturan tak berlapis di bawah MENGALAHKAN utility
+   berlapis — dan itu bukan teori: saat pertama ditulis tanpa @layer,
+   `display: flex` di sini mengalahkan `md:hidden` sehingga carousel versi
+   PONSEL ikut tampil di desktop 1440px, tumpang tindih dengan grid-nya.
+   Jebakan yang sama sudah menggigit proyek ini pada .bg-salt-texture dan
+   .prose-brand — sekarang tercatat di DESIGN-SYSTEM §9. */
+@layer components {
+.carousel-row {
+  --carousel-gutter: 1rem;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x pinch-zoom;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scroll-padding-left: var(--carousel-gutter);
+  padding-left: var(--carousel-gutter);
+  padding-right: var(--carousel-gutter);
+  padding-bottom: 0.5rem;
+  margin-left: calc(var(--carousel-gutter) * -1);
+  margin-right: calc(var(--carousel-gutter) * -1);
+  scrollbar-width: none;
+}
+.carousel-row::-webkit-scrollbar { display: none; }
+.carousel-row > * { scroll-snap-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-row { scroll-behavior: auto; }
+}
+}
+
 /* ─── Marquee logo mitra — PENGECUALIAN motion policy §7 ──────────────
    Motion policy melarang animasi berulang tak berhingga. Ini SATU-SATUNYA
    pengecualian yang disahkan (AMANDEMEN 2026-08-21, DESIGN-SYSTEM §7.1),

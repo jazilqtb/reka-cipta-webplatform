@@ -102,8 +102,15 @@ export function ProductCard({
         )}>
           {name}
         </h3>
+        {/* Deskripsi TIDAK memakai .mono-tech. Prop ini bernama `spec` dan
+            dulu bergaya monospace seolah isinya "NaCl >=97,0%", padahal
+            pemanggilnya mengisinya dengan `product.tagline` — kalimat biasa.
+            Monospace untuk kalimat membuat deskripsi produk terbaca seperti
+            keluaran terminal, dan itulah keluhan "font deskripsi tidak
+            menyatu". Mono tetap untuk nilai teknis sungguhan (kode produk,
+            nomor uji lab). */}
         {!compact && (
-          <p className="mono-tech text-xs text-neutral-500">
+          <p className="text-xs leading-relaxed text-neutral-500">
             {spec}
           </p>
         )}

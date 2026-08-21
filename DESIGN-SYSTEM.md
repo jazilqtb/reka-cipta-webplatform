@@ -319,6 +319,31 @@ pun. 45 pemakaian ditinjau satu per satu mulai CP1.
 
 ---
 
+## 4.1 Deret geser horizontal (`.carousel-row`)
+
+Satu pola untuk **semua** deret geser: katalog produk, Sektor yang Kami
+Layani, Langkah Berikutnya, dan Artikel Terbaru. Ditetapkan 2026-08-21
+setelah keempatnya ditemukan menyalin rangkaian kelas yang sama — sehingga
+setiap perbaikan harus diulang empat kali, dan terlewat.
+
+**Kapan dipakai:** daftar sejenis yang di ponsel tidak muat berdampingan dan
+urutannya tidak penting (produk, sektor, artikel, jalur CTA).
+
+**Kapan TIDAK dipakai:** apa pun yang harus dibaca berurutan atau
+dibandingkan berdampingan — tabel spesifikasi, langkah proses, harga.
+
+**Yang dijamin pola ini:**
+
+| Properti | Nilai | Kenapa |
+|---|---|---|
+| `overflow-y` | `hidden` **eksplisit** | `overflow-x: auto` memaksa sumbu `visible` menjadi `auto`. Tanpa baris ini setiap deret jadi wadah gulir dua sumbu, dan di layar sentuh browser bisa menyerap gerakan vertikal jari alih-alih menggulirkan halaman |
+| `touch-action` | `pan-x pinch-zoom` | Menyatakan tegas: deret ini hanya melayani gerak mendatar; sisanya milik halaman |
+| `overscroll-behavior-x` | `contain` | Menggeser sampai ujung tidak merambat jadi navigasi "kembali" |
+| `scroll-snap-align` pada **anak** | `start` | Wadah dengan `snap-type: mandatory` tanpa titik snap di anaknya punya posisi diam yang tidak terdefinisi — itulah sebab kartu pertama tampak menempel tepi layar |
+| `scroll-padding-left` | `= gutter` | Titik snap jatuh di gutter, sejajar judul section, bukan di tepi layar |
+
+**Dibungkus `@layer components` — wajib.** Lihat §9 anti-pattern #13.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**
@@ -448,6 +473,17 @@ Ditulis supaya kesalahan yang sama tidak lahir kembali di ronde berikutnya.
 11. **Jangan membuat subtitle lebih dari satu kalimat.** Lebih dari itu,
     ia teks isi dan harus diperlakukan begitu.
 12. **Jangan mengulang pesan yang sama di dua section berdampingan.**
+13. **Jangan menulis kelas komponen di luar `@layer`.** CSS tak berlapis
+    MENGALAHKAN utility Tailwind yang berlapis, jadi `md:hidden` atau
+    `sm:px-0` di pemanggil diam-diam tidak berlaku. Jebakan ini sudah
+    menggigit proyek ini **tiga kali**: `.bg-salt-texture`, `.prose-brand`
+    (teks editor terkurung 68ch), dan `.carousel-row` (carousel versi ponsel
+    ikut tampil di desktop 1440px). Setiap kelas komponen baru di
+    `globals.css` wajib berada di dalam `@layer components`.
+14. **Jangan memakai `.mono-tech` untuk kalimat.** Monospace hanya untuk
+    nilai teknis: kode produk, angka lab, nomor sertifikat. Kalimat bergaya
+    monospace terbaca seperti keluaran terminal — itulah sebab keluhan
+    "font deskripsi produk tidak menyatu".
 
 ---
 

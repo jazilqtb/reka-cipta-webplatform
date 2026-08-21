@@ -69,7 +69,7 @@ export function ArticlesPreview({ articles }: Props) {
         {/* Mobile (RONDE 6): horizontal scroll/swipe, bukan stack
             vertikal yang memakan tinggi halaman. */}
         <div
-          className="-mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 md:hidden"
+          className="carousel-row mt-8 gap-4 md:hidden"
           style={{ scrollbarWidth: 'none' }}
           aria-label="Geser untuk lihat artikel lain"
         >

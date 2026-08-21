@@ -136,7 +136,9 @@ function FeaturedProductCard({ product }: { product: ProductCardData }) {
         <h3 className="text-balance font-ui text-lg font-semibold tracking-tight text-ink-700 md:text-xl">
           {product.name}
         </h3>
-        <p className="mono-tech text-xs text-neutral-500">{product.spec}</p>
+        {/* Bukan .mono-tech — `spec` diisi product.tagline (kalimat biasa).
+            Lihat catatan sama di components/blocks/ProductCard.tsx. */}
+        <p className="text-sm leading-relaxed text-neutral-500">{product.spec}</p>
         <p className="text-pretty text-sm leading-relaxed text-neutral-700 md:text-base">
           {blurb}
         </p>
@@ -216,7 +218,7 @@ export function ProductsPreview({ products }: ProductsPreviewProps) {
             Kartu compact (foto + nama saja, spec disembunyikan — poin 3)
             supaya lebih banyak produk kelihatan sekaligus di layar. ── */}
         <div
-          className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 md:hidden"
+          className="carousel-row gap-3 md:hidden"
           aria-label="Geser untuk lihat produk lain"
         >
           {items.map((product, index) => (

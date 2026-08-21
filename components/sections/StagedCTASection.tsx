@@ -168,7 +168,7 @@ export function StagedCTASection() {
         {/* RONDE Tahap 3 (poin 4): 4 kartu stack 1-kolom di mobile
             memakan scroll vertikal panjang — diganti horizontal swipe,
             grid normal tetap mulai sm ke atas (tidak berubah). */}
-        <div className="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 md:mt-10 lg:grid-cols-4">
+        <div className="carousel-row mt-8 gap-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 md:mt-10 lg:grid-cols-4">
           {STAGES.map((s, i) => {
             const Icon = s.icon
             const inner = (
