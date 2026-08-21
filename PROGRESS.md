@@ -9,7 +9,7 @@ Branch: `feature/R3-dark-hero-crm`. Ditulis ulang setiap checkpoint.
 | CP2 | RFQ volume per produk + satuan + bug navigasi (1) | belum |
 | CP3 | Dashboard operasi & distribusi (2, 14) | belum |
 | CP4 | Tugas & follow-up (13) | belum |
-| CP5 | Admin: foto tim, kompresi, mitra, email, jadwal artikel (7,3,8,9,11) | belum |
+| CP5 | Admin: foto tim, kompresi, mitra, email, jadwal artikel (7,3,8,9,11) | **SELESAI** |
 | CP6 | Performa admin (10) | belum |
 
 ## CP0 — SELESAI
@@ -183,3 +183,101 @@ email masuk ACTION REQUIRED — tidak dipasang diam-diam.
 leadnya — tugas yang dibuat dari halaman terpisah kehilangan konteks.
 
 DESIGN-SYSTEM: §4.12 tugas & pengingat.
+
+## CP5 — SELESAI (5 perbaikan admin: 7, 3, 8, 9, 11)
+
+**Poin 7 — upload foto tim gagal (bug nyata, direproduksi).** Bukan dugaan:
+diulang sebagai admin ter-autentikasi dengan PNG 85 byte dan mendapat
+`new row violates row-level security policy` (403). Sebabnya bucket
+`team-photos` dibuat lewat Storage API di ronde sebelumnya tanpa satu pun
+kebijakan `storage.objects`. Migrasi `20260822090000` menambahkannya
+memakai `public.is_admin()` — BUKAN sekadar peran `authenticated`, karena
+pendaftaran publik Supabase masih terbuka dan `authenticated` saat ini
+berarti "siapa pun yang mau mendaftar". Terverifikasi utuh:
+upload → baca (200) → hapus.
+
+**Poin 3 — kompresi gambar.** `lib/image-compress.ts` dipasang di keempat
+jalur upload. Dua penjaga yang disengaja: SVG dan GIF dilewatkan apa adanya
+(mengompresnya merusak vektor dan membuang animasi), dan hasil kompresi
+DIBUANG kalau ternyata lebih besar dari aslinya — yang terjadi pada PNG
+kecil dengan sedikit warna.
+
+**Poin 8 — mitra jadi CRUD, marquee membaca DB.** Menemukan cacat nyata
+saat diuji pada 2 mitra: trek gandanya hanya 946px sedangkan viewport
+1440px, jadi ada celah kosong yang berputar. Diperbaiki dengan
+`min-w-[100vw]` per salinan. Diuji pada 2 dan 15 mitra.
+
+**Poin 9 — penyunting email & WhatsApp.** Kolom "Body (HTML)" dihapus;
+admin sekarang menulis teks biasa dan `textToHtml()` yang menyusun HTML-nya
+— sekaligus menutup jalur injeksi, karena `&`, `<`, `>` di-escape sebelum
+dibungkus paragraf. Lebar wadah `max-w-4xl` (896px, terpusat) diganti
+`w-full max-w-[1600px]`.
+
+Ukur dulu, baru simpulkan: setelah dilebarkan, penyunting WhatsApp yang
+satu kolom menghasilkan `<textarea>` **1550px** di layar 1920 — sekitar 200
+karakter per baris, yang justru dilarang §3.4. Jadi langkah 2 dan 3
+dijadikan dua kolom berdampingan. Hasil terukur pada halaman ter-render:
+
+| Viewport | Wadah | Kolom penyunting |
+|---|---|---|
+| 1280 | 976px | 451px |
+| 1440 | 1136px | 531px |
+| 1920 | 1600px (batas aktif) | 763px |
+
+Angkanya identik antara penyunting Email dan WhatsApp — disengaja.
+
+**Poin 11 — penjadwalan terbit, tanpa penjadwal eksternal.** Ditegakkan di
+**RLS** (`20260822110000`), bukan di query. Ada TUJUH tempat di kode yang
+menyaring `is_published` untuk pembaca publik; menambal ketujuhnya berarti
+menyisakan yang kedelapan untuk dilupakan — dan kebocoran seperti itu tidak
+memunculkan error, artikel yang belum waktunya cuma diam-diam masuk sitemap.
+
+Diverifikasi dengan **kunci anon** (bukan service key — kesalahan yang
+sempat menutupi cacat di CP1). Artikel dijadwalkan ke 2027:
+
+| Jalur baca | Baris bocor |
+|---|---|
+| daftar artikel | 0 |
+| akses langsung ke slug | 0 |
+| sitemap | 0 |
+| artikel terkait | 0 |
+| terpopuler | 0 |
+| `select=*` tanpa filter apa pun | 0 |
+
+Lalu jadwalnya dimundurkan ke masa lalu → artikel langsung terlihat, tanpa
+cron dan tanpa campur tangan siapa pun.
+
+Diuji juga **end-to-end lewat API sungguhan** (instance uvicorn terpisah,
+JWT admin nyata): `08:00+07:00` tersimpan sebagai `01:00Z` — konversi zona
+waktu benar. Ini bukan detail kosmetik: kalau offset tidak ikut terkirim,
+server (UTC) dan admin (WIB) berselisih 7 jam dan artikel terbit di hari
+yang salah.
+
+Dua cacat cache ditemukan dan ditutup di jalan yang sama:
+`app/sitemap.ts` sama sekali TIDAK punya `revalidate`, jadi ia beku sejak
+build — artikel terjadwal tidak akan pernah masuk sitemap sampai deploy
+berikutnya. Dan `/artikel/[slug]` memakai 3600 sementara `/artikel` memakai
+300, yang berarti artikel muncul di daftar sampai 55 menit sebelum halaman
+detailnya berhenti 404. Keduanya kini seragam 300 (sitemap 3600).
+
+Status terbit jadi TIGA keadaan (`lib/publish-schedule.ts`) — artikel
+terjadwal punya `is_published = true`, jadi membaca kolom itu apa adanya
+akan menampilkan "Terbit" hijau untuk artikel yang belum bisa dibuka
+siapa pun.
+
+**Satu penyimpangan sistem desain yang saya buat sendiri lalu perbaiki:**
+teks bantuan sempat memakai `text-[11px]`, di bawah dasar skala (12px) dan
+melanggar aturan nol nilai literal. Diganti `text-xs`.
+
+DESIGN-SYSTEM: amandemen §4.7 (aturan 7 lebar wadah + aturan 8 "melebarkan
+wadah mewajibkan kolom kedua", dengan angka terukur), dan §4.13 baru
+(tiga keadaan status terbit).
+
+Mutu: `tsc` 0 error, build sukses, lint 7 masalah — sama dengan garis dasar
+sebelum CP5 (2 error sisanya ada di `AnimatedCounter.tsx` dan `Navbar.tsx`,
+keduanya bawaan lama, bukan dari checkpoint ini).
+
+**Perlu tindakan Jazil:** backend lokal di port 8001 berjalan TANPA
+`--reload`, jadi ia masih memuat kode lama; dan Railway perlu deploy ulang
+agar `published_at` diterima di produksi. Sampai itu dilakukan, penjadwalan
+bekerja di database tapi form admin produksi belum bisa mengirimkannya.

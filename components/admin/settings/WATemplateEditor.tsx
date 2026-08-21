@@ -192,6 +192,16 @@ export function WATemplateEditor() {
           </div>
         </fieldset>
 
+        {/* POIN 9 — langkah 2 dan 3 BERDAMPINGAN, bukan bertumpuk.
+            Melebarkan halaman saja tidak cukup: satu kolom selebar 1550px
+            di layar 1920 berarti baris teks ~200 karakter, dan §3.4
+            melarang itu justru demi keterbacaan. Ruang tambahannya dipakai
+            untuk menaruh pratinjau di sebelah penyunting — sama seperti
+            penyunting email — sehingga tiap kolom kembali ke lebar baca
+            yang wajar DAN admin bisa melihat akibat setiap suntingan tanpa
+            menggulir. Langkah 1 tetap melintang penuh: chip status adalah
+            pilihan tunggal yang mengganti isi kedua kolom di bawahnya. */}
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* ── 2. Susun pesan ── */}
         <fieldset>
           <legend className="font-ui mb-2 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
@@ -230,7 +240,7 @@ export function WATemplateEditor() {
             id="wa-template-body"
             value={draftText}
             onChange={(e) => setDraftText(e.target.value)}
-            rows={10}
+            rows={16}
             disabled={isSaving}
             className="font-mono text-sm leading-relaxed"
           />
@@ -249,6 +259,7 @@ export function WATemplateEditor() {
             {renderPreview(draftText)}
           </div>
         </fieldset>
+        </div>
       </div>
 
       {/* Simpan dipisah dari Reset oleh garis, dan Reset diturunkan bobotnya

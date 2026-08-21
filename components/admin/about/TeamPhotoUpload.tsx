@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import { ImageIcon, SpinnerGapIcon, TrashIcon } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { teamPhotoUrl } from '@/lib/data/about'
+import { compressImage, formatBytes } from '@/lib/image-compress'
 
 const MAX_BYTES = 2 * 1024 * 1024
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -43,21 +44,51 @@ export function TeamPhotoUpload({
     }
     setBusy(true)
     try {
+      // Kompresi SEBELUM validasi ukuran: berkas 4 MB dari kamera ponsel
+      // biasanya turun jauh di bawah batas 2 MB setelah dikecilkan, jadi
+      // menolaknya lebih dulu berarti menolak foto yang sebenarnya bisa
+      // dipakai.
+      const compressed = await compressImage(file, { maxDimension: 800, quality: 0.85 })
+      const upload = compressed.file
+      if (upload.size > MAX_BYTES) {
+        toast.error(
+          `Ukuran masih ${formatBytes(upload.size)} setelah dikompres — batasnya ${formatBytes(MAX_BYTES)}.`
+        )
+        setBusy(false)
+        return
+      }
       const supabase = createClient()
-      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+      const ext = upload.name.split('.').pop()?.toLowerCase() ?? 'jpg'
       // Nama berkas diacak, bukan memakai nama asli: nama asli bisa
       // mengandung spasi/karakter non-ASCII dan bisa bertabrakan antar
       // anggota. crypto.randomUUID tersedia di semua browser modern.
       const path = `${crypto.randomUUID()}.${ext}`
       const { error } = await supabase.storage
         .from('team-photos')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .upload(path, upload, { cacheControl: '3600', upsert: false, contentType: upload.type })
       if (error) throw error
       onChange(path)
-      toast.success('Foto terunggah')
+      toast.success(compressed.converted ? `Foto terunggah — ${compressed.reason}` : 'Foto terunggah')
     } catch (err) {
+      /* PESAN GAGAL MENYEBUT SEBABNYA.
+         Sebelumnya semua kegagalan tampil sebagai "Gagal mengunggah foto",
+         dan penyebab yang sebenarnya — kebijakan RLS bucket belum dipasang —
+         tidak pernah sampai ke admin. Ia melihat pesan yang sama untuk
+         jaringan putus, format ditolak, dan izin kurang, sehingga tidak ada
+         cara membedakannya tanpa membuka konsol. */
+      const raw = err instanceof Error ? err.message : String(err)
       console.error('[team-photo] gagal unggah:', err)
-      toast.error('Gagal mengunggah foto.')
+      const friendly =
+        /row-level security|policy/i.test(raw)
+          ? 'Izin unggah ke penyimpanan belum aktif. Hubungi pengelola sistem.'
+        : /mime|content type|not supported/i.test(raw)
+          ? 'Format berkas ditolak penyimpanan. Pakai JPG, PNG, atau WebP.'
+        : /exceeded|too large|payload/i.test(raw)
+          ? 'Berkas terlalu besar untuk penyimpanan.'
+        : /fetch|network|failed to fetch/i.test(raw)
+          ? 'Tidak bisa menghubungi penyimpanan. Periksa koneksi.'
+          : `Gagal mengunggah: ${raw}`
+      toast.error(friendly)
     } finally {
       setBusy(false)
     }

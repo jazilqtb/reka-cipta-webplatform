@@ -24,7 +24,7 @@ export default async function AdminArticlesPage() {
   // dibaca" adalah salah satu cara paling berguna untuk mengurutkan.
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, slug, category, is_published, view_count, updated_at')
+    .select('id, title, slug, category, is_published, published_at, view_count, updated_at')
     .order('updated_at', { ascending: false })
 
   if (error) {
@@ -34,7 +34,8 @@ export default async function AdminArticlesPage() {
   const articles: ArticleRowData[] = (data ?? []).map((row) => {
     const t = row as Pick<
       ArticleRow,
-      'id' | 'title' | 'slug' | 'category' | 'is_published' | 'view_count' | 'updated_at'
+      | 'id' | 'title' | 'slug' | 'category'
+      | 'is_published' | 'published_at' | 'view_count' | 'updated_at'
     >
     return {
       id: t.id,
@@ -42,6 +43,7 @@ export default async function AdminArticlesPage() {
       slug: t.slug,
       category: t.category,
       is_published: t.is_published,
+      published_at: t.published_at,
       view_count: t.view_count ?? 0,
       updated_at: t.updated_at,
     }

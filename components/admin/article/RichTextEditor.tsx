@@ -23,6 +23,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { uploadArticleContentImage, ApiFetchError } from '@/lib/api'
+import { compressImage } from '@/lib/image-compress'
 
 interface RichTextEditorProps {
   value: string
@@ -59,7 +60,9 @@ export function RichTextEditor({ value, onChange, disabled }: RichTextEditorProp
   async function handleImageFile(file: File) {
     setIsUploadingImage(true)
     try {
-      const { url } = await uploadArticleContentImage(file)
+      // Gambar isi artikel dirender di kolom 68ch — 1400px cukup.
+      const { file: upload } = await compressImage(file, { maxDimension: 1400 })
+      const { url } = await uploadArticleContentImage(upload)
       editor?.chain().focus().setImage({ src: url }).run()
     } catch (err) {
       const message = err instanceof ApiFetchError ? err.message : 'Upload gambar gagal'

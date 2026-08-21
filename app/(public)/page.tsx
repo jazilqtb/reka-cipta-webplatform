@@ -23,6 +23,7 @@ import { StructuredData } from '@/components/seo/StructuredData'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { getLatestArticles } from '@/lib/data/articles'
 import { getHeroContent, getHeroStats } from '@/lib/data/hero'
+import { getPartners } from '@/lib/data/partners'
 
 // Semua placeholder Fase 6–7 sudah diganti komponen asli.
 // File _sections-placeholder.tsx akan dihapus di Fase 8 (E2-S1-FE-09).
@@ -120,11 +121,12 @@ export default async function BerandaPage() {
   // di ArticlesPreview.tsx), jadi datanya tidak lagi dipakai. Fungsinya
   // sendiri TIDAK dihapus dari lib/data/articles.ts (masih valid utk
   // konteks lain), hanya tidak lagi dipanggil dari homepage.
-  const [settings, products, articles, hero] = await Promise.all([
+  const [settings, products, articles, hero, partners] = await Promise.all([
     getCompanySettings(),
     getProductsPreview(),
     getLatestArticles(3),
     getHeroContent(),
+    getPartners(),
   ])
   // Statistik butuh `settings` (baseline dari admin), jadi menyusul —
   // bukan di dalam Promise.all di atas.
@@ -156,7 +158,7 @@ export default async function BerandaPage() {
       <StructuredData settings={settings} products={products} />
       <HeroSection hero={hero} stats={heroStats} />
       <ProductsPreview products={products} />
-      <CredibilitySection />
+      <CredibilitySection partners={partners} />
       <IndustriesGrid />
       <SectionDivider variant="wave" fromClassName="fill-white" toClassName="bg-ink-900" />
       <HowItWorks />

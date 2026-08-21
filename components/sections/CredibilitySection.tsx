@@ -29,7 +29,7 @@
 import Image from 'next/image'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { SealCheckIcon, ShieldCheckIcon, PlantIcon, LightningIcon } from '@phosphor-icons/react/ssr'
-import { ACTIVE_CLIENTS } from '@/constants/clients'
+import type { PartnerEntry } from '@/lib/data/partners'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { HOMEPAGE_SECTIONS } from '@/constants/homepage-sections'
 
@@ -76,7 +76,7 @@ const PILLARS: Pillar[] = [
   },
 ]
 
-export function CredibilitySection() {
+export function CredibilitySection({ partners }: { partners: PartnerEntry[] }) {
   return (
     <section
       // RONDE Tahap 3: padding bawah dipangkas — jarak ke section Sektor
@@ -179,8 +179,8 @@ export function CredibilitySection() {
         {/* Daftar accessible utk screen reader — disembunyikan visual */}
         <ul className="sr-only">
           <li>Perusahaan-perusahaan yang menjadi mitra distribusi aktif:</li>
-          {ACTIVE_CLIENTS.map((c) => (
-            <li key={c.name}>
+          {partners.map((c) => (
+            <li key={c.id}>
               {c.name} — {c.industry}
             </li>
           ))}
@@ -201,10 +201,19 @@ export function CredibilitySection() {
           menyampaikan daftar yang sama ke pembaca layar. */}
       <div className="overflow-hidden" aria-hidden="true">
         <div className="marquee-partners">
+          {/* min-w-[100vw] pada tiap salinan WAJIB, bukan kosmetik.
+              Trek digandakan 2x lalu bergeser -50%. Kalau SATU salinan lebih
+              sempit dari layar, dua salinan pun tidak menutupi lebar viewport
+              dan putarannya memperlihatkan ruang kosong berjalan melintas.
+              Terukur dengan 2 mitra di 1440px sebelum perbaikan: lebar trek
+              hanya 946px, menyisakan 494px kosong. Dengan tiap salinan
+              minimal selebar layar, dua salinan selalu >= 200vw dan
+              sambungannya tidak pernah menganga — berapa pun jumlah
+              mitranya. Diuji pada 2 dan 15 mitra. */}
           {[0, 1].map((copy) => (
-            <div key={copy} className="flex shrink-0 items-center gap-x-10 pr-10 md:gap-x-16 md:pr-16">
-              {ACTIVE_CLIENTS.map((client) => (
-                <div key={`${copy}-${client.name}`} className="flex h-12 shrink-0 items-center justify-center">
+                          <div key={copy} className="flex min-w-[100vw] shrink-0 items-center justify-around gap-x-10 pr-10 md:gap-x-16 md:pr-16">
+              {partners.map((client) => (
+                <div key={`${copy}-${client.id}`} className="flex h-12 shrink-0 items-center justify-center">
                   {client.logoUrl ? (
                     <Image
                       src={client.logoUrl}
@@ -232,7 +241,7 @@ export function CredibilitySection() {
             visual; kalimat ini mengulanginya dengan kata-kata. Tetap di DOM
             (bukan dihapus) karena angkanya berguna untuk mesin pencari. */}
         <p className="mt-6 hidden text-center text-sm text-neutral-700 sm:block md:mt-8">
-          {ACTIVE_CLIENTS.length}+ mitra industri mempercayakan pasokan garam mereka
+          {partners.length}+ mitra industri mempercayakan pasokan garam mereka
           kepada kami — bergabunglah sebagai berikutnya.
         </p>
       </div>

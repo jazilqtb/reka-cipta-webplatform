@@ -16,6 +16,7 @@ import {
   BuildingsIcon,
   TruckIcon,
   CheckSquareIcon,
+  HandshakeIcon,
   SquaresFourIcon,      // Dashboard
   ClipboardTextIcon,    // Leads & RFQ
   PlantIcon,            // Supplier
@@ -52,6 +53,7 @@ export const ADMIN_NAV_MAIN: AdminNavItem[] = [
 export const ADMIN_NAV_CONTENT: AdminNavItem[] = [
   { label: 'Hero Beranda', href: '/admin/hero',         icon: LayoutIcon, matchExact: true },
   { label: 'Tentang Kami', href: '/admin/tentang-kami', icon: BuildingsIcon, matchExact: true },
+  { label: 'Mitra',        href: '/admin/mitra',        icon: HandshakeIcon,  matchExact: true },
 ] as const
 
 // Epic 4B Slice 3A/3B — implemented ahead of Slice 3 trigger criteria
@@ -76,4 +78,5 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/email-templates':    'Template Pesan',
   '/admin/hero':               'Hero Beranda',
   '/admin/tentang-kami':       'Tentang Kami',
+  '/admin/mitra':              'Mitra Distribusi',
 }

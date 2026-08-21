@@ -34,6 +34,12 @@ import {
 } from '@phosphor-icons/react/ssr'
 import { toggleArticlePublish, deleteArticle, ApiFetchError } from '@/lib/api'
 import { ARTICLE_CATEGORY_LABEL, ARTICLE_CATEGORY_OPTIONS } from '@/constants/articleCategories'
+import {
+  PUBLISH_STATE_LABEL,
+  formatSchedule,
+  publishState,
+  type PublishState,
+} from '@/lib/publish-schedule'
 import type { ArticleCategory } from '@/types/api'
 
 export interface ArticleRowData {
@@ -42,12 +48,31 @@ export interface ArticleRowData {
   slug: string
   category: ArticleCategory
   is_published: boolean
+  published_at: string | null
   view_count: number
   updated_at: string
 }
 
 const PER_PAGE = 25
-type StatusFilter = 'all' | 'published' | 'draft'
+type StatusFilter = 'all' | 'published' | 'scheduled' | 'draft'
+
+/* POIN 11 — badge status membaca dari publishState(), bukan langsung dari
+   is_published. Artikel terjadwal punya is_published = true (itu yang
+   membuat RLS mau melepasnya nanti tanpa campur tangan siapa pun), jadi
+   membaca kolom itu apa adanya akan menampilkan titik hijau "Terbit"
+   untuk artikel yang belum bisa dibuka siapa pun — dan admin yang
+   mengklik "lihat di situs" lalu kena 404 akan menyimpulkan sistemnya
+   rusak, bukan bahwa artikelnya memang belum waktunya. */
+const STATE_DOT: Record<PublishState, string> = {
+  published: 'bg-success-600',
+  scheduled: 'bg-warning-500',
+  draft: 'bg-neutral-300',
+}
+const STATE_TEXT: Record<PublishState, string> = {
+  published: 'text-success-700',
+  scheduled: 'text-warning-700',
+  draft: 'text-neutral-500',
+}
 type SortKey = 'recent' | 'oldest' | 'title' | 'views'
 
 const SORTS: Array<{ key: SortKey; label: string }> = [
@@ -67,17 +92,19 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
   const [page, setPage] = useState(1)
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  const stateOf = (a: ArticleRowData) => publishState(a.is_published, a.published_at)
+
   const counts = useMemo(() => ({
     all: articles.length,
-    published: articles.filter((a) => a.is_published).length,
-    draft: articles.filter((a) => !a.is_published).length,
+    published: articles.filter((a) => stateOf(a) === 'published').length,
+    scheduled: articles.filter((a) => stateOf(a) === 'scheduled').length,
+    draft: articles.filter((a) => stateOf(a) === 'draft').length,
   }), [articles])
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
     const rows = articles.filter((a) => {
-      if (status === 'published' && !a.is_published) return false
-      if (status === 'draft' && a.is_published) return false
+      if (status !== 'all' && stateOf(a) !== status) return false
       if (category !== 'all' && a.category !== category) return false
       if (!term) return true
       // Slug ikut dicari: mengingat potongan URL sering lebih mudah
@@ -186,6 +213,12 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
       <div className="flex flex-wrap items-center gap-1.5">
         <Chip active={status === 'all'} onClick={() => resetPage(setStatus)('all')} label="Semua" count={counts.all} />
         <Chip active={status === 'published'} onClick={() => resetPage(setStatus)('published')} label="Terbit" count={counts.published} />
+        {/* Chip "Terjadwal" hanya muncul kalau memang ada isinya — chip
+            berangka 0 permanen cuma menambah benda untuk dipindai tanpa
+            pernah berguna (§4.3 soal kepadatan kontrol). */}
+        {counts.scheduled > 0 && (
+          <Chip active={status === 'scheduled'} onClick={() => resetPage(setStatus)('scheduled')} label="Terjadwal" count={counts.scheduled} />
+        )}
         <Chip active={status === 'draft'} onClick={() => resetPage(setStatus)('draft')} label="Draf" count={counts.draft} />
       </div>
 
@@ -232,15 +265,22 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className={[
-                          'font-ui inline-flex items-center gap-1.5 text-xs font-medium',
-                          row.is_published ? 'text-success-700' : 'text-neutral-500',
-                        ].join(' ')}>
+                        <span
+                          className={[
+                            'font-ui inline-flex items-center gap-1.5 text-xs font-medium',
+                            STATE_TEXT[stateOf(row)],
+                          ].join(' ')}
+                          title={
+                            stateOf(row) === 'scheduled'
+                              ? `Tayang ${formatSchedule(row.published_at)}`
+                              : undefined
+                          }
+                        >
                           <span
                             aria-hidden="true"
-                            className={['h-1.5 w-1.5 rounded-full', row.is_published ? 'bg-success-600' : 'bg-neutral-300'].join(' ')}
+                            className={['h-1.5 w-1.5 rounded-full', STATE_DOT[stateOf(row)]].join(' ')}
                           />
-                          {row.is_published ? 'Terbit' : 'Draf'}
+                          {PUBLISH_STATE_LABEL[stateOf(row)]}
                         </span>
                       </td>
                       <td className="mono-tech px-4 py-2.5 text-right text-xs text-neutral-600">
@@ -251,7 +291,7 @@ export function ArticlesWorkspace({ initialArticles }: { initialArticles: Articl
                       </td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center justify-end gap-1">
-                          {row.is_published && (
+                          {stateOf(row) === 'published' && (
                             <IconLink href={`/artikel/${row.slug}`} label="Lihat di situs publik" external>
                               <ArrowSquareOutIcon size={16} weight="bold" aria-hidden="true" />
                             </IconLink>

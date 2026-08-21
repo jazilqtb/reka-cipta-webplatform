@@ -16,7 +16,14 @@ export default function AdminEmailTemplatesPage() {
       <AdminHeader title="Template Pesan" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="page-transition mx-auto max-w-4xl space-y-4">
+        {/* POIN 9 — LEBAR MENGIKUTI RUANG YANG ADA.
+            Dulu `max-w-4xl` (896px) dan terpusat, jadi di layar 1440px
+            editornya menempati sepertiga lebar dengan dua bidang kosong di
+            kiri-kanan — sementara isinya justru teks panjang yang butuh
+            ruang. Batas atas 1600px tetap dipertahankan supaya baris teks
+            tidak menjadi terlalu panjang untuk dibaca pada monitor sangat
+            lebar (§3.4 membatasi panjang baris, dan itu tetap berlaku). */}
+        <div className="page-transition mx-auto w-full max-w-[1600px] space-y-4">
           {/* DIPERTAHANKAN: menjelaskan bahwa template WhatsApp berbeda PER
               STATUS lead — hubungan yang tidak terbaca dari tab manapun. */}
           <p className="text-sm text-neutral-600">

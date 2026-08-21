@@ -530,6 +530,62 @@ ditulis di sini agar form berikutnya tidak lahir ad-hoc lagi.
 6. Lebar kolom teks panjang mengikuti isinya: teks berformat (HTML,
    template) memakai `font-mono`; kalimat biasa tidak.
 
+### AMANDEMEN §4.7 (2026-08-22) — form penyunting berlebar penuh
+
+Aturan 1–6 di atas mengatur ISI form dan tetap berlaku apa adanya. Yang
+kurang adalah aturan tentang LEBAR wadahnya, dan ketiadaan itu punya
+akibat nyata: `/admin/email-templates` memakai `max-w-4xl` (896 px) dan
+terpusat, sehingga pada layar 1440 px penyuntingnya menempati sepertiga
+lebar dengan dua bidang kosong besar di kiri dan kanan — sementara yang
+disunting justru teks panjang plus pratinjau berdampingan, dua hal yang
+paling butuh ruang.
+
+**Aturan 7 — lebar mengikuti tugas, bukan satu angka untuk semua.**
+
+| Jenis halaman admin | Lebar |
+|---|---|
+| Form isian pendek (satu kolom kontrol) | `max-w-3xl`, terpusat |
+| Penyunting + pratinjau berdampingan | `w-full max-w-[1600px]` |
+| Tabel data / papan | penuh, tanpa batas |
+
+Batas 1600 px pada baris kedua bukan kompromi setengah hati: §3.4
+membatasi panjang baris teks demi keterbacaan, dan itu tetap berlaku di
+dalam penyunting. Yang dilepas adalah batas WADAH, bukan batas baris —
+di atas 1600 px ruang ekstra akan menambah panjang baris tanpa menambah
+apa pun yang berguna. Grid dua kolomnya memakai
+`minmax(0,1fr)` di kedua sisi supaya `<textarea>` dan `<iframe>` benar-benar
+menyusut mengikuti kolomnya; `1fr` telanjang tidak cukup, karena ukuran
+minimum bawaan konten menahannya dan menyebabkan grid meluber.
+
+**Aturan 8 — melebarkan wadah MEWAJIBKAN kolom kedua.**
+
+Ditemukan saat mengukur, bukan saat merancang: setelah wadahnya dilepas,
+penyunting WhatsApp — yang isinya satu kolom bertumpuk — menghasilkan
+`<textarea>` selebar **1550 px** pada layar 1920. Itu sekitar 200 karakter
+per baris, dan §3.4 melarangnya justru demi keterbacaan. Halaman jadi
+"tidak sempit lagi" tanpa jadi lebih mudah dipakai.
+
+Karena itu: kalau sebuah penyunting dilebarkan, ruang tambahannya harus
+dipakai untuk menaruh sesuatu **di sebelah** penyunting — pratinjau adalah
+pilihan wajarnya — bukan untuk memanjangkan baris. Kalau tidak ada yang
+pantas ditaruh di sebelahnya, halaman itu masuk baris pertama tabel
+(`max-w-3xl`) dan tidak perlu dilebarkan.
+
+Hasil terukur setelah kedua penyunting dijadikan dua kolom
+(`minmax(0,1fr)` × 2), diukur pada halaman yang sudah dibangun:
+
+| Viewport | Wadah | Lebar kolom penyunting |
+|---|---|---|
+| 1280 | 976 px | 451 px |
+| 1440 | 1136 px | 531 px |
+| 1920 | 1600 px (batas aktif) | 763 px |
+
+Angka kolomnya identik antara penyunting Email dan WhatsApp — itu yang
+diinginkan: keduanya permukaan yang sama bagi admin, dan lebar yang
+berbeda di antara keduanya akan terbaca sebagai cacat.
+
+**Berlaku pada:** penyunting Email dan penyunting WhatsApp.
+
 ## 4.9 Permukaan gelap (`.surface-dark`)
 
 Ditetapkan 2026-08-21 (ronde 3). Satu kelas untuk **seluruh** bidang gelap:
@@ -644,6 +700,47 @@ Sel yang tidak punya sumber menulis **"belum ada catatan"**, bukan `0`.
 menyamakannya membuat admin mengambil keputusan atas dasar yang salah —
 misalnya menyimpulkan pasokan gagal padahal pengirimannya cuma belum
 dicatat.
+
+## 4.13 Status terbit artikel — TIGA keadaan
+
+Ditetapkan 2026-08-22 bersama penjadwalan terbit (CP5 poin 11).
+
+Sebelum ini sebuah artikel hanya punya dua keadaan, dan badge-nya dibaca
+langsung dari kolom `is_published`. Penjadwalan menambah keadaan ketiga
+yang **tidak bisa** diturunkan dari kolom itu: artikel terjadwal punya
+`is_published = true` — justru itu yang membuat RLS melepasnya sendiri
+saat waktunya tiba, tanpa penjadwal eksternal.
+
+Kalau badge tetap dibaca dari `is_published`, artikel terjadwal akan
+tampil hijau "Terbit" padahal belum bisa dibuka siapa pun. Admin yang
+mengklik "lihat di situs publik" akan kena 404 dan menyimpulkan sistemnya
+rusak — lalu menerbitkannya ulang secara manual, yang justru membatalkan
+penjadwalannya. Keadaannya karena itu **wajib** dihitung lewat
+`publishState()` di `lib/publish-schedule.ts`, bukan dari kolom mentah.
+
+| Keadaan | Titik | Teks | Kondisi |
+|---|---|---|---|
+| Draf | `bg-neutral-300` | `text-neutral-500` | `is_published = false` |
+| Terjadwal | `bg-warning-500` | `text-warning-700` | terbit, `published_at` di masa depan |
+| Terbit | `bg-success-600` | `text-success-700` | terbit, waktunya sudah lewat |
+
+Ochre/warning dipakai di sini sesuai §2.4 — ia keadaan "menunggu", bukan
+kesalahan (danger) dan bukan keberhasilan (success).
+
+**Dua konsekuensi yang mengikat:**
+
+1. Tautan "lihat di situs publik" **hanya** muncul untuk keadaan `published`.
+   Menawarkan tautan yang dijamin 404 adalah cacat, bukan kenyamanan.
+2. Chip filter "Terjadwal" hanya dirender kalau jumlahnya > 0 — chip
+   berangka nol permanen menambah benda untuk dipindai tanpa pernah
+   berguna.
+
+**Batas yang dinyatakan jujur:** penjadwalan ditegakkan di database, tapi
+database tidak bisa membatalkan halaman yang sudah di-cache. `/artikel`
+dan `/artikel/[slug]` karena itu disamakan pada `revalidate = 300`, jadi
+jeda maksimum antara "waktunya tiba" dan "terlihat publik" adalah 5 menit,
+seragam di kedua permukaan. Arah salahnya aman: selama jeda itu yang
+tampil adalah 404, bukan artikelnya.
 
 ## 4.12 Tugas & pengingat
 

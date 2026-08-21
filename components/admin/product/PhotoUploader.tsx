@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { ImageUp, Loader2, RotateCcw } from 'lucide-react'
 import { uploadProductPhoto, ApiFetchError } from '@/lib/api'
 import { revalidateProductRoutes } from '@/app/actions/products'
+import { compressImage } from '@/lib/image-compress'
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
@@ -50,7 +51,8 @@ export function PhotoUploader({
     setState({ status: 'uploading', percent: 0 })
 
     try {
-      const response = await uploadProductPhoto(productId, file, (percent) => {
+      const { file: upload } = await compressImage(file, { maxDimension: 1600 })
+      const response = await uploadProductPhoto(productId, upload, (percent) => {
         setState({ status: 'uploading', percent })
       })
       onUploadSuccess(response.product.photo_url!)

@@ -26,6 +26,7 @@ import random
 import string
 import time
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from dependencies.auth import get_current_user, require_admin
@@ -68,6 +69,31 @@ def _row_to_article_admin(row: dict) -> ArticleAdmin:
     )
 
 
+def _resolve_published_at(is_published: bool, requested) -> Optional[str]:
+    """Kapan artikel BOLEH tampil publik.
+
+    Tiga keadaan yang sengaja dibedakan:
+      draf                       -> None  (tidak relevan)
+      terbit sekarang            -> now()
+      terbit terjadwal           -> waktu yang diminta, dinormalkan ke UTC
+
+    Normalisasi ke UTC itu bukan kosmetik: kolomnya TIMESTAMPTZ dan
+    dibandingkan dengan now() di dalam kebijakan RLS. Kalau klien mengirim
+    waktu tanpa offset, pydantic menganggapnya naive dan .astimezone()
+    akan memakai zona waktu SERVER — di Railway itu UTC, di laptop dev
+    bisa WIB. Selisih 7 jam pada penjadwalan artinya artikel terbit
+    setengah hari lebih awal atau lebih lambat. Frontend karenanya
+    mengirim ISO ber-offset (lihat ArticleForm.tsx).
+    """
+    if not is_published:
+        return None
+    if requested is None:
+        return datetime.now(timezone.utc).isoformat()
+    if requested.tzinfo is None:
+        requested = requested.replace(tzinfo=timezone.utc)
+    return requested.astimezone(timezone.utc).isoformat()
+
+
 def _ensure_unique_slug(supabase, slug: str, exclude_id: str | None = None) -> None:
     query = supabase.table("articles").select("id").eq("slug", slug)
     if exclude_id:
@@ -96,7 +122,7 @@ async def create_article(payload: ArticleCreateRequest):
         "meta_title": payload.meta_title,
         "canonical_url": payload.canonical_url,
         "is_published": payload.is_published,
-        "published_at": datetime.now(timezone.utc).isoformat() if payload.is_published else None,
+        "published_at": _resolve_published_at(payload.is_published, payload.published_at),
     }
 
     try:
@@ -201,7 +227,10 @@ async def toggle_publish_article(article_id: str, payload: ArticlePublishRequest
         raise HTTPException(status_code=404, detail="Artikel tidak ditemukan")
 
     update_data: dict = {"is_published": payload.is_published}
-    if payload.is_published and not existing.data[0]["published_at"]:
+    if payload.published_at is not None:
+        # Penjadwalan eksplisit menang atas aturan "set sekali" di bawah.
+        update_data["published_at"] = payload.published_at.astimezone(timezone.utc).isoformat()
+    elif payload.is_published and not existing.data[0]["published_at"]:
         update_data["published_at"] = datetime.now(timezone.utc).isoformat()
 
     try:

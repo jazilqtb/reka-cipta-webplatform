@@ -42,13 +42,33 @@ function renderPreview(text: string): string {
   return out
 }
 
+/** Teks biasa -> HTML sederhana.
+ *
+ *  Sengaja MINIM: paragraf dan pemisah baris saja. Tidak ada pemrosesan
+ *  markdown, tidak ada tag yang lolos dari input. Karakter HTML di-escape
+ *  lebih dulu, jadi admin yang mengetik "<b>" akan melihat "<b>" di
+ *  emailnya — bukan teks tebal, dan bukan celah injeksi.
+ *
+ *  Penanda {{...}} dibiarkan apa adanya: ia diganti backend saat pengiriman.
+ */
+function textToHtml(text: string): string {
+  const esc = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  return esc
+    .split(/\n{2,}/)
+    .map((para) => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('\n')
+}
+
 export function EmailTemplateEditor() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [template, setTemplate] = useState<EmailTemplate | null>(null)
   const [subject, setSubject] = useState('')
-  const [bodyHtml, setBodyHtml] = useState('')
+
   const [bodyText, setBodyText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
@@ -62,7 +82,7 @@ export function EmailTemplateEditor() {
       if (!rfqConfirmation) throw new Error('NO_TEMPLATE')
       setTemplate(rfqConfirmation)
       setSubject(rfqConfirmation.subject)
-      setBodyHtml(rfqConfirmation.body_html)
+
       setBodyText(rfqConfirmation.body_text)
     } catch (err) {
       if (err instanceof ApiFetchError && err.status === 401) {
@@ -83,15 +103,15 @@ export function EmailTemplateEditor() {
 
   async function handleSave() {
     if (!template) return
-    if (!subject.trim() || !bodyHtml.trim() || !bodyText.trim()) {
-      toast.error('Subject, body HTML, dan body text wajib diisi')
+    if (!subject.trim() || !bodyText.trim()) {
+      toast.error('Subject dan isi pesan wajib diisi')
       return
     }
     setIsSaving(true)
     try {
       const updated = await updateEmailTemplate(template.template_type, {
         subject,
-        body_html: bodyHtml,
+        body_html: textToHtml(bodyText),
         body_text: bodyText,
       })
       setTemplate(updated)
@@ -112,7 +132,7 @@ export function EmailTemplateEditor() {
       const updated = await resetEmailTemplateToDefault(template.template_type)
       setTemplate(updated)
       setSubject(updated.subject)
-      setBodyHtml(updated.body_html)
+
       setBodyText(updated.body_text)
       toast.success('Template direset ke default')
     } catch {
@@ -179,33 +199,33 @@ export function EmailTemplateEditor() {
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email-subject">Subject</Label>
             <Input id="email-subject" value={subject} onChange={(e) => setSubject(e.target.value)} disabled={isSaving} />
           </div>
+          {/* POIN 9 — Body (HTML) DIHAPUS dari form.
+              Kolom `body_html` di database TIDAK dihapus: email tetap
+              dikirim dalam dua bagian, dan klien email yang menolak HTML
+              butuh versi teks. Yang berubah, admin tidak lagi diminta
+              menulis HTML dengan tangan — versinya dibangun dari teks biasa
+              di bawah ini. Meminta orang non-teknis merawat markup adalah
+              cara paling cepat template email jadi rusak, dan rusaknya baru
+              ketahuan setelah terkirim ke pelanggan. */}
           <div className="space-y-1.5">
-            <Label htmlFor="email-body-html">Body (HTML)</Label>
-            <Textarea
-              id="email-body-html"
-              value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              rows={10}
-              disabled={isSaving}
-              className="font-mono text-xs"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email-body-text">Body (Plain Text — fallback)</Label>
+            <Label htmlFor="email-body-text">Isi pesan</Label>
             <Textarea
               id="email-body-text"
               value={bodyText}
               onChange={(e) => setBodyText(e.target.value)}
-              rows={6}
+              rows={16}
               disabled={isSaving}
-              className="font-mono text-xs"
+              className="text-sm leading-relaxed"
             />
+            <p className="text-xs text-neutral-500">
+              Tulis seperti menulis email biasa. Baris kosong menjadi paragraf baru.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-900/[0.07] pt-4">
@@ -235,10 +255,10 @@ export function EmailTemplateEditor() {
               Subject: {renderPreview(subject)}
             </div>
             <iframe
-              srcDoc={renderPreview(bodyHtml)}
+              srcDoc={renderPreview(textToHtml(bodyText))}
               sandbox="allow-same-origin"
               title="Preview Email"
-              className="w-full h-80 bg-white"
+              className="h-[28rem] w-full bg-white"
             />
           </div>
         </div>

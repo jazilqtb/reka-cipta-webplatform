@@ -13,6 +13,15 @@ import type { MetadataRoute } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import { getAllPublishedSlugsForSitemap } from '@/lib/data/articles'
 
+/* POIN 11 — sitemap TIDAK punya revalidate sebelum ini, jadi ia dibekukan
+   pada saat build. Untuk artikel biasa itu tidak terlihat karena setiap
+   penerbitan diikuti revalidateArticleRoutes(); untuk artikel TERJADWAL
+   tidak ada yang memicu apa pun saat waktunya tiba — sitemapnya akan tetap
+   memuat daftar lama sampai deploy berikutnya, entah kapan.
+   Sejam sudah cukup: perayap tidak butuh kesegaran per-menit, dan
+   penemuan artikel tidak bergantung pada sitemap saja. */
+export const revalidate = 3600
+
 const BASE_URL = 'https://rekaciptaindonesia.com'
 
 async function getProductDetailUrls(): Promise<MetadataRoute.Sitemap> {

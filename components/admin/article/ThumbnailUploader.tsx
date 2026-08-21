@@ -11,6 +11,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { ImageUp, Loader2, RotateCcw } from 'lucide-react'
 import { uploadArticleThumbnail, ApiFetchError } from '@/lib/api'
+import { compressImage } from '@/lib/image-compress'
 import { revalidateArticleRoutes } from '@/app/actions/articles'
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -51,7 +52,10 @@ export function ThumbnailUploader({
     setState({ status: 'uploading', percent: 0 })
 
     try {
-      const response = await uploadArticleThumbnail(articleId, file, (percent) => {
+      // Thumbnail tampil maksimal selebar kartu artikel; 1600px sudah lebih
+      // dari cukup untuk layar retina.
+      const { file: upload } = await compressImage(file, { maxDimension: 1600 })
+      const response = await uploadArticleThumbnail(articleId, upload, (percent) => {
         setState({ status: 'uploading', percent })
       })
       onUploadSuccess(response.article.thumbnail_url!)

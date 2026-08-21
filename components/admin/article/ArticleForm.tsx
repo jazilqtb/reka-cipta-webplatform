@@ -34,11 +34,17 @@ import { CircleNotchIcon, LinkSimpleIcon, WarningCircleIcon } from '@phosphor-ic
 import { articleFormSchema, type ArticleFormData } from '@/lib/validation/article-schema'
 import { ARTICLE_CATEGORY_OPTIONS } from '@/constants/articleCategories'
 import { slugifyTitle } from '@/lib/slugify'
-import { createArticle, updateArticle, ApiFetchError } from '@/lib/api'
+import { createArticle, toggleArticlePublish, updateArticle, ApiFetchError } from '@/lib/api'
 import { revalidateArticleRoutes } from '@/app/actions/articles'
 import { RichTextEditor } from '@/components/admin/article/RichTextEditor'
 import { ThumbnailUploader } from '@/components/admin/article/ThumbnailUploader'
 import { InfoHint } from '@/components/admin/ui/InfoHint'
+import {
+  fromLocalInputValue,
+  publishState,
+  toLocalInputValue,
+  type PublishState,
+} from '@/lib/publish-schedule'
 import type { ArticleAdmin } from '@/types/api'
 
 // Batas TAMPILAN hasil pencarian, bukan batas simpan. Google memotong yang
@@ -52,9 +58,21 @@ interface ArticleFormProps {
   initialData?: ArticleAdmin
 }
 
+const PUBLISH_MODE_HINT: Record<PublishState, string> = {
+  draft: 'Simpan sebagai draf — tidak tampil di mana pun',
+  published: 'Terbitkan sekarang',
+  scheduled: 'Jadwalkan — terbit sendiri saat waktunya tiba',
+}
+
 export function ArticleForm({ mode, initialData }: ArticleFormProps) {
   const router = useRouter()
-  const [isPublishChecked, setIsPublishChecked] = useState(initialData?.is_published ?? false)
+  // POIN 11 — tiga keadaan terbit, bukan dua. Lihat lib/publish-schedule.ts
+  // untuk alasan "terjadwal" dipisah dari "terbit".
+  const [publishMode, setPublishMode] = useState<PublishState>(
+    publishState(initialData?.is_published ?? false, initialData?.published_at)
+  )
+  const [scheduleAt, setScheduleAt] = useState(toLocalInputValue(initialData?.published_at))
+  const isPublishChecked = publishMode !== 'draft'
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialData?.thumbnail_url ?? null)
   const [slugUnlocked, setSlugUnlocked] = useState(false)
   const wasPublished = initialData?.is_published ?? false
@@ -116,15 +134,40 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
     return out
   }
 
+  const initialMode = publishState(initialData?.is_published ?? false, initialData?.published_at)
+  const scheduleChanged =
+    publishMode !== initialMode ||
+    (publishMode === 'scheduled' && scheduleAt !== toLocalInputValue(initialData?.published_at))
+
   async function onSubmit(raw: ArticleFormData) {
     const values = nullifyBlanks(raw)
+    if (publishMode === 'scheduled' && !fromLocalInputValue(scheduleAt)) {
+      toast.error('Tentukan dulu kapan artikel ini tayang')
+      return
+    }
     try {
       if (mode === 'create') {
-        const { article } = await createArticle({ ...values, is_published: isPublishChecked })
+        const { article } = await createArticle({
+          ...values,
+          is_published: isPublishChecked,
+          published_at: publishMode === 'scheduled' ? fromLocalInputValue(scheduleAt) : null,
+        })
         await revalidateArticleRoutes(article.slug)
         toast.success('Artikel berhasil dibuat')
       } else {
         const { article } = await updateArticle(initialData!.id, values)
+        // updateArticle sengaja tidak menyentuh status terbit (kontrak
+        // lama, backend/routers/articles.py). Jadwal karenanya dikirim
+        // lewat endpoint publish — panggilan kedua, hanya kalau jadwalnya
+        // memang berubah, supaya menyimpan perubahan judul saja tidak
+        // diam-diam menerbitkan artikel yang masih draf.
+        if (scheduleChanged) {
+          await toggleArticlePublish(initialData!.id, {
+            is_published: isPublishChecked,
+            published_at:
+              publishMode === 'scheduled' ? fromLocalInputValue(scheduleAt) : null,
+          })
+        }
         await revalidateArticleRoutes(article.slug)
         toast.success('Perubahan disimpan')
       }
@@ -210,18 +253,49 @@ export function ArticleForm({ mode, initialData }: ArticleFormProps) {
               </select>
             </div>
 
-            {mode === 'create' && (
-              <label className="flex items-start gap-2 text-xs text-neutral-600">
-                <input
-                  type="checkbox"
-                  checked={isPublishChecked}
-                  onChange={(e) => setIsPublishChecked(e.target.checked)}
-                  disabled={isSubmitting}
-                  className="mt-0.5"
-                />
-                Terbitkan sekarang — kalau tidak dicentang, tersimpan sebagai draf
-              </label>
-            )}
+            <div className="space-y-2">
+              <span className="font-ui text-xs font-medium text-ink-700">Status terbit</span>
+              <div className="space-y-1.5">
+                {(['draft', 'published', 'scheduled'] as const).map((m) => (
+                  <label key={m} className="flex items-start gap-2 text-xs text-neutral-600">
+                    <input
+                      type="radio"
+                      name="publishMode"
+                      checked={publishMode === m}
+                      onChange={() => setPublishMode(m)}
+                      disabled={isSubmitting}
+                      className="mt-0.5"
+                    />
+                    {PUBLISH_MODE_HINT[m]}
+                  </label>
+                ))}
+              </div>
+
+              {publishMode === 'scheduled' && (
+                <div className="space-y-1.5 rounded-xl bg-neutral-50 p-2.5">
+                  <label htmlFor="scheduleAt" className="font-ui text-xs font-medium text-ink-700">
+                    Tayang mulai
+                  </label>
+                  <input
+                    id="scheduleAt"
+                    type="datetime-local"
+                    value={scheduleAt}
+                    onChange={(e) => setScheduleAt(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-9 w-full rounded-xl border border-ink-900/10 bg-white px-2.5 text-sm text-ink-700 focus-visible:shadow-focus focus-visible:outline-none"
+                  />
+                  <p className="text-xs leading-snug text-neutral-500">
+                    Waktu perangkat ini. Sebelum jam tersebut artikel tidak bisa dibuka
+                    siapa pun dan tidak muncul di sitemap — termasuk lewat tautan langsung.
+                  </p>
+                  {publishMode === 'scheduled' && !scheduleAt && (
+                    <p className="text-xs font-medium text-danger-700">
+                      Isi tanggal dan jamnya dulu.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </Panel>
 

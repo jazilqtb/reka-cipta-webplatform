@@ -55,6 +55,11 @@ class ArticleCreateRequest(BaseModel):
     meta_title: Optional[str] = Field(default=None, max_length=200)
     canonical_url: Optional[str] = Field(default=None, max_length=500)
     is_published: bool = False
+    # CP5 ronde 3 — penjadwalan. NULL = terbit begitu is_published true.
+    # Nilai di masa depan = terjadwal; RLS (migrasi 20260822110000) yang
+    # menyembunyikan barisnya dari peran anon sampai waktunya lewat, jadi
+    # tidak ada cron dan tidak ada state "menunggu" yang bisa nyangkut.
+    published_at: Optional[datetime] = None
 
     @field_validator("category")
     def validate_category(cls, v: str) -> str:
@@ -84,6 +89,11 @@ class ArticleUpdateRequest(BaseModel):
 class ArticlePublishRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     is_published: bool
+    # Kalau diisi, ia MENGGANTI published_at yang ada — inilah cara mengubah
+    # jadwal artikel yang sudah dijadwalkan. Dibedakan dari tidak-diisi
+    # (None) yang mempertahankan perilaku lama: set sekali saat terbit
+    # pertama, dan tidak pernah di-reset oleh unpublish→publish.
+    published_at: Optional[datetime] = None
 
 
 class ArticleDetailResponse(BaseModel):

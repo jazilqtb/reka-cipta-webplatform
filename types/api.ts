@@ -490,6 +490,9 @@ export interface ArticleCreateRequest {
   meta_title: string | null
   canonical_url: string | null
   is_published: boolean
+  /** ISO ber-offset. NULL/kosong = terbit sekarang. Nilai di masa depan =
+   *  terjadwal — cermin `published_at` di backend/schemas/article.py. */
+  published_at?: string | null
 }
 
 export interface ArticleUpdateRequest {
@@ -504,6 +507,8 @@ export interface ArticleUpdateRequest {
 
 export interface ArticlePublishRequest {
   is_published: boolean
+  /** Kalau diisi, MENGGANTI jadwal yang ada. Cermin backend. */
+  published_at?: string | null
 }
 
 export interface ArticleDetailResponse {

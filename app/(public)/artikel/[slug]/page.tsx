@@ -41,7 +41,24 @@ import { getArticleExcerpt } from '@/lib/article-excerpt'
  *  ketiganya tidak bisa berselisih. */
 const SITE_URL = 'https://rekaciptaindonesia.com'
 
-export const revalidate = 3600
+/* POIN 11 — 3600 -> 300, disamakan dengan /artikel.
+ *
+ * Penjadwalan bekerja di RLS, tapi RLS tidak bisa membatalkan halaman yang
+ * sudah terlanjur di-cache. Dengan dua nilai berbeda, daftar artikel
+ * (revalidate 300) akan menampilkan artikel terjadwal hingga 55 menit
+ * sebelum halaman detailnya berhenti mengembalikan 404 — persis keluhan
+ * "artikelnya ada di daftar tapi diklik malah hilang", dan admin tidak
+ * punya cara membedakannya dari kerusakan sungguhan.
+ *
+ * Disamakan berarti jeda maksimumnya seragam 5 menit di kedua permukaan.
+ * Ongkosnya: regenerasi latar belakang 12x lebih sering untuk halaman yang
+ * isinya jarang berubah. Untuk jumlah artikel di situs ini itu tidak
+ * terukur; kalau suatu saat artikelnya ratusan, angka ini yang pertama
+ * perlu ditinjau ulang.
+ *
+ * Ini jeda, bukan kebocoran: selama 5 menit itu yang tampil adalah 404,
+ * bukan artikelnya. Arah salahnya aman. */
+export const revalidate = 300
 
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const supabase = createPublic()
