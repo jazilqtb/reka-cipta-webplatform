@@ -11,7 +11,7 @@ dilanjutkan kalau sesi terputus. Branch: `feature/OPT-CP0-design-system`.
 | CP3 | CMS hero + statistik dinamis (2, 3) | **SELESAI** |
 | CP4 | Tentang Kami + CMS-nya (11) | **SELESAI** |
 | CP5 | Halaman publik lain (12, 13) | **SELESAI** |
-| CP6 | Admin: CORS LAN + pembersihan UI (14, 15, 16) | belum |
+| CP6 | Admin: CORS LAN + pembersihan UI (14, 15, 16) | **SELESAI** |
 
 ## CP0 — SELESAI
 
@@ -149,3 +149,28 @@ dapat 132px sementara teksnya butuh ~155px. BUKAN font-size/word-break.
 Sesudah: satu baris di 414/768/1024/1440 (terukur).
 
 DESIGN-SYSTEM: §4.6 pagination.
+
+## CP6 — SELESAI
+
+**14 CORS LAN (prioritas tertinggi).** HIPOTESIS TERBUKTI sebelum kode
+diubah: OPTIONS dari http://192.168.0.113:3000 -> 400, dari
+http://localhost:3001 -> 200.
+Perbaikan: `allow_origin_regex` untuk blok privat RFC1918 + loopback,
+AKTIF HANYA di luar produksi (`ENVIRONMENT != production`). Nol wildcard.
+Matriks terverifikasi:
+  DEV : 192.168.x=200 · 10.x=200 · localhost=200 · 8.8.8.8=400 · domain jahat=400
+  PROD: 192.168.x=400 · localhost=200
+Bug tambahan yang ketahuan saat menguji: `logger` dipakai sebelum
+didefinisikan -> backend gagal start. Diperbaiki.
+Pesan error: `TypeError: Failed to fetch` kini dipetakan ke status 0 dan
+varian AdminState baru `blocked` yang menyebut DUA kemungkinan (jaringan
+ATAU origin ditolak), bukan menebak "periksa koneksi".
+
+**15 email-templates.** Dua editor (Email + WhatsApp) dirombak ke pola form
+admin yang sama: fieldset bernomor, label eksplisit, chip placeholder
+diberi kalimat penjelas, pratinjau menyebut data contoh, dan aksi merusak
+diturunkan jadi tautan teks terpisah garis.
+
+**16 ikon lonceng DIHAPUS** beserta impornya — bukan disembunyikan.
+
+DESIGN-SYSTEM: §4.7 pola form admin, §4.8 varian AdminState (blocked).

@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
+import { AdminCard } from '@/components/admin/ui/AdminPrimitives'
 
 const SAMPLE_CONTEXT: Record<string, string> = {
   full_name: 'Budi Santoso',
@@ -147,13 +148,21 @@ export function EmailTemplateEditor() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8">
-      <h2 className="text-lg font-semibold text-ink-700">Email Konfirmasi RFQ</h2>
+    /* POIN 15 (2026-08-21) — disamakan dengan pola form admin (§4.7).
+       Perubahan yang sama dengan editor WhatsApp: chip placeholder diberi
+       kalimat penjelas (dulu ia deretan kotak tanpa petunjuk bahwa bisa
+       diklik), dan aksi merusak dipisah dari aksi menyimpan. */
+    <AdminCard className="p-4 md:p-6">
+      <h2 className="font-ui text-base font-semibold text-ink-700">Email Konfirmasi RFQ</h2>
       <p className="mt-1 text-sm text-neutral-500">
-        Dikirim otomatis ke customer setelah submit form Minta Penawaran.
+        Dikirim otomatis ke calon pembeli begitu form Minta Penawaran dikirim.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <p className="font-ui mt-4 mb-1.5 text-xs text-neutral-500">
+        Klik penanda untuk menyalin, lalu tempel di Subject atau Body. Saat email dikirim,
+        penanda diganti data lead yang sebenarnya.
+      </p>
+      <div className="flex flex-wrap gap-1.5">
         {template.available_placeholders.map((ph) => (
           <button
             key={ph}
@@ -162,8 +171,8 @@ export function EmailTemplateEditor() {
               navigator.clipboard?.writeText(ph)
               toast.success(`${ph} disalin`)
             }}
-            className="text-xs font-mono px-2 py-1 rounded-md bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors"
-            title="Klik untuk salin"
+            className="mono-tech rounded-sm border border-ink-900/10 bg-neutral-50 px-2 py-1 text-xs text-neutral-600 transition-colors hover:border-brand-teal-600/40 hover:text-brand-teal-700 focus-visible:shadow-focus focus-visible:outline-none"
+            title={`Salin ${ph}`}
           >
             {ph}
           </button>
@@ -199,20 +208,20 @@ export function EmailTemplateEditor() {
             />
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-900/[0.07] pt-4">
             <button
               type="button"
               onClick={handleReset}
               disabled={isSaving || isResetting}
-              className="h-10 px-4 rounded-md border border-danger-200 text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-ui text-sm font-medium text-neutral-500 underline-offset-4 transition-colors hover:text-danger-600 hover:underline focus-visible:shadow-focus focus-visible:outline-none disabled:opacity-50"
             >
-              {isResetting ? 'Mereset...' : 'Reset ke Default'}
+              {isResetting ? 'Mereset…' : 'Kembalikan ke template bawaan'}
             </button>
             <button
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="h-10 px-5 rounded-md bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none disabled:opacity-60"
             >
               {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
@@ -234,6 +243,6 @@ export function EmailTemplateEditor() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminCard>
   )
 }

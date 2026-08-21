@@ -35,10 +35,15 @@ export function SupplierListView() {
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  /* Permintaan yang tidak pernah SAMPAI ke server (CORS/jaringan) dibedakan
+     dari server yang menjawab galat — jalan keluarnya berbeda. Lihat
+     catatan di lib/api.ts. */
+  const [isBlocked, setIsBlocked] = useState(false)
 
   async function fetchSuppliers() {
     setIsLoading(true)
     setIsError(false)
+    setIsBlocked(false)
     try {
       const data = await listSuppliers(filters)
       setSuppliers(data.suppliers)
@@ -48,6 +53,7 @@ export function SupplierListView() {
         router.push('/admin/login')
         return
       }
+      setIsBlocked(err instanceof ApiFetchError && err.status === 0)
       setIsError(true)
     } finally {
       setIsLoading(false)
@@ -72,7 +78,7 @@ export function SupplierListView() {
         </div>
       ) : isError ? (
         <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-8 text-center">
-          <AdminState tone="error" title="Gagal memuat data supplier" description="Periksa koneksi lalu coba lagi." />
+          <AdminState tone={isBlocked ? 'blocked' : 'error'} title={isBlocked ? 'Permintaan tidak sampai ke server' : 'Gagal memuat data supplier'} description={isBlocked ? 'Jaringan terputus, atau alamat yang Anda pakai membuka panel ini belum diizinkan server — misalnya saat membuka dari ponsel lewat IP jaringan lokal.' : 'Server menolak permintaan ini. Coba lagi sebentar.'} />
           <button
             type="button"
             onClick={fetchSuppliers}

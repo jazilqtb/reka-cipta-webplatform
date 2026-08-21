@@ -23,16 +23,23 @@ import type { ReactNode } from 'react'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import {
   FileMagnifyingGlassIcon,
+  PlugsConnectedIcon,
   TrayIcon,
   WarningCircleIcon,
 } from '@phosphor-icons/react/ssr'
 
-type Tone = 'empty' | 'error' | 'missing'
+type Tone = 'empty' | 'error' | 'missing' | 'blocked'
 
 const TONE: Record<Tone, { icon: PhosphorIcon; ring: string; fg: string }> = {
   empty:   { icon: TrayIcon,               ring: 'bg-neutral-100', fg: 'text-neutral-500' },
   error:   { icon: WarningCircleIcon,      ring: 'bg-danger-50',   fg: 'text-danger-600' },
   missing: { icon: FileMagnifyingGlassIcon, ring: 'bg-neutral-100', fg: 'text-neutral-500' },
+  /* 'blocked' (2026-08-21) — permintaan tidak pernah SAMPAI ke server:
+     origin ditolak CORS, atau jaringan putus. Dipisah dari 'error' karena
+     jalan keluarnya berbeda: 'error' minta dicoba lagi, 'blocked' minta
+     alamat/konfigurasi diperiksa. Menyuruh orang "coba lagi" pada
+     kegagalan CORS berarti menyuruhnya mengulang hal yang pasti gagal. */
+  blocked: { icon: PlugsConnectedIcon, ring: 'bg-warning-50', fg: 'text-warning-700' },
 }
 
 interface AdminStateProps {
@@ -55,7 +62,7 @@ export function AdminState({
   const { icon: Icon, ring, fg } = TONE[tone]
   return (
     <div
-      role={tone === 'error' ? 'alert' : undefined}
+      role={tone === 'error' || tone === 'blocked' ? 'alert' : undefined}
       className={['flex flex-col items-center justify-center px-6 py-10 text-center', className]
         .filter(Boolean)
         .join(' ')}

@@ -475,6 +475,59 @@ per halaman.
 Halaman kedua dan seterusnya memakai judul `— Halaman N` agar tidak
 bertabrakan sebagai judul duplikat di hasil pencarian.
 
+## 4.8 Varian keadaan admin (`AdminState`)
+
+Empat nada. Ketiganya yang pertama ditetapkan sebelumnya; `blocked`
+ditambahkan 2026-08-21.
+
+| Nada | Artinya | Jalan keluar yang ditawarkan |
+|---|---|---|
+| `empty` | Sistem sehat, datanya memang belum ada | Tidak ada — netral |
+| `error` | Server MENJAWAB dengan galat | "Coba lagi" (primary) |
+| `missing` | Alamatnya salah atau basi | "Kembali ke daftar" |
+| `blocked` | Permintaan **tidak pernah sampai** ke server | "Coba lagi" (sekunder) + penjelasan alamat |
+
+**Kenapa `blocked` dipisah dari `error`.** `TypeError: Failed to fetch`
+adalah satu pesan untuk beberapa kegagalan yang sangat berbeda: server mati,
+jaringan putus, **dan preflight CORS ditolak**. Browser sengaja tidak
+membedakannya demi keamanan. Selama ini semuanya ditampilkan sebagai
+"periksa koneksi" — dan itu menyesatkan: saat panel dibuka dari ponsel lewat
+IP jaringan lokal, koneksinya baik-baik saja; yang ditolak adalah origin-nya.
+Pesan yang salah membuat orang mencari masalah di tempat yang salah.
+
+Karena browser tidak memberi tahu yang mana, teksnya **menyebut kedua
+kemungkinan** alih-alih menebak satu. Dan tombolnya diturunkan ke sekunder:
+menyuruh orang "coba lagi" pada kegagalan CORS berarti menyuruhnya
+mengulang hal yang pasti gagal.
+
+## 4.7 Pola form admin
+
+Ditetapkan 2026-08-21 setelah `/admin/email-templates` dinilai "tidak
+profesional". Yang ditemukan bukan satu cacat besar melainkan lima kecil
+yang menumpuk — dan semuanya berulang di form admin lain, sehingga polanya
+ditulis di sini agar form berikutnya tidak lahir ad-hoc lagi.
+
+**Aturan:**
+
+1. **Kelompokkan dengan `<fieldset>` + `<legend>`.** Bukan kosmetik:
+   pembaca layar mengumumkan `legend` saat fokus masuk ke grup, jadi
+   pengelompokannya ikut terdengar. Beri nomor kalau grupnya adalah
+   **langkah** (`1 · Status lead`), jangan diberi nomor kalau hanya kategori.
+2. **Setiap kontrol punya `<label>` yang terlihat**, bukan hanya kalimat
+   pengantar di kepala kartu. Label yang jauh dari kolomnya sama saja
+   dengan tidak ada label.
+3. **Kontrol yang bisa diklik harus mengatakannya.** Chip placeholder dulu
+   tampil sebagai deretan kotak abu tanpa petunjuk apa pun bahwa mengkliknya
+   menyalin isinya.
+4. **Pratinjau menyebutkan datanya.** "Pratinjau" saja tidak cukup — sebut
+   bahwa penandanya sudah diganti data contoh, supaya tidak dikira teks asli.
+5. **Aksi merusak tidak setara dengan aksi menyimpan.** Simpan = tombol
+   primary. "Kembalikan ke bawaan" = tautan teks, dipisah garis, di sisi
+   berlawanan. Keduanya dulu tampil sebagai tombol berukuran sama, padahal
+   satu menyimpan pekerjaan dan satu membuangnya.
+6. Lebar kolom teks panjang mengikuti isinya: teks berformat (HTML,
+   template) memakai `font-mono`; kalimat biasa tidak.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**

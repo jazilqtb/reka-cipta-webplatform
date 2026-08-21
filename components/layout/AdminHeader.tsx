@@ -24,7 +24,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BellIcon, CaretRightIcon, ListIcon } from '@phosphor-icons/react/ssr'
+import { CaretRightIcon, ListIcon } from '@phosphor-icons/react/ssr'
 import { useAdminShell } from './AdminShell'
 
 interface AdminHeaderProps {
@@ -75,21 +75,13 @@ export function AdminHeader({ title, breadcrumb }: AdminHeaderProps) {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
-        {/* TODO-HARDCODE: tombol notifikasi belum terhubung ke sistem apa pun
-            — needs: keputusan Jazil apakah notifikasi in-app dibangun
-            (butuh tabel notifications + realtime channel) atau tombol ini
-            dihapus. Sengaja `disabled` agar tidak berpura-pura berfungsi. */}
-        <button
-          type="button"
-          disabled
-          title="Notifikasi belum tersedia"
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl text-neutral-300 transition-colors duration-100 disabled:cursor-not-allowed"
-          aria-label="Notifikasi (belum tersedia)"
-        >
-          <BellIcon size={20} weight="duotone" aria-hidden="true" />
-        </button>
-      </div>
+      {/* POIN 16 (2026-08-21) — tombol notifikasi DIHAPUS, bukan
+          disembunyikan. Ia `disabled` dengan judul "belum tersedia", yang
+          jujur, tapi kontrol mati di pojok kanan atas tetap menempati
+          tempat paling berharga di layar tanpa memberi apa pun. Kalau
+          notifikasi in-app benar-benar dibangun nanti, tombolnya dibuat
+          ulang bersama fiturnya — bukan diwariskan sebagai cangkang.
+          Impor BellIcon ikut dicabut supaya tidak ada kode mati tertinggal. */}
     </header>
   )
 }

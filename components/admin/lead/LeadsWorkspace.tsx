@@ -49,14 +49,16 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
 
   const [leads, setLeads] = useState<RFQLead[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  /* null = tidak ada galat · 'error' = server menjawab dengan galat ·
+     'blocked' = permintaan tidak pernah sampai ke server (CORS/jaringan) */
+  const [errorKind, setErrorKind] = useState<null | 'error' | 'blocked'>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchLeads = useCallback(async () => {
     setIsLoading(true)
-    setIsError(false)
+    setErrorKind(null)
     try {
       const data = await getLeads({ industry: industry || undefined, date_from: dateFrom })
       setLeads(data.leads)
@@ -65,7 +67,7 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
         router.push('/admin/login')
         return
       }
-      setIsError(true)
+      setErrorKind(err instanceof ApiFetchError && err.status === 0 ? 'blocked' : 'error')
     } finally {
       setIsLoading(false)
     }
@@ -152,15 +154,24 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
     )
   }
 
-  if (isError) {
+  if (errorKind) {
     return (
       <AdminCard>
-        <AdminState
-          tone="error"
-          title="Gagal memuat leads"
-          description="Periksa koneksi lalu coba lagi."
-          action={<button type="button" onClick={fetchLeads} className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none">Coba lagi</button>}
-        />
+        {errorKind === 'blocked' ? (
+          <AdminState
+            tone="blocked"
+            title="Permintaan tidak sampai ke server"
+            description="Ini bisa berarti jaringan terputus, ATAU alamat yang Anda pakai untuk membuka panel ini belum diizinkan server. Kalau Anda membuka dari ponsel lewat alamat IP jaringan lokal, itu penyebab yang paling mungkin."
+            action={<button type="button" onClick={fetchLeads} className="font-ui inline-flex h-9 items-center rounded-md border border-ink-900/15 px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-neutral-50 focus-visible:shadow-focus focus-visible:outline-none">Coba lagi</button>}
+          />
+        ) : (
+          <AdminState
+            tone="error"
+            title="Gagal memuat leads"
+            description="Server menolak permintaan ini. Coba lagi sebentar."
+            action={<button type="button" onClick={fetchLeads} className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none">Coba lagi</button>}
+          />
+        )}
       </AdminCard>
     )
   }

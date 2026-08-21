@@ -130,6 +130,23 @@ export async function apiFetch<T>(
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw new ApiFetchError('Permintaan timeout. Silakan coba lagi.', 408)
     }
+    /* `TypeError: Failed to fetch` adalah SATU pesan untuk beberapa
+     * kegagalan yang sangat berbeda: server mati, DNS salah, jaringan
+     * putus — DAN preflight CORS ditolak. Browser sengaja tidak
+     * membedakannya demi keamanan.
+     *
+     * Selama ini kegagalan itu ditampilkan sebagai "periksa koneksi", dan
+     * itu menyesatkan: saat /admin dibuka dari HP lewat IP jaringan lokal,
+     * koneksinya baik-baik saja — yang ditolak adalah origin-nya. Pesan
+     * yang salah membuat orang mencari masalah di tempat yang salah, dan
+     * itu persis yang terjadi pada laporan poin 14.
+     *
+     * Yang bisa kita lakukan dengan jujur adalah MENYEBUT KEDUA
+     * kemungkinan, bukan menebak satu. Kode 0 dipakai sebagai penanda
+     * "tidak pernah sampai ke server". */
+    if (err instanceof TypeError) {
+      throw new ApiFetchError('NETWORK_OR_CORS', 0)
+    }
     throw err
   }
 }

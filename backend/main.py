@@ -26,6 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+logger = logging.getLogger(__name__)
 
 # ── Sentry ───────────────────────────────────────────────────
 if settings.SENTRY_DSN:
@@ -60,9 +61,42 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # padahal origin-nya jelas terdaftar.
 allowed_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
 
+# ── Origin LAN untuk pengembangan ─────────────────────────────
+# GEJALA YANG DITUTUP: membuka /admin dari HP lewat IP jaringan lokal
+# (http://192.168.x.x:3000) membuat halaman melapor "gagal memuat, periksa
+# koneksi", padahal dari desktop lewat localhost normal. Penyebabnya BUKAN
+# koneksi: origin IP LAN tidak pernah terdaftar di ALLOWED_ORIGINS,
+# sementara localhost terdaftar, jadi preflight ditolak dan browser hanya
+# melaporkan "network error" tanpa menyebut CORS.
+# Terverifikasi sebelum perubahan ini: OPTIONS dari http://192.168.0.113:3000
+# -> 400, dari http://localhost:3001 -> 200.
+#
+# Regex ini HANYA aktif di luar produksi. Di produksi nilainya None, jadi
+# satu-satunya yang berlaku adalah daftar eksplisit di ALLOWED_ORIGINS —
+# tidak ada pelonggaran, apalagi wildcard.
+#
+# Cakupannya sengaja dibatasi ke tiga blok alamat privat RFC 1918 plus
+# loopback. Alamat privat tidak bisa dirutekan dari internet, jadi origin
+# yang cocok dengan pola ini pasti berasal dari jaringan yang sama dengan
+# mesin pengembangan.
+_LAN_ORIGIN_REGEX = (
+    r"^http://("
+    r"localhost"
+    r"|127\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+    r"|10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+    r"|192\.168\.\d{1,3}\.\d{1,3}"
+    r"|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}"
+    r")(:\d{1,5})?$"
+)
+lan_origin_regex = None if settings.ENVIRONMENT == "production" else _LAN_ORIGIN_REGEX
+
+if lan_origin_regex:
+    logger.info("CORS: origin LAN privat diizinkan (ENVIRONMENT=%s)", settings.ENVIRONMENT)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=lan_origin_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],

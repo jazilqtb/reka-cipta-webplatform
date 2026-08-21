@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { cn } from '@/lib/utils'
 import { AdminState } from '@/components/admin/ui/AdminState'
+import { AdminCard } from '@/components/admin/ui/AdminPrimitives'
 
 const SAMPLE_CONTEXT: Record<string, string> = {
   full_name: 'Budi Santoso',
@@ -143,84 +144,134 @@ export function WATemplateEditor() {
   const activeTemplate = templates[activeStatus]
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8">
-      <h2 className="text-lg font-semibold text-ink-700">Template Pesan WhatsApp</h2>
+    /* POIN 15 (2026-08-21) — tata letak dirombak.
+       Masalah versi lama, terukur bukan terasa:
+         - Tiga hal berbeda (pilih status, susun teks, lihat hasil) mengalir
+           tanpa pemisah apa pun, jadi tidak ada yang menandai mana LANGKAH
+           dan mana ALAT.
+         - Textarea tanpa <label>. Satu-satunya keterangan adalah kalimat di
+           bagian atas kartu, jauh dari kolomnya.
+         - Chip placeholder menempel di atas textarea tanpa penjelasan
+           bahwa ia bisa diklik untuk menyalin.
+         - Preview berlabel "Preview (data contoh)" tapi tidak pernah
+           menyebut data contoh mana yang dipakai.
+         - Tombol simpan dan "Reset ke Default" berdampingan dengan bobot
+           visual setara, padahal satu menyimpan dan satu MEMBUANG pekerjaan.
+       Sekarang: tiga <fieldset> bernomor, label eksplisit, dan aksi merusak
+       dipisah ke baris sendiri di bawah pemisah. */
+    <AdminCard className="p-4 md:p-6">
+      <h2 className="font-ui text-base font-semibold text-ink-700">Template Pesan WhatsApp</h2>
       <p className="mt-1 text-sm text-neutral-500">
-        Dipakai di modal &quot;Buat Pesan WA&quot; pada halaman detail lead (1 template per status).
+        Dipakai di tombol &quot;Buat Pesan WA&quot; pada detail lead. Satu template per status,
+        supaya pesan untuk lead baru tidak sama dengan pesan untuk lead yang sudah bernegosiasi.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {LEAD_STATUSES.map((status) => (
-          <button
-            key={status}
-            type="button"
-            onClick={() => handleSelectStatus(status)}
-            className={cn(
-              'h-8 px-3 rounded-full text-xs font-medium transition-colors',
-              activeStatus === status
-                ? 'bg-brand-teal-600 text-white'
-                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-            )}
-          >
-            {LABEL_MAP[status]}
-          </button>
-        ))}
-      </div>
+      <div className="mt-6 space-y-6">
+        {/* ── 1. Pilih status ── */}
+        <fieldset>
+          <legend className="font-ui mb-2 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            1 · Status lead
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {LEAD_STATUSES.map((status) => (
+              <button
+                key={status}
+                type="button"
+                onClick={() => handleSelectStatus(status)}
+                aria-pressed={activeStatus === status}
+                className={cn(
+                  'font-ui h-8 rounded-md px-3 text-xs font-medium transition-colors focus-visible:shadow-focus focus-visible:outline-none',
+                  activeStatus === status
+                    ? 'bg-brand-teal-600 text-white'
+                    : 'border border-ink-900/12 text-neutral-600 hover:bg-neutral-50'
+                )}
+              >
+                {LABEL_MAP[status]}
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          {activeTemplate && (
-            <div className="flex flex-wrap gap-1.5">
-              {activeTemplate.available_placeholders.map((ph) => (
-                <button
-                  key={ph}
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(ph)
-                    toast.success(`${ph} disalin`)
-                  }}
-                  className="text-xs font-mono px-2 py-1 rounded-md bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors"
-                  title="Klik untuk salin"
-                >
-                  {ph}
-                </button>
-              ))}
+        {/* ── 2. Susun pesan ── */}
+        <fieldset>
+          <legend className="font-ui mb-2 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            2 · Isi pesan
+          </legend>
+
+          {activeTemplate && activeTemplate.available_placeholders.length > 0 && (
+            <div className="mb-3">
+              <p className="font-ui mb-1.5 text-xs text-neutral-500">
+                Klik untuk menyalin, lalu tempel di posisi yang Anda inginkan. Saat pesan
+                dibuat, penanda ini diganti data lead yang sebenarnya.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {activeTemplate.available_placeholders.map((ph) => (
+                  <button
+                    key={ph}
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(ph)
+                      toast.success(`${ph} disalin`)
+                    }}
+                    className="mono-tech rounded-sm border border-ink-900/10 bg-neutral-50 px-2 py-1 text-xs text-neutral-600 transition-colors hover:border-brand-teal-600/40 hover:text-brand-teal-700 focus-visible:shadow-focus focus-visible:outline-none"
+                    title={`Salin ${ph}`}
+                  >
+                    {ph}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
+
+          <label htmlFor="wa-template-body" className="font-ui mb-1.5 block text-sm font-medium text-ink-700">
+            Teks template
+          </label>
           <Textarea
+            id="wa-template-body"
             value={draftText}
             onChange={(e) => setDraftText(e.target.value)}
-            rows={12}
+            rows={10}
             disabled={isSaving}
-            className="text-sm"
+            className="font-mono text-sm leading-relaxed"
           />
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={isSaving || isResetting}
-              className="h-10 px-4 rounded-md border border-danger-200 text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isResetting ? 'Mereset...' : 'Reset ke Default'}
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="h-10 px-5 rounded-md bg-brand-teal-600 text-white text-sm font-semibold hover:bg-brand-teal-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </button>
-          </div>
-        </div>
+        </fieldset>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Preview (data contoh)</label>
-          <div className="w-full h-full min-h-[280px] border border-neutral-200 rounded-md bg-neutral-50 p-4 text-sm text-neutral-700 whitespace-pre-wrap">
+        {/* ── 3. Pratinjau ── */}
+        <fieldset>
+          <legend className="font-ui mb-2 w-full border-b border-ink-900/[0.07] pb-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+            3 · Pratinjau
+          </legend>
+          <p className="font-ui mb-2 text-xs text-neutral-500">
+            Penanda di atas sudah diganti data contoh, jadi yang terbaca di sini adalah
+            bentuk pesan yang benar-benar diterima calon pembeli.
+          </p>
+          <div className="whitespace-pre-wrap rounded-md border border-ink-900/[0.09] bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700">
             {renderPreview(draftText)}
           </div>
-        </div>
+        </fieldset>
       </div>
-    </div>
+
+      {/* Simpan dipisah dari Reset oleh garis, dan Reset diturunkan bobotnya
+          jadi tautan teks: keduanya dulu tampil sebagai tombol setara,
+          padahal satu menyimpan pekerjaan dan satu membuangnya. */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-ink-900/[0.07] pt-4">
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={isSaving || isResetting}
+          className="font-ui text-sm font-medium text-neutral-500 underline-offset-4 transition-colors hover:text-danger-600 hover:underline focus-visible:shadow-focus focus-visible:outline-none disabled:opacity-50"
+        >
+          {isResetting ? 'Mereset…' : 'Kembalikan ke template bawaan'}
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="font-ui inline-flex h-9 items-center rounded-md bg-brand-teal-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-teal-500 focus-visible:shadow-focus focus-visible:outline-none disabled:opacity-60"
+        >
+          {isSaving ? 'Menyimpan…' : 'Simpan perubahan'}
+        </button>
+      </div>
+    </AdminCard>
   )
 }
