@@ -12,6 +12,8 @@
 // tambahan `weight="duotone"`.
 
 import {
+  LayoutIcon,
+  BuildingsIcon,
   SquaresFourIcon,      // Dashboard
   ClipboardTextIcon,    // Leads & RFQ
   PlantIcon,            // Supplier
@@ -38,6 +40,15 @@ export const ADMIN_NAV_MAIN: AdminNavItem[] = [
   { label: 'Produk',       href: '/admin/products',   icon: PackageIcon,       matchExact: false },
 ] as const
 
+/* Kelompok baru (CP3/CP4, 2026-08-21): permukaan konten situs publik yang
+   kini bisa disunting non-teknis. Dipisah dari MENU UTAMA — yang di atas
+   adalah pekerjaan harian (lead masuk, artikel terbit), yang di sini
+   diubah sesekali dan dampaknya langsung terlihat pengunjung. */
+export const ADMIN_NAV_CONTENT: AdminNavItem[] = [
+  { label: 'Hero Beranda', href: '/admin/hero',         icon: LayoutIcon, matchExact: true },
+  { label: 'Tentang Kami', href: '/admin/tentang-kami', icon: BuildingsIcon, matchExact: true },
+] as const
+
 // Epic 4B Slice 3A/3B — implemented ahead of Slice 3 trigger criteria
 // (task breakdown "Trigger Criteria"), lihat catatan di PromptEditor.tsx.
 export const ADMIN_NAV_SETTINGS: AdminNavItem[] = [
@@ -55,4 +66,6 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/settings':           'Pengaturan',
   '/admin/proposal-settings':  'Pengaturan Proposal',
   '/admin/email-templates':    'Template Pesan',
+  '/admin/hero':               'Hero Beranda',
+  '/admin/tentang-kami':       'Tentang Kami',
 }

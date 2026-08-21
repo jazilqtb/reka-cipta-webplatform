@@ -370,6 +370,52 @@ lengkungannya, bukan ruangnya.
 **Dilarang:** pembatas melengkung, bergelombang, miring, atau berbentuk apa
 pun selain garis lurus — lihat §9 anti-pattern #15.
 
+## 4.3 Permukaan yang bisa disunting non-teknis (CMS)
+
+Ditetapkan 2026-08-21. Daftar ini **tertutup**: apa pun yang tidak tercantum
+di sini tidak boleh dibuka ke CMS tanpa menambahkannya dulu ke dokumen ini.
+
+| Permukaan | Yang bisa diubah | Yang TIDAK bisa diubah |
+|---|---|---|
+| Hero beranda | Teks headline & sub-headline; label gaya per potongan | Ukuran, jenis huruf, tata letak, warna sebagai nilai |
+| Angka statistik hero | Angka **dasar** tiap statistik | Label, urutan, cara angka dinamisnya dihitung |
+
+### Gaya yang diekspos, dan kenapa hanya empat
+
+`Biasa` · `Tebal` · `Miring` · `Warna utama`
+
+Admin memilih **peran**, bukan nilai. Tidak ada color picker, dan itu
+keputusan yang disengaja: kebebasan warna di CMS adalah cara tercepat
+sistem desain ini runtuh lagi. Dalam tiga bulan akan ada empat biru yang
+hampir sama, satu merah yang bukan `danger`, dan tak seorang pun tahu mana
+yang benar.
+
+Karena yang tersimpan adalah peran, pergantian hue primary dari teal ke
+marine (§2.2) **tidak menyentuh satu pun konten tersimpan** — "Warna utama"
+tetap berarti warna utama.
+
+### AMANDEMEN §3.4 — italic di CMS
+
+§3.4 menyatakan "tidak ada italic dekoratif; italic hanya untuk kutipan dan
+istilah asing". `Miring` tetap diekspos ke CMS karena istilah asing memang
+sering muncul di kalimat hero (*food grade*, *water treatment*), dan itu
+justru pemakaian yang sah menurut §3.4. Petunjuk di panel admin menyebutkan
+batas itu. Yang tidak bisa dicegah oleh sistem adalah admin memakainya untuk
+menekankan — itu risiko yang diterima sadar, dan `Tebal` disediakan sebagai
+jalan yang lebih benar untuk penekanan.
+
+### Bentuk penyimpanan
+
+Deret potongan `{ text, style }` di kolom JSONB — **bukan HTML**. Teks admin
+tidak pernah ditafsirkan sebagai markup: ia dirender sebagai text node dan
+`style` dicocokkan ke daftar tetap. Ini lebih kuat daripada menyimpan HTML
+lalu menyaringnya, karena tidak ada penyaring yang bisa gagal — tidak pernah
+ada HTML.
+
+Batas panjang ditegakkan **tiga kali**: di form, di Server Action, dan di
+`CHECK` constraint tabel. Masing-masing melindungi jalur masuk yang berbeda;
+form bisa dilewati, action bisa dipanggil langsung, tabel tidak bisa dihindari.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**

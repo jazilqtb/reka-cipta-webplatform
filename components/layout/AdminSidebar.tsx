@@ -26,7 +26,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import { Logo } from '@/components/brand/Logo'
 import { createClient } from '@/lib/supabase/client'
-import { ADMIN_NAV_MAIN, ADMIN_NAV_SETTINGS, type AdminNavItem } from '@/constants/adminNavigation'
+import { ADMIN_NAV_MAIN, ADMIN_NAV_CONTENT, ADMIN_NAV_SETTINGS, type AdminNavItem } from '@/constants/adminNavigation'
 
 interface AdminSidebarProps {
   userEmail: string
@@ -126,6 +126,7 @@ export function AdminSidebar({
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Menu admin">
           <NavGroup label="Menu Utama" items={ADMIN_NAV_MAIN} pathname={pathname} collapsed={collapsed} onNavigate={onCloseMobile} />
+          <NavGroup label="Konten Situs" items={ADMIN_NAV_CONTENT} pathname={pathname} collapsed={collapsed} onNavigate={onCloseMobile} />
           <NavGroup label="Pengaturan" items={ADMIN_NAV_SETTINGS} pathname={pathname} collapsed={collapsed} onNavigate={onCloseMobile} />
         </nav>
 

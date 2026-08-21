@@ -8,7 +8,7 @@ dilanjutkan kalau sesi terputus. Branch: `feature/OPT-CP0-design-system`.
 | CP0 | Revisi design system (hue, marquee, tipografi) | **SELESAI** |
 | CP1 | Beranda: bug interaksi & layout mobile (5A, 5B, 6, 17) | **SELESAI** |
 | CP2 | Beranda: konten, divider, footer (2A, 7, 8, 9, 10) | **SELESAI** |
-| CP3 | CMS hero + statistik dinamis (2, 3) | belum |
+| CP3 | CMS hero + statistik dinamis (2, 3) | **SELESAI** |
 | CP4 | Tentang Kami + CMS-nya (11) | belum |
 | CP5 | Halaman publik lain (12, 13) | belum |
 | CP6 | Admin: CORS LAN + pembersihan UI (14, 15, 16) | belum |
@@ -86,3 +86,25 @@ dan §2.5 sekaligus. Diseragamkan ke satu permukaan steel-900.
 
 Tinggi beranda mobile: 6509px -> 5961px.
 DESIGN-SYSTEM: §4.2 (pembatas), anti-pattern #15.
+
+## CP3 — SELESAI
+
+**Tabel baru:** `hero_content` (migrasi 20260821090000, SUDAH di-push ke
+Supabase). Singleton dipaksa lewat PK boolean + CHECK. RLS: publik baca,
+tulis hanya `public.is_admin()`.
+
+**Editor** `/admin/hero` — pratinjau langsung memakai KELAS YANG SAMA dengan
+halaman publik. Tanpa color picker: admin memilih PERAN (Biasa/Tebal/
+Miring/Warna utama), bukan nilai. Batas panjang ditegakkan 3 lapis (form,
+Server Action, CHECK constraint).
+
+**Statistik** — baseline dari admin + dinamis dari data nyata:
+  Jenis Garam   -> COUNT(products WHERE is_active)      [terbukti +5]
+  Mitra Aktif   -> COUNT(rfq_leads WHERE status='deal')
+  Kota Dilayani -> COUNT(DISTINCT delivery_city, deal)
+  Ton Distribusi-> TIDAK DIPETAKAN (dinyatakan "belum ada sumber")
+
+**Uji fungsional end-to-end LULUS:** simpan di admin -> "Hero diperbarui"
+-> teks muncul di H1 halaman publik -> dipulihkan.
+
+DESIGN-SYSTEM: §4.3 permukaan CMS + amandemen §3.4 (italic).

@@ -3,7 +3,8 @@
 // Homepage redesign (2026-08): menerima `settings` untuk trust-strip
 // inline di HeroCarousel (pengganti StatsBar sebagai section terpisah).
 import { HeroCarousel, type HeroSlide } from './HeroCarousel'
-import type { CompanySettingsMap } from '@/types/api'
+import type { HeroContent } from '@/lib/hero-content'
+import type { HeroStat } from '@/lib/data/hero'
 
 const HERO_SLIDES: HeroSlide[] = [
   { src: '/images/hero/hero-1.jpg', alt: 'Produk garam industri CV Reka Cipta Indonesia' },
@@ -13,9 +14,10 @@ const HERO_SLIDES: HeroSlide[] = [
 ]
 
 interface HeroSectionProps {
-  settings: CompanySettingsMap
+  hero: HeroContent
+  stats: HeroStat[]
 }
 
-export function HeroSection({ settings }: HeroSectionProps) {
-  return <HeroCarousel slides={HERO_SLIDES} settings={settings} />
+export function HeroSection({ hero, stats }: HeroSectionProps) {
+  return <HeroCarousel slides={HERO_SLIDES} hero={hero} stats={stats} />
 }

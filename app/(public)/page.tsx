@@ -22,6 +22,7 @@ import { ArticlesPreview } from '@/components/sections/ArticlesPreview'
 import { StructuredData } from '@/components/seo/StructuredData'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { getLatestArticles } from '@/lib/data/articles'
+import { getHeroContent, getHeroStats } from '@/lib/data/hero'
 
 // Semua placeholder Fase 6–7 sudah diganti komponen asli.
 // File _sections-placeholder.tsx akan dihapus di Fase 8 (E2-S1-FE-09).
@@ -119,11 +120,15 @@ export default async function BerandaPage() {
   // di ArticlesPreview.tsx), jadi datanya tidak lagi dipakai. Fungsinya
   // sendiri TIDAK dihapus dari lib/data/articles.ts (masih valid utk
   // konteks lain), hanya tidak lagi dipanggil dari homepage.
-  const [settings, products, articles] = await Promise.all([
+  const [settings, products, articles, hero] = await Promise.all([
     getCompanySettings(),
     getProductsPreview(),
     getLatestArticles(3),
+    getHeroContent(),
   ])
+  // Statistik butuh `settings` (baseline dari admin), jadi menyusul —
+  // bukan di dalam Promise.all di atas.
+  const heroStats = await getHeroStats(settings)
 
   // Urutan section — RONDE 5 (2026-08), restrukturasi homepage
   // (senior-ui-ux-orchestrator), tetap mengikuti hierarki pesan wajib
@@ -149,7 +154,7 @@ export default async function BerandaPage() {
   return (
     <>
       <StructuredData settings={settings} products={products} />
-      <HeroSection settings={settings} />
+      <HeroSection hero={hero} stats={heroStats} />
       <ProductsPreview products={products} />
       <CredibilitySection />
       <IndustriesGrid />

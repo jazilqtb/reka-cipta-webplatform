@@ -42,7 +42,8 @@ import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { buttonVariants } from '@/components/ui/button'
 import { AnimatedCounter } from '@/components/animations/AnimatedCounter'
 import { cn } from '@/lib/utils'
-import type { CompanySettingsMap } from '@/types/api'
+import { heroStyleClass, type HeroContent } from '@/lib/hero-content'
+import { heroStatTotal, type HeroStat } from '@/lib/data/hero'
 
 export interface HeroSlide {
   src: string
@@ -51,16 +52,15 @@ export interface HeroSlide {
 
 interface HeroCarouselProps {
   slides: HeroSlide[]
-  settings: CompanySettingsMap
+  /** Konten hero dari CMS (CP3). Dirender sebagai text node — teks admin
+   *  tidak pernah ditafsirkan sebagai markup. */
+  hero: HeroContent
+  /** Statistik: baseline dari admin + tambahan dari data nyata. */
+  stats: HeroStat[]
   autoPlayMs?: number
 }
 
-const FALLBACK = { partner_count: 6, cities_served: 9, total_distribution_tons: 353 }
 
-function toNumber(raw: string | undefined, fallback: number): number {
-  const n = Number.parseInt((raw ?? '').trim(), 10)
-  return Number.isFinite(n) && n >= 0 ? n : fallback
-}
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const
 const container = {
@@ -72,7 +72,7 @@ const item = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
 }
 
-export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarouselProps) {
+export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500 }: HeroCarouselProps) {
   const [current, setCurrent] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [failed, setFailed] = useState<Set<number>>(new Set())
@@ -88,12 +88,17 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
   // foto yang menjadi latar SELURUH hero, gerak itu menyeret teks di
   // atasnya secara visual justru saat pembaca berusaha membacanya.
 
-  const stats = [
-    { label: 'Jenis Garam', value: 5, suffix: '', isStatic: true, delay: 0 },
-    { label: 'Mitra Aktif', value: toNumber(settings.partner_count, FALLBACK.partner_count), suffix: '+', isStatic: false, delay: 100 },
-    { label: 'Kota Dilayani', value: toNumber(settings.cities_served, FALLBACK.cities_served), suffix: '+', isStatic: false, delay: 200 },
-    { label: 'Ton Distribusi', value: toNumber(settings.total_distribution_tons, FALLBACK.total_distribution_tons), suffix: '', isStatic: false, delay: 300 },
-  ]
+  /* Angka = baseline dari admin + tambahan dari data nyata. Dihitung di
+     server (lib/data/hero.ts), bukan di sini, supaya komponen ini tetap
+     hanya menggambar. `isStatic` kini berarti "tidak punya sumber dinamis
+     yang sah" — lihat catatan Ton Distribusi di lib/data/hero.ts. */
+  const stats = heroStats.map((s, i) => ({
+    label: s.label,
+    value: heroStatTotal(s),
+    suffix: s.suffix,
+    isStatic: s.dynamic === null,
+    delay: i * 100,
+  }))
 
   useEffect(() => {
     if (isPaused || prefersReduced || slides.length <= 1) return
@@ -204,20 +209,31 @@ export function HeroCarousel({ slides, settings, autoPlayMs = 5500 }: HeroCarous
               kaku/hiperbolis". Diksi B2B yang lebih berwibawa, konsisten
               dgn tone "Standar yang Konsisten" yg sudah dipakai di Hero
               /produk. */}
+          {/* Headline dari CMS. Tiap span dirender sebagai TEXT NODE dan
+              kelasnya diambil dari daftar tertutup heroStyleClass() — admin
+              memilih PERAN ("primary"), bukan warna. Itulah yang mencegah
+              CMS merusak sistem desain, dan sekaligus menutup jalur
+              HTML-injection: tidak pernah ada HTML untuk disuntik. */}
           <motion.h1
             variants={item}
             className="mt-5 text-balance font-display text-3xl md:text-4xl font-semibold leading-[1.06] tracking-tight text-ink-900"
           >
-            Garam industri bermutu{' '}
-            <span className="font-medium text-brand-teal-600">konsisten</span>, dari tambak petani ke lini produksi Anda.
+            {hero.headline.map((span, i) => (
+              <span key={i} className={heroStyleClass(span.style)}>
+                {span.text}
+              </span>
+            ))}
           </motion.h1>
 
           <motion.p
             variants={item}
             className="mt-5 max-w-xl text-pretty text-base md:text-lg leading-relaxed text-ink-700/80"
           >
-            Hasil uji laboratorium dan legalitas tiap produk terbuka untuk diperiksa,
-            sebelum Anda memesan.
+            {hero.subheadline.map((span, i) => (
+              <span key={i} className={heroStyleClass(span.style)}>
+                {span.text}
+              </span>
+            ))}
           </motion.p>
 
           <motion.div variants={item} className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
