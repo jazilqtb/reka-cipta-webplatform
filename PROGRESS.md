@@ -10,7 +10,7 @@ Branch: `feature/R3-dark-hero-crm`. Ditulis ulang setiap checkpoint.
 | CP3 | Dashboard operasi & distribusi (2, 14) | belum |
 | CP4 | Tugas & follow-up (13) | belum |
 | CP5 | Admin: foto tim, kompresi, mitra, email, jadwal artikel (7,3,8,9,11) | **SELESAI** |
-| CP6 | Performa admin (10) | belum |
+| CP6 | Performa admin (10) | **SELESAI** |
 
 ## CP0 — SELESAI
 
@@ -281,3 +281,109 @@ keduanya bawaan lama, bukan dari checkpoint ini).
 `--reload`, jadi ia masih memuat kode lama; dan Railway perlu deploy ulang
 agar `published_at` diterima di produksi. Sampai itu dilakukan, penjadwalan
 bekerja di database tapi form admin produksi belum bisa mengirimkannya.
+
+## CP6 — SELESAI (performa admin, poin 10)
+
+### Premisnya diuji lebih dulu, dan premisnya salah
+
+Poin 10 berangkat dari "database sudah mulai besar". Dihitung, bukan
+ditebak — **seluruh** basis data situs ini:
+
+| Tabel | Baris | | Tabel | Baris |
+|---|---|---|---|---|
+| rfqs | 4 | | company_settings | 11 |
+| rfq_items | 12 | | lead_status_history | 7 |
+| companies | 4 | | wa_templates | 6 |
+| contacts | 4 | | about_mission | 5 |
+| articles | 3 | | about_team | 4 |
+| products | 5 | | about_timeline | 3 |
+| partners | 5 | | rfq_leads | 4 |
+| tasks / shipments | 0 | | sisanya | ≤2 |
+
+**Total ≈ 84 baris.** Tidak ada satu pun query di panel ini yang lambat
+karena banyaknya data. Kalau saya menambahkan index atau pagination di
+sini, saya akan "memperbaiki" masalah yang tidak ada.
+
+### Yang sebenarnya terjadi: jumlah perjalanan, bukan besar data
+
+Diukur pada koneksi keep-alive hangat ke Supabase, median 10 percobaan:
+
+| Langkah | Waktu |
+|---|---|
+| `auth.getUser()` | 112 ms |
+| `SELECT` dari `admin_users` (gerbang admin) | 162 ms |
+| query data halaman | 157 ms |
+| **rantai berurutan** | **432 ms** |
+
+432 ms itu cocok dengan TTFB terukur (~400 ms). Jadi biayanya latensi
+jaringan dikali jumlah putaran — dan **dua dari tiga putaran itu adalah
+otorisasi, bukan data.**
+
+### Dua perbaikan, keduanya diukur ulang
+
+1. **Gerbang admin ditahan 60 detik per instance** (`lib/admin-gate.ts`).
+   Aman karena gerbang ini lapisan RENDER; lapisan DATA dijaga RLS
+   (`public.is_admin()`), jadi admin yang dicabut kehilangan datanya
+   seketika meski menunya masih terlihat sebentar.
+2. **Dashboard menyatukan dua putaran jadi satu** — `getOpenTasks()` dulu
+   di-await SETELAH `Promise.all`, padahal tidak ada query yang butuh
+   hasil query lain.
+
+**A/B jujur:** harness sama, 11 sampel, kondisi sama, build ulang di antara
+keduanya (bukan membandingkan angka dari sesi berbeda):
+
+| Halaman | Sebelum | Sesudah | Δ |
+|---|---|---|---|
+| dashboard | 403 ms | 301 ms | **−25%** |
+| leads | 401 ms | 255 ms | **−36%** |
+| artikel | 406 ms | 251 ms | **−38%** |
+| produk | 418 ms | 273 ms | **−35%** |
+
+Penghematannya (~145 ms) hampir persis sama dengan biaya query
+`admin_users` yang terukur (162 ms) — yang memang seharusnya.
+
+> Catatan kejujuran: pembacaan pertama saya menunjukkan dashboard 746 ms.
+> Itu server yang baru dinyalakan, bukan garis dasar yang sah. Kalau saya
+> pakai angka itu, "perbaikan"-nya akan terlihat −60% alih-alih −25%.
+> Ragam antar-pengukuran ±80 ms; sekali `tugas` terbaca 502 ms dan tampak
+> seperti regresi — dengan 9 sampel ia kembali ke 313 ms. Tidak ada
+> regresi; angka tunggal tidak dilaporkan sebagai temuan.
+
+### Hipotesis lain — diuji satu per satu, sebagian TIDAK terbukti
+
+| Dugaan | Hasil |
+|---|---|
+| Database membesar | **Tidak terbukti** — 84 baris total |
+| Revalidasi terlalu luas | **Tidak terbukti** — semua `revalidatePath` sudah menyasar path spesifik, tidak ada yang menyapu `'/'` + `'layout'` |
+| Gambar tidak terkompresi | **Tidak terbukti** — total transfer per halaman admin 33–65 KB |
+| Query N+1 | **Tidak terbukti** — relasi diambil lewat embed PostgREST (`companies(name)`), satu permintaan |
+| Permintaan ganda saat muat | **Tidak terbukti** — pasangan yang terlihat adalah preflight CORS `OPTIONS` + `GET`, dan sudah di-cache benar (`access-control-max-age: 600`); kunjungan kedua hanya `GET` |
+| Round-trip per pindah tab | **TERBUKTI** — tiap pindah tab memanggil API lagi (~348 ms) |
+| Rantai Vercel→Railway→Supabase | **TERBUKTI, struktural** — tidak bisa diperbaiki dari kode |
+| Cold start Railway | **TERBUKTI, di luar kode** |
+
+### Yang sengaja TIDAK saya perbaiki, berikut alasannya
+
+**Refetch saat pindah tab template.** Perbaikan gampangnya adalah menahan
+kedua penyunting tetap ter-mount. Tapi itu memaksa KEDUA endpoint dipanggil
+saat halaman dibuka, demi mempercepat perpindahan tab yang jarang terjadi —
+membuat kasus yang sering dipakai lebih lambat untuk kasus yang jarang.
+Untuk 1–2 admin, menahan 348 ms sesekali lebih baik daripada menambah satu
+panggilan API di setiap kali halaman dibuka.
+
+**Cache gerbang admin di FastAPI.** Penghematannya sama besar (162 ms per
+panggilan API), tapi pertukarannya berbeda jenis: backend memakai
+service-role key yang mem-bypass RLS, jadi di sana `require_admin` adalah
+gerbang DATA satu-satunya. Menyimpannya berarti admin yang dicabut masih
+bisa MENGUBAH data selama TTL. Ini keputusan keamanan, bukan keputusan
+performa — jadi tidak saya ambil diam-diam.
+
+**Mengganti `getUser()` dengan verifikasi klaim lokal** (menghemat 112 ms).
+Verifikasi JWT di FastAPI memang sudah lokal, tapi di frontend `getUser()`
+adalah langkah validasi ke server Auth. Menggantinya mengubah model
+kepercayaan, dan itu bukan perubahan yang pantas dilakukan diam-diam di
+checkpoint performa.
+
+ARCHITECTURE.md §7.4 ditulis ulang — cuplikan lamanya hanya menampilkan
+`getUser()` dan sama sekali tidak menyebut gerbang allowlist yang sudah ada
+sejak Checkpoint 1, yaitu menggambarkan kontrol keamanan seolah tidak ada.

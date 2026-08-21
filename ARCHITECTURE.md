@@ -641,32 +641,68 @@ export const config = {
 | 3 | POST login sukses | `signInWithPassword()` resolve | `router.push('/admin/dashboard')` | `app/(auth)/admin/login/page.tsx` |
 | 4 | Click Logout | `signOut()` selesai | `router.push('/admin/login')` | `AdminSidebar.tsx` |
 
-### 7.4 Double Guard di Admin Layout
+### 7.4 Gerbang Admin Layout — autentikasi DAN otorisasi
+
+> Diperbarui 2026-08-22. Cuplikan sebelumnya di bagian ini hanya menampilkan
+> pemeriksaan `getUser()` dan sama sekali tidak menyebut gerbang otorisasi
+> yang ditambahkan Checkpoint 1 (2026-08-15). Itu bukan sekadar dokumen
+> basi: ia menggambarkan kontrol keamanan yang ada seolah-olah tidak ada.
+
+Dua hal berbeda diperiksa di sini, dan membedakannya penting:
+
+| Lapisan | Pertanyaan | Sumber kebenaran |
+|---|---|---|
+| Autentikasi | Sesi ini sah? | `supabase.auth.getUser()` |
+| Otorisasi | Pemiliknya berhak masuk admin? | tabel `public.admin_users` |
+
+Yang kedua wajib ada karena **signup publik Supabase masih aktif**: tanpa
+allowlist, "punya akun" sama dengan "admin".
 
 ```typescript
-// app/admin/layout.tsx — Server Component, second line of defense
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+// app/admin/layout.tsx — Server Component
+const supabase = await createClient()
+const { data: { user } } = await supabase.auth.getUser()
+if (!user) redirect('/admin/login')
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Middleware sudah handle ini — ini safety net
-  if (!user) redirect('/admin/login')
-
-  return (
-    <div className="flex min-h-screen min-h-dvh">
-      <AdminSidebar userEmail={user.email!} />
-      <div className="flex-1 flex flex-col lg:ml-[240px]">
-        <main id="admin-main-content" className="flex-1 bg-neutral-50 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+// Gagal TERTUTUP: query gagal != boleh masuk.
+if (!(await isAllowlistedAdmin(supabase, user.id))) {
+  redirect('/admin/login?denied=1')
 }
 ```
+
+**Kenapa cek allowlist ada di layout, bukan middleware:** middleware jalan
+di setiap request termasuk aset statis; query DB di sana membebani seluruh
+situs, bukan hanya `/admin`. Layout ini membungkus semua `/admin/*`, jadi
+cakupannya sama persis tanpa biaya di rute publik.
+
+#### Cache gerbang admin (CP6, 2026-08-22)
+
+`isAllowlistedAdmin()` (`lib/admin-gate.ts`) menahan hasilnya 60 detik per
+instance. Alasannya terukur, bukan firasat — median 10 percobaan pada
+koneksi hangat:
+
+| Langkah | Waktu |
+|---|---|
+| `auth.getUser()` | 112 ms |
+| `SELECT` dari `admin_users` | **162 ms** |
+| query data halaman | 157 ms |
+| **rantai berurutan** | **432 ms** |
+
+Jadi 38% waktu tunggu tiap navigasi admin habis menanyakan ulang hal yang
+sama tentang tabel satu baris. Seluruh basis data situs ini berisi ~84
+baris — masalahnya jumlah perjalanan bolak-balik, bukan besarnya data.
+
+**Kenapa aman di sini:** gerbang ini lapisan RENDER. Lapisan DATA dijaga
+terpisah oleh RLS (`public.is_admin()`). Admin yang dicabut masih melihat
+rangka menu selama <= 60 detik, tapi setiap tabel yang dibukanya kembali
+kosong karena RLS menolaknya di database.
+
+**Kenapa pola yang sama TIDAK diterapkan di FastAPI:** di sana
+`require_admin` adalah gerbang DATA satu-satunya, karena backend memakai
+service-role key yang mem-bypass RLS sepenuhnya. Menyimpan hasilnya berarti
+admin yang dicabut tetap bisa mengubah data selama TTL. Biayanya sama
+(162 ms per panggilan) dan penghematannya nyata, tapi pertukarannya berbeda
+jenis — keputusan itu diserahkan ke Jazil, tidak diambil diam-diam.
 
 ### 7.5 Cookie Configuration
 
