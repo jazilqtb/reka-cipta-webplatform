@@ -92,3 +92,35 @@ Satuan terkonversi: 40 ton -> 40.000 kg; 200 sak_50 -> 10.000 kg.
 tinjauan duplikat, riwayat penggabungan + tombol batalkan.
 
 DESIGN-SYSTEM: §4.10 satuan & kuantitas, §4.3 diperluas.
+
+## CP2 — SELESAI (RFQ per produk + satuan + bug jeda)
+
+**1A/1B volume per jenis + satuan.** Terverifikasi di 414px: centang 2 jenis
+-> 2 baris volume muncul, opsi satuan `kg | ton | sak (25 kg) | sak (50 kg)`,
+field volume tunggal lama sudah tidak ada.
+Kontainer SENGAJA tidak ditawarkan (bobot berubah menurut jenis & cara muat).
+Setiap kuantitas disimpan DUA KALI: bentuk asli + kanonik kg.
+
+**1C BUG JEDA 2-3 DETIK — DIUKUR, bukan ditebak. Dua sebab, bukan satu.**
+
+Sebab A (backend): endpoint submit melakukan TUJUH round-trip Supabase
+berurutan. Satu round-trip dari mesin ini terukur 374-1045 ms.
+  SEBELUM: 1,87 / 2,06 / 3,18 s (n=3, end-to-end)
+  SESUDAH: hanya 1 round-trip tersisa — 261 / 289 / 691 ms (n=6)
+Semua pekerjaan non-esensial (penempatan CRM, nama produk, email admin,
+kirim email) dipindah ke BackgroundTasks.
+
+Sebab B (frontend): `isSubmitting` react-hook-form menjadi false BEGITU
+onSubmit selesai, sementara router.push() belum merender halaman tujuan.
+Indikator mati lebih dulu, layar berganti kemudian. Ditutup dengan
+`isLeaving` yang tidak pernah direset (komponen ikut hilang saat navigasi)
++ `router.prefetch` halaman tujuan.
+
+BUG YANG SAYA PERKENALKAN SENDIRI LALU PERBAIKI: tugas latar mula-mula
+ditulis `async def` sambil memanggil klien supabase yang SINKRON — itu
+membekukan event loop dan membuat satu permintaan melonjak ke 6,1 detik.
+Dipindah ke `asyncio.to_thread`.
+
+DUA KALI alat ukur saya menipu: `.test` ditolak pydantic (mengukur 422),
+lalu rate limit 5/jam (mengukur 429). Keduanya ketahuan karena angkanya
+mustahil (3,6 ms untuk sebuah insert).

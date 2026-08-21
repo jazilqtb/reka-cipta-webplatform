@@ -19,6 +19,7 @@
 # terbalik request ke /leads akan coba diinterpretasi sebagai lead_id
 # (sama trap dengan products.py /admin vs /{slug}, lihat E3B R-12).
 
+import asyncio
 import logging
 import re
 from datetime import datetime, timezone
@@ -95,13 +96,53 @@ async def submit_rfq(
     lead = result.data[0]
     lead_id = lead["id"]
 
-    # 1b. Tempatkan ke struktur CRM baru: Company -> Contact -> RFQ.
+    # ── SEMUA SISANYA DIPINDAH KE LATAR BELAKANG ──────────────────
     #
-    #     DIBUNGKUS try/except LEBAR dengan sengaja. Kalau penempatan CRM
-    #     gagal, permintaan pelanggan TIDAK boleh ikut gagal — barisnya
-    #     sudah aman di `rfq_leads`, dan penempatannya bisa diperbaiki
-    #     belakangan lewat migrasi MIGRATE yang idempoten. Kehilangan satu
-    #     RFQ jauh lebih mahal daripada kehilangan penautannya.
+    # DIUKUR SEBELUM PERUBAHAN INI: endpoint ini butuh 1,87-3,18 detik untuk
+    # menjawab. Sebabnya bukan satu operasi lambat, melainkan TUJUH
+    # round-trip berurutan ke Supabase — insert lead, empat query penempatan
+    # CRM, ambil nama produk, ambil email admin. Satu round-trip dari mesin
+    # ini terukur 374-1045 ms, jadi tujuh yang berurutan menghasilkan persis
+    # jeda 2-3 detik yang dilaporkan.
+    #
+    # Dari ketujuhnya, HANYA insert lead yang dibutuhkan untuk menjawab:
+    # pengirim form cuma perlu tahu permintaannya tersimpan. Penempatan CRM,
+    # pencarian nama produk, dan pengiriman email tidak mengubah jawaban itu
+    # sama sekali — semuanya dipindah ke BackgroundTasks, yang berjalan
+    # SESUDAH respons terkirim.
+    #
+    # Yang TIDAK dilakukan: menambah delay palsu di indikator frontend
+    # supaya jedanya "terasa wajar". Itu menyembunyikan gejala dan
+    # meninggalkan sebabnya utuh.
+    logger.info("rfq_submitted: lead_id=%s company=%r", lead_id, payload.company_name)
+    background_tasks.add_task(
+        _process_rfq_aftermath,
+        lead=lead,
+        lead_id=lead_id,
+        payload=payload,
+    )
+
+    return RFQSubmitResponse(success=True, lead_id=lead_id)
+
+
+
+def _rfq_db_aftermath(*, lead_id: str, payload: RFQSubmitRequest) -> tuple[list[dict], str | None]:
+    """Bagian pekerjaan latar yang menyentuh DATABASE. SENGAJA `def`, bukan
+    `async def`.
+
+    Klien supabase-py bersifat SINKRON. Memanggilnya di dalam coroutine
+    membekukan event loop selama seluruh round-trip jaringan — dan karena
+    tugas latar berjalan di loop yang sama dengan yang melayani permintaan
+    berikutnya, satu RFQ bisa memperlambat RFQ sesudahnya. Terlihat saat
+    mengukur: satu permintaan melonjak ke 6,1 detik padahal isinya sama
+    dengan yang 1,3 detik.
+
+    Sebagai fungsi sinkron biasa, `asyncio.to_thread` menjalankannya di
+    thread terpisah dan event loop tetap bebas.
+    """
+    supabase = get_supabase()
+
+    # 1. Penempatan CRM: Company -> Contact -> RFQ (CP1 ronde 3)
     try:
         company_id = CRMService.resolve_company(
             supabase, payload.company_name, payload.email,
@@ -127,8 +168,6 @@ async def submit_rfq(
             notes=payload.notes,
             items=items,
         )
-        # Usulkan kandidat duplikat SETELAH company baru mungkin lahir.
-        # Fungsi ini hanya mengusulkan; tidak pernah menggabungkan.
         try:
             supabase.rpc("refresh_company_merge_candidates", {}).execute()
         except Exception as e:
@@ -136,58 +175,54 @@ async def submit_rfq(
     except Exception as e:
         logger.error("crm_placement_failed: lead_id=%s error=%r", lead_id, e)
 
-    # 2. Fetch nama produk untuk personalisasi email (best-effort — kalau
-    # gagal, email tetap terkirim tanpa nama produk lengkap)
+    # 2. Nama produk untuk personalisasi email
     products: list[dict] = []
     try:
-        products_result = (
-            supabase.table("products")
-            .select("slug, name, code")
-            .in_("slug", payload.salt_types)
-            .execute()
-        )
-        products = products_result.data or []
+        res = (supabase.table("products").select("slug, name, code")
+               .in_("slug", payload.salt_types).execute())
+        products = res.data or []
     except Exception as e:
-        logger.warning(f"rfq_products_fetch_failed: lead_id={lead_id} error={e!r}")
+        logger.warning("rfq_products_fetch_failed: lead_id=%s error=%r", lead_id, e)
 
-    # 3. Fetch admin email dari company_settings (fail-open — RFQ tetap
-    # saved walau admin_email tidak ketemu, AR di task breakdown)
+    # 3. Email admin
     admin_email: str | None = None
     try:
-        settings_result = (
-            supabase.table("company_settings")
-            .select("value")
-            .eq("key", "email")
-            .limit(1)
-            .execute()
-        )
-        admin_email = settings_result.data[0]["value"] if settings_result.data else None
+        res = (supabase.table("company_settings").select("value")
+               .eq("key", "email").limit(1).execute())
+        admin_email = res.data[0]["value"] if res.data else None
     except Exception as e:
-        logger.warning(f"rfq_admin_email_fetch_failed: lead_id={lead_id} error={e!r}")
-
+        logger.warning("rfq_admin_email_fetch_failed: lead_id=%s error=%r", lead_id, e)
     if not admin_email:
-        logger.warning(f"rfq_no_admin_email_configured: lead_id={lead_id}")
+        logger.warning("rfq_no_admin_email_configured: lead_id=%s", lead_id)
 
-    # 4. Queue email via BackgroundTasks (fire-and-forget, R-20) — jangan
-    # block response demi delivery guarantee, target submit < 5 detik
-    logger.info(f"rfq_submitted: lead_id={lead_id} company={payload.company_name!r}")
-    background_tasks.add_task(
-        EmailService.send_rfq_customer_confirmation,
-        to_email=payload.email,
-        lead_data=lead,
-        products=products,
-        reply_to=admin_email,
-    )
-    if admin_email:
-        background_tasks.add_task(
-            EmailService.send_rfq_admin_notification,
-            to_email=admin_email,
-            lead_data=lead,
-            products=products,
+    return products, admin_email
+
+
+async def _process_rfq_aftermath(*, lead: dict, lead_id: str, payload: RFQSubmitRequest) -> None:
+    """Pekerjaan sesudah RFQ tersimpan. Berjalan SETELAH respons terkirim.
+
+    Kegagalan di sini TIDAK boleh terlihat oleh pengirim form: permintaannya
+    sudah tersimpan dan sudah dikonfirmasi.
+    """
+    try:
+        products, admin_email = await asyncio.to_thread(
+            _rfq_db_aftermath, lead_id=lead_id, payload=payload
         )
+    except Exception as e:
+        logger.error("rfq_aftermath_db_failed: lead_id=%s error=%r", lead_id, e)
+        products, admin_email = [], None
 
-    return RFQSubmitResponse(success=True, lead_id=lead_id)
-
+    try:
+        await EmailService.send_rfq_customer_confirmation(
+            to_email=payload.email, lead_data=lead, products=products, reply_to=admin_email)
+    except Exception as e:
+        logger.error("rfq_customer_email_failed: lead_id=%s error=%r", lead_id, e)
+    if admin_email:
+        try:
+            await EmailService.send_rfq_admin_notification(
+                to_email=admin_email, lead_data=lead, products=products)
+        except Exception as e:
+            logger.error("rfq_admin_email_failed: lead_id=%s error=%r", lead_id, e)
 
 # ── Admin: CRM Pipeline (Epic 4B Slice 1) ────────────────────
 

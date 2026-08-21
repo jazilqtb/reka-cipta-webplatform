@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -121,6 +121,25 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledSaltTypes.join(','), prefilledVolume])
 
+  /* CP2 ronde 3 — sisi frontend dari "jeda 2-3 detik".
+     `isSubmitting` milik react-hook-form menjadi false BEGITU onSubmit
+     selesai. Tapi router.push() di App Router tidak menunggu halaman tujuan
+     selesai dirender — jadi indikator mati lebih dulu, lalu layar baru
+     berganti beberapa saat kemudian. Persis gejala yang dilaporkan.
+     `isLeaving` sengaja TIDAK pernah direset: komponen ini ikut hilang saat
+     navigasi berhasil, jadi indikator hidup tepat sampai halaman tujuan
+     benar-benar tampil. */
+  const [isLeaving, setIsLeaving] = useState(false)
+  const busy = isSubmitting || isLeaving
+
+  /* Prefetch halaman tujuan begitu form tampil. Halaman terima kasih adalah
+     satu-satunya tujuan dari sini, jadi memuatnya lebih awal tidak pernah
+     sia-sia — dan menghilangkan pengambilan dokumen dari jalur kritis
+     setelah tombol ditekan. */
+  useEffect(() => {
+    router.prefetch('/minta-penawaran/terima-kasih')
+  }, [router])
+
   const notesLength = watch('notes')?.length ?? 0
   const watchedSaltTypes = watch('salt_types') ?? []
   /* Peta slug -> nama, supaya baris volume menampilkan nama produk dan
@@ -145,6 +164,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
         notes: values.notes || null,
       }
       await submitRFQ(payload)
+      setIsLeaving(true)
       router.push('/minta-penawaran/terima-kasih')
     } catch (err) {
       if (err instanceof ApiFetchError && err.status === 429) {
@@ -159,7 +179,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
     // RONDE Tahap 11: `form-brand` — radius, tinggi, & focus-glow teal
     // seluruh field diatur terpusat di globals.css. Logika RFQ (Zod,
     // prefill dari /kalkulator, submit ke FastAPI) tidak disentuh.
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="form-brand space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={busy} className="form-brand space-y-6">
       <FormSection title="Informasi Perusahaan">
         <div className="space-y-1.5">
           <Label htmlFor="full_name">
@@ -169,7 +189,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             {...register('full_name')}
             id="full_name"
             type="text"
-            disabled={isSubmitting}
+            disabled={busy}
             aria-invalid={!!errors.full_name}
             aria-describedby={errors.full_name ? 'full_name-error' : undefined}
           />
@@ -188,7 +208,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             {...register('company_name')}
             id="company_name"
             type="text"
-            disabled={isSubmitting}
+            disabled={busy}
             aria-invalid={!!errors.company_name}
             aria-describedby={errors.company_name ? 'company_name-error' : undefined}
           />
@@ -205,7 +225,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             {...register('position')}
             id="position"
             type="text"
-            disabled={isSubmitting}
+            disabled={busy}
             placeholder="Opsional"
           />
         </div>
@@ -217,7 +237,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
           <select
             {...register('industry_type')}
             id="industry_type"
-            disabled={isSubmitting}
+            disabled={busy}
             className={selectClassName}
           >
             {INDUSTRY_OPTIONS.map((opt) => (
@@ -257,7 +277,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
               value={(field.value ?? []) as SaltVolumeItem[]}
               onChange={field.onChange}
               error={fieldState.error?.message}
-              disabled={isSubmitting}
+              disabled={busy}
             />
           )}
         />
@@ -269,7 +289,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
           <select
             {...register('delivery_frequency')}
             id="delivery_frequency"
-            disabled={isSubmitting}
+            disabled={busy}
             className={selectClassName}
           >
             {FREQUENCY_OPTIONS.map((opt) => (
@@ -288,7 +308,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             {...register('delivery_city')}
             id="delivery_city"
             type="text"
-            disabled={isSubmitting}
+            disabled={busy}
             aria-invalid={!!errors.delivery_city}
             aria-describedby={errors.delivery_city ? 'city-error' : undefined}
           />
@@ -309,7 +329,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             {...register('email')}
             id="email"
             type="email"
-            disabled={isSubmitting}
+            disabled={busy}
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
           />
@@ -329,7 +349,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             id="whatsapp"
             type="tel"
             placeholder="08xxxxxxxxxx"
-            disabled={isSubmitting}
+            disabled={busy}
             aria-invalid={!!errors.whatsapp}
             aria-describedby={errors.whatsapp ? 'whatsapp-error' : undefined}
           />
@@ -347,7 +367,7 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
             id="notes"
             rows={4}
             maxLength={NOTES_MAX}
-            disabled={isSubmitting}
+            disabled={busy}
             placeholder="Opsional"
           />
           <div className="flex justify-end">
@@ -362,13 +382,13 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={busy}
         className="font-ui flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-teal-600 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-teal-500 active:translate-y-0 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? (
+        {busy ? (
           <>
             <CircleNotchIcon size={16} weight="bold" className="animate-spin" aria-hidden="true" />
-            Mengirim...
+            {isLeaving ? 'Membuka halaman konfirmasi…' : 'Mengirim…'}
           </>
         ) : (
           'Kirim & Dapatkan Penawaran'
