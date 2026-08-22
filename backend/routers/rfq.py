@@ -40,6 +40,7 @@ from schemas.rfq import (
     RFQLeadUpdateRequest,
     RFQSubmitRequest,
     RFQSubmitResponse,
+    LeadArchiveRequest,
     WATemplateRequest,
     WATemplateResponse,
     LeadStatusHistory,
@@ -248,10 +249,25 @@ async def list_leads(
     date_from: datetime | None = Query(None),
     date_to: datetime | None = Query(None),
     search: str | None = Query(None),
+    archived: bool = Query(
+        False,
+        description="True = tampilkan HANYA yang diarsipkan. Default False = hanya yang aktif.",
+    ),
 ) -> RFQLeadListResponse:
-    """[AUTH] List semua leads untuk Kanban, dengan filter opsional."""
+    """[AUTH] List leads untuk daftar & Kanban, dengan filter opsional.
+
+    CP1 ronde 4 — lead yang diarsipkan TIDAK pernah ikut secara default.
+    Itu keputusan yang disengaja: "sembunyikan" yang masih memunculkan
+    barisnya di suatu tempat tanpa diminta bukan menyembunyikan.
+    Arsipnya tetap bisa dibuka, tapi harus diminta.
+    """
     supabase = get_supabase()
     query = supabase.table("rfq_leads").select("*")
+
+    if archived:
+        query = query.not_.is_("archived_at", "null")
+    else:
+        query = query.is_("archived_at", "null")
 
     if status:
         query = query.eq("status", status)
@@ -271,7 +287,113 @@ async def list_leads(
         raise HTTPException(500, detail="Gagal mengambil data leads")
 
     leads = [RFQLead(**row) for row in result.data]
-    return RFQLeadListResponse(leads=leads, total=len(leads))
+
+    # Jumlah arsip ikut di jawaban yang sama — lihat alasannya di
+    # schemas/rfq.py. `head=True` + count exact: hanya angkanya yang
+    # dikirim balik, bukan barisnya.
+    archived_count = 0
+    try:
+        counted = (
+            supabase.table("rfq_leads")
+            .select("id", count="exact")
+            .not_.is_("archived_at", "null")
+            .limit(1)
+            .execute()
+        )
+        archived_count = counted.count or 0
+    except Exception as e:
+        # Angka chip bukan informasi kritis; daftarnya jauh lebih penting
+        # daripada angkanya, jadi kegagalan di sini tidak menjatuhkan
+        # permintaan.
+        logger.warning("archived_count_failed: %r", e)
+
+    return RFQLeadListResponse(leads=leads, total=len(leads), archived_count=archived_count)
+
+
+# ── Arsip lead (CP1 ronde 4) ─────────────────────────────────
+#
+# PENTING route order: "/leads/{lead_id}/archive" dideklarasikan SEBELUM
+# "/leads/{lead_id}" tidak diperlukan di sini karena metodenya berbeda
+# (POST vs GET), tapi urutan ini tetap dipertahankan agar konsisten dengan
+# catatan di kepala berkas ini.
+#
+# Ketiganya memanggil FUNGSI DATABASE, bukan menulis UPDATE/DELETE sendiri.
+# Alasannya: konsistensinya harus dijaga di tempat yang tidak bisa
+# dilewati. Backend memakai service-role key yang mem-bypass RLS, jadi
+# aturan "hanya admin" dan "arsipkan kedua tabel sekaligus" kalau ditulis
+# di sini akan hilang begitu ada pemanggil kedua. Di dalam fungsi, ia
+# berlaku untuk siapa pun yang memanggilnya.
+
+
+@router.post(
+    "/leads/{lead_id}/archive",
+    status_code=204,
+    dependencies=[Depends(require_admin)],
+    summary="Sembunyikan lead (bisa dipulihkan)",
+)
+async def archive_lead(lead_id: str, payload: LeadArchiveRequest, request: Request) -> Response:
+    """[AUTH] Sembunyikan satu lead. Barisnya TETAP UTUH dan bisa dipulihkan."""
+    supabase = get_supabase()
+    try:
+        supabase.rpc(
+            "archive_rfq_lead", {"p_lead_id": lead_id, "p_reason": payload.reason}
+        ).execute()
+    except Exception as e:
+        logger.error("lead_archive_failed: lead_id=%s error=%r", lead_id, e)
+        raise HTTPException(500, detail="Gagal menyembunyikan lead.")
+    set_log_context(request, action="archive_lead")
+    logger.info("lead_archived: lead_id=%s", lead_id)
+    return Response(status_code=204)
+
+
+@router.post(
+    "/leads/{lead_id}/restore",
+    status_code=204,
+    dependencies=[Depends(require_admin)],
+    summary="Pulihkan lead yang disembunyikan",
+)
+async def restore_lead(lead_id: str, request: Request) -> Response:
+    """[AUTH] Kembalikan lead yang diarsipkan ke daftar aktif."""
+    supabase = get_supabase()
+    try:
+        supabase.rpc("restore_rfq_lead", {"p_lead_id": lead_id}).execute()
+    except Exception as e:
+        logger.error("lead_restore_failed: lead_id=%s error=%r", lead_id, e)
+        raise HTTPException(500, detail="Gagal memulihkan lead.")
+    set_log_context(request, action="restore_lead")
+    logger.info("lead_restored: lead_id=%s", lead_id)
+    return Response(status_code=204)
+
+
+@router.delete(
+    "/leads/{lead_id}",
+    status_code=204,
+    dependencies=[Depends(require_admin)],
+    summary="Hapus permanen lead yang SUDAH diarsipkan",
+)
+async def purge_lead(lead_id: str, request: Request) -> Response:
+    """[AUTH] Hapus permanen. Fungsi DB MENOLAK lead yang belum diarsipkan —
+    penghapusan permanen selalu dua langkah dan dua keputusan.
+
+    Rantai rfqs -> rfq_items/tasks dan lead_status_history ikut terhapus di
+    dalam satu transaksi, jadi tidak ada baris yang tertinggal tanpa induk.
+    companies/contacts SENGAJA tidak ikut: keduanya bisa dipakai RFQ lain.
+    """
+    supabase = get_supabase()
+    try:
+        supabase.rpc("purge_archived_rfq_lead", {"p_lead_id": lead_id}).execute()
+    except Exception as e:
+        logger.error("lead_purge_failed: lead_id=%s error=%r", lead_id, e)
+        # Sebab paling mungkin adalah penjaga "belum diarsipkan" — dan itu
+        # bukan kesalahan server, melainkan urutan yang belum dipenuhi.
+        raise HTTPException(
+            409,
+            detail="Lead ini belum diarsipkan, atau sudah tidak ada. "
+                   "Sembunyikan dulu sebelum menghapus permanen.",
+        )
+    set_log_context(request, action="purge_lead")
+    logger.info("lead_purged: lead_id=%s", lead_id)
+    return Response(status_code=204)
 
 
 @router.get(

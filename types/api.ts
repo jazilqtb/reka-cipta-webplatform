@@ -237,6 +237,10 @@ export interface RFQLead {
   proposal_sent_at: string | null // ISO 8601 — Epic 4B Slice 2
   created_at: string // ISO 8601
   updated_at: string // ISO 8601
+  /** CP1 ronde 4 — null = aktif. Terisi = disembunyikan dari daftar DAN
+   *  dari seluruh perhitungan statistik. Barisnya tetap utuh. */
+  archived_at?: string | null
+  archived_reason?: string | null
 }
 
 export interface LeadStatusHistory {
@@ -255,6 +259,8 @@ export interface RFQLeadUpdateRequest {
 export interface RFQLeadListResponse {
   leads: RFQLead[]
   total: number
+  /** CP1 ronde 4 — jumlah lead yang diarsipkan. Selalu disertakan. */
+  archived_count: number
 }
 
 export interface RFQLeadDetailResponse {

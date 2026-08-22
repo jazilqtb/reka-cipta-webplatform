@@ -148,6 +148,10 @@ class RFQLead(BaseModel):
     proposal_sent_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    # CP1 ronde 4 — NULL = aktif. Terisi = disembunyikan dari daftar DAN
+    # dari seluruh perhitungan statistik.
+    archived_at: datetime | None = None
+    archived_reason: str | None = None
 
 
 class RFQLeadUpdateRequest(BaseModel):
@@ -173,6 +177,17 @@ class RFQLeadUpdateRequest(BaseModel):
 class RFQLeadListResponse(BaseModel):
     leads: list[RFQLead]
     total: int
+    # CP1 ronde 4 — jumlah lead yang diarsipkan, SELALU disertakan apa pun
+    # daftar yang sedang diminta.
+    #
+    # Dikirim bersama daftar, BUKAN lewat permintaan kedua. Versi pertama
+    # saya membiarkan frontend memanggil `?archived=true` sendiri hanya
+    # untuk mengisi satu angka di chip — satu round-trip browser -> Railway
+    # -> Supabase penuh (terukur ~1 detik dari mesin ini) ditambahkan ke
+    # SETIAP pembukaan halaman leads, demi angka yang jarang dilihat.
+    # Itu persis pola yang dibongkar CP6 ronde lalu. Di sini ia cuma satu
+    # query tambahan di sisi server, pada koneksi yang sudah terbuka.
+    archived_count: int = 0
 
 
 class RFQLeadDetailResponse(BaseModel):
@@ -189,3 +204,16 @@ class WATemplateRequest(BaseModel):
 class WATemplateResponse(BaseModel):
     template: str
     whatsapp_number: str  # cleaned untuk wa.me link
+
+
+class LeadArchiveRequest(BaseModel):
+    """Payload POST /rfq/leads/{id}/archive.
+
+    Alasan bersifat opsional dan sengaja begitu: memaksa mengetik alasan
+    untuk membuang lead uji bernama "wergew" hanya menghasilkan alasan
+    asal-asalan, dan alasan asal-asalan lebih buruk daripada kolom kosong —
+    ia membuat kolom itu berhenti dipercaya.
+    """
+    model_config = ConfigDict(extra='forbid')
+
+    reason: str | None = Field(default=None, max_length=200)

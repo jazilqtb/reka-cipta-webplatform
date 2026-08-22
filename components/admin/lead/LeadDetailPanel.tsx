@@ -49,14 +49,18 @@ import { LEAD_STATUSES, LABEL_MAP } from '@/lib/constants/lead-status'
 import { frequencyLabel, industryLabel, saltTypeLabels } from '@/lib/lead-format'
 import type { LeadStatus, RFQLead } from '@/types/api'
 import { TaskComposer } from '@/components/admin/task/TaskComposer'
+import { LeadArchiveActions } from './LeadArchiveActions'
 
 interface Props {
   lead: RFQLead | null
   productNames: Record<string, string>
   onStatusChange: (leadId: string, status: LeadStatus) => void
+  /** CP1 ronde 4 — dipanggil setelah lead diarsipkan/dipulihkan/dihapus,
+   *  supaya daftar di sebelahnya ikut menyesuaikan. */
+  onArchiveChanged?: () => void
 }
 
-export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
+export function LeadDetailPanel({ lead, productNames, onStatusChange, onArchiveChanged }: Props) {
   if (!lead) {
     return (
       <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 p-8 text-center">
@@ -176,6 +180,17 @@ export function LeadDetailPanel({ lead, productNames, onStatusChange }: Props) {
             siapa. Tugasnya melekat ke RFQ ini lewat foreign key sungguhan. */}
         <Group title="Follow-up">
           <TaskComposer parentKind="rfq" parentId={lead.id} />
+        </Group>
+
+        {/* Aksi merusak ditaruh SETELAH seluruh informasi, bukan di kepala
+            panel: yang dicari orang saat membuka lead adalah datanya, dan
+            tombol membuang tidak boleh berada di jalur pandang itu. */}
+        <Group title="Kelola">
+          <LeadArchiveActions
+            lead={lead}
+            layout="panel"
+            onChanged={() => onArchiveChanged?.()}
+          />
         </Group>
 
         <Group title="Jejak">

@@ -307,13 +307,43 @@ export async function getLeads(filters?: {
   date_from?: string
   date_to?: string
   search?: string
+  /** CP1 ronde 4 — true = tampilkan HANYA arsip. Default hanya yang aktif. */
+  archived?: boolean
 }): Promise<RFQLeadListResponse> {
   const params = new URLSearchParams()
   Object.entries(filters ?? {}).forEach(([k, v]) => {
-    if (v) params.set(k, v)
+    if (v) params.set(k, String(v))
   })
   const query = params.toString()
   return apiFetch<RFQLeadListResponse>(`/rfq/leads${query ? `?${query}` : ''}`, { auth: true })
+}
+
+// === CP1 ronde 4: arsip lead ===
+//
+// Tiga tindakan, sengaja tiga fungsi terpisah dengan nama yang menyebut
+// akibatnya. `deleteLead(permanent: boolean)` akan menjadikan perbedaan
+// antara "bisa dipulihkan" dan "hilang selamanya" sebuah argumen boolean
+// di tempat pemanggilan — dan boolean di tempat pemanggilan adalah cara
+// paling cepat memanggil yang salah.
+
+/** Sembunyikan lead. Barisnya TETAP UTUH dan bisa dipulihkan. */
+export async function archiveLead(id: string, reason?: string): Promise<void> {
+  await apiFetch<void>(`/rfq/leads/${id}/archive`, {
+    method: 'POST',
+    auth: true,
+    timeout: 25_000,
+    body: JSON.stringify({ reason: reason || null }),
+  })
+}
+
+/** Kembalikan lead yang disembunyikan ke daftar aktif. */
+export async function restoreLead(id: string): Promise<void> {
+  await apiFetch<void>(`/rfq/leads/${id}/restore`, { method: 'POST', auth: true, timeout: 25_000 })
+}
+
+/** Hapus permanen. Server MENOLAK (409) kalau leadnya belum diarsipkan. */
+export async function purgeLead(id: string): Promise<void> {
+  await apiFetch<void>(`/rfq/leads/${id}`, { method: 'DELETE', auth: true, timeout: 25_000 })
 }
 
 export async function getLeadDetail(id: string): Promise<RFQLeadDetailResponse> {

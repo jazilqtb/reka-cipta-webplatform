@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 import time
@@ -121,6 +122,31 @@ async def rate_limit_login(request: Request, call_next):
     return await call_next(request)
 
 
+# Referensi kuat ke tugas pencatatan yang sedang berjalan.
+# asyncio hanya menyimpan REFERENSI LEMAH ke task, jadi task tanpa
+# pemegang referensi bisa dikumpulkan sampah di tengah jalan dan hilang
+# tanpa jejak. Set ini yang memegangnya sampai selesai.
+_log_tasks: set[asyncio.Task] = set()
+
+
+def _fire_and_forget_log(**kwargs) -> None:
+    """Jadwalkan pencatatan TANPA menahan jawaban.
+
+    DIUKUR, bukan diduga: versi pertama middleware ini menulis `await
+    log_request(...)` SEBELUM `return response`, dan itu menaruh satu
+    round-trip Supabase penuh di jalur jawaban. Permintaan yang dicatat
+    melonjak dari milidetik menjadi **182-604 ms** (n=3).
+
+    Itu persis kesalahan yang dibongkar CP6 ronde lalu — biaya panel ini
+    adalah JUMLAH round-trip — dan saya baru saja menambahkan satu lagi ke
+    setiap permintaan yang mengubah data, demi mengamatinya. Pengamat tidak
+    boleh memperlambat yang diamati.
+    """
+    task = asyncio.create_task(log_request(**kwargs))
+    _log_tasks.add(task)
+    task.add_done_callback(_log_tasks.discard)
+
+
 # ── Catatan permintaan API (CP0 ronde 4) ──────────────────────
 # Menjawab satu pertanyaan: "apa yang terjadi tadi?". Sebelum ini,
 # kegagalan submit RFQ tidak meninggalkan jejak apa pun yang bisa dibuka
@@ -140,7 +166,7 @@ async def record_api_request(request: Request, call_next):
         # pun kecuali stack trace. Justru inilah kejadian yang paling perlu
         # terlihat, jadi ia dicatat SEBELUM dilempar ulang.
         duration_ms = int((time.perf_counter() - started) * 1000)
-        await log_request(
+        _fire_and_forget_log(
             method=request.method,
             path=request.url.path,
             status=500,
@@ -159,7 +185,7 @@ async def record_api_request(request: Request, call_next):
         # body jawaban, yang bisa memuat data pengirim.
         failure_reason = _reason_for_status(response.status_code)
 
-    await log_request(
+    _fire_and_forget_log(
         method=request.method,
         path=request.url.path,
         status=response.status_code,

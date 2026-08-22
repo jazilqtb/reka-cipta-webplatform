@@ -5,7 +5,7 @@ Ditulis ulang setiap checkpoint.
 | CP | Isi | Status |
 |---|---|---|
 | CP0 | Pengiriman RFQ tidak merespons + jalur kegagalan + catatan API (poin 4) | **SELESAI** |
-| CP1 | Admin leads: sembunyikan/hapus + akses layar sempit (poin 2 & 3) | belum |
+| CP1 | Admin leads: sembunyikan/hapus + akses layar sempit (poin 2 & 3) | **SELESAI** |
 | CP2 | Kedalaman visual: hero & permukaan (poin 1) | belum |
 
 ---
@@ -176,3 +176,190 @@ tercatat sebagai "isi permintaan ditolak validasi".
 | `supabase/migrations/20260822130000_api_request_log.sql` | **BARU**, additive, diterapkan |
 
 Mutu: `tsc --noEmit` 0 error · `next build` EXIT=0.
+
+
+---
+
+## CP1 — SELESAI (poin 2 & 3 dikerjakan bersamaan, dan memang berakar sama)
+
+### Premis diuji dulu — sebagian benar, mekanismenya berbeda
+
+Dugaan yang diberikan: panel detail tidak dirender di layar sempit,
+sehingga tugas tidak bisa diinput.
+
+Yang ditemukan setelah diuji di peramban:
+
+| Dugaan | Hasil |
+|---|---|
+| Detail lead tidak bisa dibuka di layar sempit | **Tidak terbukti seluruhnya** — rute `/admin/leads/[id]` sudah ada dan terbuka normal pada 960 px |
+| Tugas tidak bisa diinput untuk lead tertentu | **TERBUKTI, dan sebabnya bukan responsivitas** |
+
+**Sebab sebenarnya: DUA implementasi detail yang diam-diam berselisih.**
+`LeadDetailPanel` (panel samping, hanya dirender mulai `lg:`) memuat
+`TaskComposer`. `LeadDetailView` (halaman penuh — satu-satunya jalan di
+layar sempit) **tidak pernah mendapatkannya**. Jadi fitur tugas yang
+dibangun di CP4 ronde lalu memang tidak bisa dipakai dari layar sempit,
+tapi bukan karena panelnya hilang — melainkan karena halaman penggantinya
+adalah komponen lain yang tertinggal.
+
+Dibuktikan dengan membaca isi halaman detail yang sudah dirender pada
+960 px: ada Informasi RFQ, Status & Aksi, Catatan Admin, Proposal, Histori
+Status — dan **tidak ada satu pun kontrol tugas**.
+
+### Cacat kedua yang ditemukan sambil jalan — dan ini yang menjelaskan "orientasi potret"
+
+`useIsMobile(1024)` memutuskan lebar dengan `window.innerWidth < 1024`,
+sementara yang menyembunyikan panel adalah kelas `lg:block`. **Dua
+pengukur berbeda untuk satu keputusan yang sama.** Saat keduanya
+berselisih, klik menyimpan `selectedId` untuk panel yang sedang
+disembunyikan CSS → tidak ada apa pun yang muncul.
+
+| Sumber perselisihan | Lebar pita rusak |
+|---|---|
+| `innerWidth` memuat scrollbar; media query CSS tidak | ~15 px di sekitar 1024 |
+| **`lg` Tailwind v4 = `64rem`, bukan `1024px`** — diverifikasi di `node_modules/tailwindcss/theme.css` | font bawaan 20px → `lg` = 1280 px CSS → pita rusak **~256 px** |
+
+Baris kedua yang menentukan, dan ia cocok dengan laporan "masalahnya
+orientasi & lebar, bukan sekadar mobile".
+
+Ditutup dengan `hooks/use-media-query.ts` (`useSyncExternalStore` +
+`matchMedia`), yang bertanya ke mesin CSS yang **sama**. Breakpointnya
+ditulis `64rem`, bukan px. `hooks/use-is-mobile.ts` **dihapus** —
+membiarkannya berarti menyediakan jalan untuk melahirkan cacat yang sama
+lagi.
+
+### A. Sembunyikan / hapus lead
+
+**Keputusan: arsip sebagai perilaku baku; hapus permanen tersedia tapi
+dua langkah.** Alasannya bukan kehati-hatian umum melainkan bentuk data:
+`rfqs.legacy_lead_id` memakai `ON DELETE SET NULL`, jadi menghapus
+`rfq_leads` meninggalkan baris `rfqs` yang **masih hidup tanpa asal-usul**
+— tetap terhitung di statistik, tidak bisa dijelaskan asalnya, dan tidak
+terdeteksi sebagai pelanggaran foreign key.
+
+Penjaga "arsipkan dulu" ditegakkan di **fungsi database**, bukan di
+tombol. Konfirmasi merusak menuntut **mengetik nama perusahaan**, bukan
+"Anda yakin?" — dialog ya/tidak dijawab refleks setelah pemakaian ketiga.
+Pembatalan ditawarkan **di dalam notifikasi keberhasilan**.
+
+Migrasi `20260822140000` (ADDITIVE) + `20260822150000` (perbaikan
+penjaga). Kolom arsip ditulis di **dua** tabel — `rfq_leads` (dibaca
+daftar) dan `rfqs` (dibaca statistik) — dalam satu fungsi. Menandai satu
+saja akan membuat lead hilang dari daftar tapi tetap terhitung di angka.
+
+**CACAT YANG SAYA PERKENALKAN SENDIRI LALU PERBAIKI (1).** Penjaga
+pertama saya menulis `IF NOT public.is_admin()`. `is_admin()` membaca
+`auth.uid()`, yang **NULL pada koneksi service-role** — dan FastAPI justru
+memakai service-role key. Jadi penjaga itu tidak menyaring penyalahguna;
+ia menyaring satu-satunya pemanggil yang sah. Setiap upaya menyembunyikan
+ditolak. Ketahuan karena jalur kegagalannya sekarang **terlihat** (CP0):
+tombol ditekan → "Gagal menyembunyikan lead." Kalau CP0 belum dikerjakan,
+cacat ini akan tampil sebagai tombol yang diam.
+
+**CACAT YANG SAYA PERKENALKAN SENDIRI LALU PERBAIKI (2).** Angka chip
+"Arsip" mula-mula diambil lewat permintaan KEDUA dari peramban
+(`?archived=true`) — satu round-trip browser → Railway → Supabase penuh
+(terukur ~1 detik dari mesin ini) ditambahkan ke **setiap** pembukaan
+halaman leads, demi satu angka yang jarang dilihat. Itu persis pola yang
+dibongkar CP6 ronde lalu. Dipindahkan ke jawaban yang sama
+(`archived_count` di `RFQLeadListResponse`). Diverifikasi lewat
+`performance.getEntriesByType('resource')`: halaman leads kini memanggil
+**satu** endpoint, bukan dua.
+
+### B. Akses di layar sempit
+
+`TaskComposer` **dan** aksi arsip dipasang di `LeadDetailView` (halaman
+detail). Aturan yang sekarang mengikat ditulis di DESIGN-SYSTEM §4.16:
+setiap aksi entitas wajib ada di halaman detail; panel samping adalah
+jalan pintas, bukan tempat satu-satunya.
+
+Terverifikasi pada halaman ter-render 960 px: blok **"Follow-up"**
+(dengan pilihan cepat Besok / 3 hari / 1 minggu) dan blok **"Kelola
+lead"** kini ada di halaman detail.
+
+### Verifikasi integritas & statistik — diukur, bukan diasumsikan
+
+Statistik hero diukur lewat **kunci anon** (jalur publik sungguhan, bukan
+service key — kesalahan yang sudah menutupi cacat dua kali di ronde 3):
+
+| | Sebelum | Sesudah 2 lead diarsipkan |
+|---|---|---|
+| `active_products` | 5 | 5 |
+| `deal_count` | 0 | 0 |
+| `city_count` | 0 | 0 |
+| `shipped_kg` | 90.041 | 90.041 |
+| `shipment_rows` | 2 | 2 |
+
+**Tidak bergeser satu angka pun** — sesuai harapan, karena kedua lead yang
+diarsipkan berstatus `lost`, bukan `deal`.
+
+Integritas data, sesudah dua arsip **dan** satu penghapusan permanen
+sungguhan:
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `rfqs` menunjuk lead yang sudah hilang | **0** |
+| `rfqs` terputus (`legacy_lead_id = NULL`) | **0** |
+| `rfq_items` yatim | **0** |
+| `lead_status_history` yatim | **0** |
+| Tanda arsip `rfq_leads` vs `rfqs` berselisih | **0 dari 5** |
+
+Penjaga penghapusan permanen diuji satu per satu:
+
+| Percobaan | Hasil |
+|---|---|
+| Purge lead yang masih AKTIF | **Ditolak** — "arsipkan dulu sebelum menghapus permanen" |
+| Purge sesudah diarsipkan | Berhasil |
+| Purge lead yang sudah tidak ada | **Ditolak** — "lead tidak ditemukan" |
+
+`companies`/`contacts` sengaja **tidak** ikut terhapus: satu perusahaan
+bisa punya beberapa RFQ, dan menghapusnya bersama satu lead akan membuang
+riwayat RFQ lain milik perusahaan yang sama.
+
+**Lead uji `wergew` dan `ewrgwerg` kini DIARSIPKAN, bukan dihapus** —
+keputusan itu milik Jazil, dan tombol Hapus permanen sudah tersedia di
+halaman detail masing-masing. Lead uji yang **saya** buat sendiri
+(`PT Uji Kirim Sejahtera`) sudah saya hapus permanen sekaligus sebagai
+pembuktian jalur itu.
+
+### TEMUAN YANG SENGAJA TIDAK SAYA PERBAIKI DIAM-DIAM
+
+`rfq_leads.status` dan `rfqs.status` **berselisih**. Panel admin membaca
+`rfq_leads` dan menampilkan "Deal 2"; `get_public_hero_stats()` membaca
+`rfqs` dan mendapat `deal_count = 0`. Perubahan status lewat
+`PATCH /rfq/leads/{id}` hanya menulis `rfq_leads` dan tidak pernah
+merambat ke `rfqs`.
+
+Artinya statistik "deal" di beranda **sudah salah sebelum ronde ini**.
+Memperbaikinya akan mengubah angka yang tampil di publik dari 0 menjadi 2
+— dan checkpoint ini justru bertugas memastikan angka **tidak berubah
+diam-diam**. Jadi ia dicatat ke ACTION REQUIRED, bukan dibetulkan
+sembunyi-sembunyi.
+
+### Berkas yang berubah di CP1
+
+| Berkas | Perubahan |
+|---|---|
+| `supabase/migrations/20260822140000_lead_archive.sql` | **BARU**, additive, diterapkan |
+| `supabase/migrations/20260822150000_lead_archive_service_role.sql` | **BARU**, perbaikan penjaga, diterapkan |
+| `hooks/use-media-query.ts` | **BARU** — `matchMedia`, breakpoint `rem` |
+| `hooks/use-is-mobile.ts` | **DIHAPUS** |
+| `components/admin/lead/LeadArchiveActions.tsx` | **BARU** |
+| `components/admin/lead/LeadDetailView.tsx` | + TaskComposer, + aksi arsip |
+| `components/admin/lead/LeadDetailPanel.tsx` | + aksi arsip |
+| `components/admin/lead/LeadsWorkspace.tsx` | Arsip sebagai kumpulan terpisah, `useIsLgUp` |
+| `components/admin/lead/LeadsToolbar.tsx` | Chip Arsip + pemisah |
+| `components/admin/lead/LeadsKanbanBoard.tsx` | `matchMedia` |
+| `backend/routers/rfq.py` | 3 endpoint arsip + `archived` filter + `archived_count` |
+| `backend/schemas/rfq.py` | `archived_at`, `archived_reason`, `archived_count`, `LeadArchiveRequest` |
+| `backend/main.py` | Pencatatan jadi fire-and-forget (lihat di bawah) |
+| `lib/api.ts`, `types/api.ts` | Kontrak dicerminkan |
+
+### Perbaikan tambahan yang lahir dari CP1: pencatatan CP0 sempat menahan jawaban
+
+Middleware CP0 versi pertama menulis `await log_request(...)` **sebelum**
+`return response` — menaruh satu round-trip Supabase penuh di jalur
+jawaban. Diukur: permintaan yang dicatat melonjak ke **182–604 ms** (n=3).
+Sesudah dijadikan fire-and-forget: **3–8 ms** (n=6, pembacaan pertama
+24 ms dibuang sebagai pemanasan). Pengamat tidak boleh memperlambat yang
+diamati.

@@ -14,7 +14,7 @@
 
 'use client'
 
-import { ListIcon, KanbanIcon, MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react/ssr'
+import { ListIcon, KanbanIcon, MagnifyingGlassIcon, XIcon, ArchiveIcon } from '@phosphor-icons/react/ssr'
 import { LEAD_STATUSES, LABEL_MAP } from '@/lib/constants/lead-status'
 import { DATE_PRESETS, type DatePresetKey } from '@/lib/lead-format'
 import { INDUSTRY_OPTIONS } from '@/lib/validation/rfq-schema'
@@ -37,12 +37,16 @@ interface Props {
   onViewChange: (v: LeadsView) => void
   onReset: () => void
   hasActiveFilters: boolean
+  /** CP1 ronde 4 — true = sedang melihat arsip, bukan daftar aktif. */
+  showArchived: boolean
+  onShowArchivedChange: (v: boolean) => void
+  archivedCount: number
 }
 
 export function LeadsToolbar({
   search, onSearchChange, statusFilter, onStatusFilterChange, countByStatus, totalCount,
   industry, onIndustryChange, datePreset, onDatePresetChange, view, onViewChange,
-  onReset, hasActiveFilters,
+  onReset, hasActiveFilters, showArchived, onShowArchivedChange, archivedCount,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -126,6 +130,26 @@ export function LeadsToolbar({
               count={countByStatus[s] ?? 0}
             />
           ))}
+
+          {/* Chip Arsip dipisah garis: ia bukan filter status ketujuh,
+              melainkan saklar yang mengganti KUMPULAN yang sedang dilihat.
+              Menaruhnya sebaris tanpa pemisah akan membuatnya terbaca
+              seperti status "Diarsipkan", yang bukan artinya.
+
+              Ditampilkan meski jumlahnya nol — beda dengan chip
+              "Terjadwal" di §4.13. Alasannya berbeda: chip berangka nol di
+              sana tidak pernah berguna, sedangkan di sini chip inilah
+              satu-satunya penanda bahwa arsip itu ADA. Tanpa ia terlihat,
+              lead yang sudah disembunyikan tidak punya jalan pulang yang
+              bisa ditemukan. */}
+          <span className="mx-1 h-5 w-px bg-ink-900/10" aria-hidden="true" />
+          <StatusChip
+            active={showArchived}
+            onClick={() => onShowArchivedChange(!showArchived)}
+            label="Arsip"
+            count={archivedCount}
+            icon={<ArchiveIcon size={16} weight="regular" aria-hidden="true" />}
+          />
         </div>
       )}
     </div>
@@ -154,8 +178,8 @@ function ViewButton({
 }
 
 function StatusChip({
-  active, onClick, label, count,
-}: { active: boolean; onClick: () => void; label: string; count: number }) {
+  active, onClick, label, count, icon,
+}: { active: boolean; onClick: () => void; label: string; count: number; icon?: React.ReactNode }) {
   // Status berjumlah nol tetap ditampilkan tapi diredupkan. Menyembunyikannya
   // akan membuat daftar chip berubah-ubah panjang setiap kali data berganti,
   // dan menghilangkan informasi "tahap ini memang kosong".
@@ -175,6 +199,7 @@ function StatusChip({
             : 'border-ink-900/10 bg-white text-ink-700 hover:border-brand-teal-600/40 hover:bg-brand-teal-50/50',
       ].join(' ')}
     >
+      {icon}
       {label}
       <span className={['mono-tech text-xs', active ? 'text-white/80' : 'text-neutral-400'].join(' ')}>
         {count}

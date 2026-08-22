@@ -20,6 +20,8 @@ import { AdminNotesEditor } from '@/components/admin/shared/AdminNotesEditor'
 import { ProposalGeneratorPanel } from './ProposalGeneratorPanel'
 import { StatusHistoryTable } from './StatusHistoryTable'
 import { StatusPanel } from './StatusPanel'
+import { LeadArchiveActions } from './LeadArchiveActions'
+import { TaskComposer } from '@/components/admin/task/TaskComposer'
 import type { LeadStatus, RFQLead, LeadStatusHistory } from '@/types/api'
 import { saltTypeLabels } from '@/lib/lead-format'
 import { AdminState } from '@/components/admin/ui/AdminState'
@@ -198,9 +200,43 @@ export function LeadDetailView({ leadId, productNames }: { leadId: string; produ
         onLeadUpdated={(updated) => setLead(updated)}
       />
 
+      {/* ══ CP1 ronde 4 — CACAT YANG DITUTUP DI SINI ══
+          Composer tugas selama ini HANYA ada di LeadDetailPanel, yaitu
+          panel samping yang hanya dirender mulai 1024px. Halaman ini —
+          satu-satunya jalan menuju detail lead di layar sempit — tidak
+          pernah mendapatkannya, jadi fitur tugas yang dibangun di CP4
+          ronde lalu praktis tidak bisa dipakai dari ponsel maupun dari
+          jendela desktop berorientasi potret.
+
+          Sebabnya bukan responsivitas, melainkan DUA implementasi detail
+          yang berbeda dan diam-diam berselisih. Aturan yang sekarang
+          mengikat ditulis di DESIGN-SYSTEM.md §4.16: setiap aksi lead
+          wajib ada di halaman detail; panel samping adalah jalan pintas,
+          bukan tempat satu-satunya. */}
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-ink-700 mb-3">Follow-up</h2>
+        <TaskComposer parentKind="rfq" parentId={lead.id} />
+      </div>
+
       <div className="bg-white border border-neutral-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-ink-700 mb-3">Histori Status</h2>
         <StatusHistoryTable history={history} />
+      </div>
+
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-ink-700 mb-3">Kelola lead</h2>
+        <LeadArchiveActions
+          lead={lead}
+          layout="page"
+          onChanged={(action) => {
+            /* Setelah dihapus permanen, lead ini sudah tidak ada — tetap
+               di halamannya berarti menampilkan sesuatu yang bukan apa-apa.
+               Setelah disembunyikan, halamannya masih sah (dan justru dari
+               sinilah pemulihan dilakukan), jadi cukup muat ulang. */
+            if (action === 'purged') router.push('/admin/leads')
+            else fetchDetail(true)
+          }}
+        />
       </div>
     </div>
   )

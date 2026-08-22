@@ -891,6 +891,115 @@ cukup. Pengingat email terjadwal membutuhkan cron/worker — rancangannya
 ditulis ke ACTION REQUIRED, bukan dipasang diam-diam sebagai
 ketergantungan baru.
 
+## 4.16 Detail entitas di layar sempit — satu aturan, bukan dua komponen
+
+Ditetapkan 2026-08-22 (CP1 ronde 4).
+
+### Pola: panel berdampingan di `lg:`, HALAMAN tersendiri di bawahnya
+
+Daftar + panel konteks berdampingan hanya dirender mulai `lg:`. Di bawah
+itu, memilih satu baris **berpindah ke halaman detail**. Kembali lewat
+breadcrumb, bukan lewat tombol tutup.
+
+### ATURAN YANG MENGIKAT: halaman detail adalah permukaan LENGKAP
+
+**Setiap aksi entitas wajib ada di halaman detail. Panel samping adalah
+jalan pintas untuk layar lebar, bukan tempat satu-satunya bagi aksi apa
+pun.**
+
+Ini ditulis karena pelanggarannya sudah terjadi dan mahal. Composer tugas
+CP4 ronde 3 dipasang **hanya** di `LeadDetailPanel`. Panel itu tidak
+pernah dirender di bawah `lg:`, jadi fitur tugas yang baru saja dibangun
+tidak bisa dipakai sama sekali dari ponsel maupun dari jendela desktop
+berorientasi potret — dan tidak ada yang menandainya, karena di layar
+lebar semuanya tampak baik-baik saja.
+
+Sebabnya bukan responsivitas: sebabnya **dua implementasi detail yang
+berbeda** (`LeadDetailPanel` dan `LeadDetailView`) yang diam-diam
+berselisih. Selama keduanya ada, aturan di atas yang menjaga agar
+perselisihannya tidak pernah lagi memakan sebuah fitur.
+
+### Keputusan "sempit atau lebar" WAJIB memakai `matchMedia`, bukan `innerWidth`
+
+Ini bukan detail teknis; ini sumber cacat yang persis dilaporkan.
+
+`useIsMobile(1024)` memutuskan dengan `window.innerWidth < 1024`,
+sementara yang menyembunyikan panelnya adalah kelas `lg:block`. Dua
+pengukur berbeda untuk satu keputusan yang sama, dan keduanya bisa
+berselisih. Saat berselisih, klik menyimpan `selectedId` untuk panel yang
+sedang disembunyikan CSS — **tidak ada apa pun yang muncul**.
+
+| Sumber perselisihan | Lebar pita rusak |
+|---|---|
+| `innerWidth` memuat scrollbar, media query CSS tidak | ~15 px di sekitar 1024 |
+| **`lg` Tailwind v4 = `64rem`, bukan `1024px`** | ukuran font bawaan 20px → `lg` jadi 1280 px CSS → pita rusak **~256 px** |
+
+Baris kedua yang menentukan. Di seluruh pita itu, detail entitas tidak
+bisa dibuka dengan cara apa pun.
+
+**Aturan:** setiap keputusan tata letak yang harus sejalan dengan
+breakpoint Tailwind diambil lewat `useMediaQuery`/`useIsLgUp`
+(`hooks/use-media-query.ts`), yang bertanya ke mesin CSS yang sama.
+Breakpointnya ditulis dalam **`rem`**, tidak pernah dalam px.
+`hooks/use-is-mobile.ts` **dihapus** — meninggalkannya berarti
+menyediakan jalan untuk melahirkan cacat yang sama lagi.
+
+**Ketika ragu, pilih cabang yang tidak bisa berakhir diam.** Kalau nilai
+media query belum diketahui (render pertama), defaultnya adalah "buka
+halaman" — itu berhasil di lebar mana pun, sedangkan menyimpan pilihan
+hanya berhasil kalau panelnya kebetulan tampil.
+
+## 4.17 Menyembunyikan data, bukan menghapusnya
+
+Ditetapkan 2026-08-22 (CP1 ronde 4).
+
+### Baku: sembunyikan. Permanen: dua langkah, dan dijaga di database
+
+| Tindakan | Jangkauan | Penjaga |
+|---|---|---|
+| Sembunyikan (arsip) | Tombol sekunder di halaman detail | Konfirmasi lewat **pembatalan**, bukan dialog |
+| Pulihkan | Chip `Arsip` di daftar, atau tombol di detail | — |
+| Hapus permanen | Hanya muncul untuk entitas yang **sudah** diarsipkan | Wajib **mengetik nama** entitasnya |
+
+**Kenapa arsip yang jadi baku.** Entitas di sistem ini tidak berdiri
+sendiri. Satu lead menggantung pada `rfqs` → `rfq_items`, ditambah `tasks`
+dan `lead_status_history`. `rfqs.legacy_lead_id` memakai `ON DELETE SET
+NULL`, jadi menghapus barisnya tidak meninggalkan foreign key menggantung
+— tapi meninggalkan baris `rfqs` yang **masih hidup tanpa asal-usul**,
+yang tetap terhitung di statistik dan tidak bisa dijelaskan dari mana
+datangnya. Itu bukan baris yatim menurut Postgres, tapi baris yatim
+menurut definisi yang penting.
+
+**Urutan "arsipkan dulu" ditegakkan di FUNGSI DATABASE, bukan di tombol.**
+Tombol bisa dilewati; fungsi database tidak.
+
+**Konfirmasi merusak = mengetik nama, bukan "Anda yakin?".** Dialog
+ya/tidak dijawab secara refleks setelah pemakaian ketiga. Mengetik nama
+menuntut pembacaan, dan pembacaan itulah konfirmasinya.
+
+**Pembatalan ditawarkan di dalam notifikasi keberhasilan.** Penyesalan
+atas tindakan merusak datang dalam hitungan detik; jalan kembalinya harus
+ada di detik itu juga, bukan setelah menemukan halaman arsip lebih dulu.
+
+### Yang disembunyikan berhenti terhitung — di SEMUA tempat
+
+Menandai arsip hanya di satu tabel membuat entitas hilang dari daftar tapi
+**tetap terhitung di angka**. Ketidaksesuaian diam seperti itu yang paling
+sulit dilacak kemudian. Karena itu penandaannya menyentuh setiap tabel
+yang dibaca oleh daftar MAUPUN oleh statistik, dalam satu fungsi.
+
+**Wajib diukur sebelum dan sesudah**, lewat jalur pembaca yang sebenarnya
+(kunci anon untuk statistik publik — bukan service key, kesalahan yang
+sudah menutupi cacat dua kali di ronde 3).
+
+### Chip arsip ditampilkan meski berjumlah nol
+
+Berbeda dengan chip "Terjadwal" (§4.13) yang disembunyikan saat nol.
+Alasannya berbeda: chip nol di sana tidak pernah berguna, sedangkan chip
+inilah **satu-satunya penanda bahwa arsip itu ada**. Tanpa ia terlihat,
+data yang sudah disembunyikan tidak punya jalan pulang yang bisa
+ditemukan.
+
 ## 5. Spacing — grid 8px
 
 Langkah yang disahkan: **8 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96**

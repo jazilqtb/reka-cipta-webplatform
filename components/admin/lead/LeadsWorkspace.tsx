@@ -19,7 +19,7 @@ import { toast } from 'sonner'
 import { getLeads, updateLead, ApiFetchError } from '@/lib/api'
 import { LABEL_MAP } from '@/lib/constants/lead-status'
 import { DATE_PRESETS, isoDaysAgo, type DatePresetKey } from '@/lib/lead-format'
-import { useIsMobile } from '@/hooks/use-is-mobile'
+import { useIsLgUp } from '@/hooks/use-media-query'
 import { TextLineSkeleton } from '@/components/ui/skeletons'
 import { LeadsToolbar, type LeadsView } from './LeadsToolbar'
 import { LeadsListView } from './LeadsListView'
@@ -34,9 +34,23 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  // Panel detail hanya muat mulai lg. Di bawah itu, memilih lead berpindah
-  // ke halaman detail — pola master-detail yang lazim di layar sempit.
-  const isNarrow = useIsMobile(1024)
+  /* Panel detail hanya dirender mulai `lg:`. Di bawah itu, memilih lead
+     berpindah ke HALAMAN detail — pola master-detail yang lazim di layar
+     sempit.
+
+     CP1 ronde 4: pertanyaannya sekarang diajukan ke mesin CSS yang SAMA
+     dengan yang menyembunyikan panelnya (`useIsLgUp`), bukan ke
+     `window.innerWidth < 1024`. Dua pengukur berbeda untuk satu keputusan
+     yang sama bisa berselisih, dan saat berselisih hasilnya adalah klik
+     yang tidak menghasilkan apa pun — lihat catatan lengkapnya di
+     hooks/use-media-query.ts. */
+  const hasSidePanel = useIsLgUp()
+
+  /* CP1 ronde 4 — arsip sebagai KUMPULAN terpisah, bukan filter status.
+     Disimpan di URL supaya keadaannya bertahan saat halaman dimuat ulang
+     dan bisa dibagikan sebagai tautan; kalau hanya di useState, admin yang
+     memulihkan lead lalu me-refresh akan kehilangan tempatnya. */
+  const showArchived = searchParams.get('arsip') === '1'
 
   const industry = searchParams.get('industry') ?? ''
   const datePreset = (searchParams.get('range') ?? 'all') as DatePresetKey
@@ -48,6 +62,10 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
   }, [datePreset])
 
   const [leads, setLeads] = useState<RFQLead[]>([])
+  /* Jumlah arsip dikirim backend bersama daftar, apa pun daftar yang
+     sedang diminta — kalau angkanya hanya ada saat arsip dibuka, chip itu
+     tidak pernah bisa memberi tahu bahwa ada sesuatu di dalamnya. */
+  const [archivedCount, setArchivedCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   /* null = tidak ada galat · 'error' = server menjawab dengan galat ·
      'blocked' = permintaan tidak pernah sampai ke server (CORS/jaringan) */
@@ -60,8 +78,17 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
     setIsLoading(true)
     setErrorKind(null)
     try {
-      const data = await getLeads({ industry: industry || undefined, date_from: dateFrom })
+      const data = await getLeads({
+        industry: industry || undefined,
+        date_from: dateFrom,
+        archived: showArchived || undefined,
+      })
       setLeads(data.leads)
+      /* Angka chip datang dari jawaban yang SAMA, bukan permintaan kedua.
+         Lihat catatan di backend/schemas/rfq.py: versi pertama saya
+         menambahkan satu round-trip penuh ke setiap pembukaan halaman ini
+         demi satu angka — kesalahan yang persis dibongkar CP6. */
+      setArchivedCount(data.archived_count)
     } catch (err) {
       if (err instanceof ApiFetchError && err.status === 401) {
         router.push('/admin/login')
@@ -71,10 +98,19 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
     } finally {
       setIsLoading(false)
     }
-  }, [industry, dateFrom, router])
+  }, [industry, dateFrom, router, showArchived])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchLeads()
+  }, [fetchLeads])
+
+  /* Dipanggil setelah lead diarsipkan/dipulihkan/dihapus dari panel
+     samping. Daftar DAN angka chip harus ikut, kalau tidak lead yang baru
+     disembunyikan tetap terlihat sampai halaman dimuat ulang — dan itu
+     terbaca sebagai "tombolnya tidak bekerja". */
+  const handleArchiveChanged = useCallback(() => {
+    setSelectedId(null)
     fetchLeads()
   }, [fetchLeads])
 
@@ -131,7 +167,12 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
   )
 
   function handleSelect(lead: RFQLead) {
-    if (isNarrow) {
+    /* Arah defaultnya SENGAJA "buka halaman". Kalau nilai media query
+       belum diketahui (render pertama, snapshot server), berpindah halaman
+       selalu berhasil di lebar mana pun — sedangkan menyimpan `selectedId`
+       hanya berhasil kalau panelnya kebetulan tampil. Ketika ragu, pilih
+       cabang yang tidak bisa berakhir diam. */
+    if (!hasSidePanel) {
       router.push(`/admin/leads/${lead.id}`)
       return
     }
@@ -195,13 +236,26 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
         onViewChange={(v) => updateQuery({ view: v })}
         onReset={handleReset}
         hasActiveFilters={hasActiveFilters}
+        showArchived={showArchived}
+        onShowArchivedChange={(v) => {
+          setSelectedId(null)
+          updateQuery({ arsip: v ? '1' : undefined })
+        }}
+        archivedCount={archivedCount}
       />
 
       {leads.length === 0 ? (
         <AdminCard>
+          {/* "Arsipnya kosong" dan "belum ada RFQ sama sekali" adalah dua
+              kenyataan berbeda; menyamakannya membuat admin menyimpulkan
+              datanya hilang (§4.11 kejujuran angka, prinsip yang sama). */}
           <AdminState
-            title="Belum ada RFQ masuk"
-            description="Bagikan halaman /minta-penawaran untuk mulai mengumpulkan lead."
+            title={showArchived ? 'Arsip kosong' : 'Belum ada RFQ masuk'}
+            description={
+              showArchived
+                ? 'Belum ada lead yang disembunyikan. Lead yang Anda sembunyikan akan muncul di sini dan bisa dikembalikan kapan saja.'
+                : 'Bagikan halaman /minta-penawaran untuk mulai mengumpulkan lead.'
+            }
           />
         </AdminCard>
       ) : view === 'kanban' ? (
@@ -227,7 +281,12 @@ export function LeadsWorkspace({ productNames }: { productNames: Record<string, 
           {/* Panel konteks — disembunyikan di bawah lg, tempatnya diambil
               alih halaman detail (lihat handleSelect). */}
           <div className="hidden min-h-0 overflow-y-auto rounded-md border border-ink-900/[0.07] bg-white lg:block">
-            <LeadDetailPanel lead={selectedLead} productNames={productNames} onStatusChange={applyStatusChange} />
+            <LeadDetailPanel
+            lead={selectedLead}
+            productNames={productNames}
+            onStatusChange={applyStatusChange}
+            onArchiveChanged={handleArchiveChanged}
+          />
           </div>
         </div>
       )}

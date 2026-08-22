@@ -20,7 +20,7 @@ import {
   type DragEndEvent, type DragStartEvent,
 } from '@dnd-kit/core'
 import { LEAD_STATUSES } from '@/lib/constants/lead-status'
-import { useIsMobile } from '@/hooks/use-is-mobile'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { KanbanColumn } from './KanbanColumn'
 import { LeadKanbanCard } from './LeadKanbanCard'
 import { MobileLeadsView } from './MobileLeadsView'
@@ -32,7 +32,9 @@ interface Props {
 }
 
 export function LeadsKanbanBoard({ leads, onStatusChange }: Props) {
-  const isMobile = useIsMobile()
+  /* Alasan sama dengan LeadsWorkspace: tanyakan ke mesin CSS, jangan
+     mengukur sendiri. `md` Tailwind v4 = 48rem, bukan 768px. */
+  const isMobile = !useMediaQuery('(min-width: 48rem)')
   const [activeLead, setActiveLead] = useState<RFQLead | null>(null)
 
   // Activation constraint 8px — klik singkat (tanpa gerak) diteruskan ke
