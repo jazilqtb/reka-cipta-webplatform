@@ -67,7 +67,7 @@ export function PageHero({
 }: PageHeroProps) {
   return (
     <>
-      <section className="relative overflow-hidden surface-dark px-4 pb-14 pt-14 md:pb-20 md:pt-20">
+      <section className="relative overflow-hidden surface-depth edge-marine-bottom px-4 pb-14 pt-14 md:pb-20 md:pt-20">
 
         <div className="relative mx-auto max-w-5xl">
           <nav

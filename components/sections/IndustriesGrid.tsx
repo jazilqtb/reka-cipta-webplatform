@@ -157,7 +157,7 @@ export function IndustriesGrid() {
                      bidang lebih besar dari tombol/badge (§2.5). Warna
                      bukan pembeda yang bermakna di sini — keenam sektor
                      setara, yang membedakan cuma ikon dan namanya. */
-                  className={`card-hover-lift group relative flex h-full flex-col justify-between overflow-hidden rounded-md bg-steel-900 p-6 text-white ${
+                  className={`card-hover-lift card-depth group relative flex h-full flex-col justify-between overflow-hidden rounded-md p-6 text-white ${
                     industry.featured ? 'min-h-[220px] md:p-8' : 'min-h-[200px]'
                   }`}
                 >
@@ -177,6 +177,18 @@ export function IndustriesGrid() {
                   </div>
 
                   <div className="relative z-10 mt-6">
+                    {/* CP2 ronde 4 — bilah aksen marine 2px.
+                        Ini jawaban atas "kenapa tidak biru": biru masuk
+                        sebagai GARIS, bukan sebagai bidang. §2.5 mengizinkan
+                        primary pada bilah maksimal 4px; ini 2px.
+                        marine-500, bukan marine-600 — diukur: marine-600 di
+                        atas steel-900 hanya 2,39:1, sedangkan marine-500
+                        3,20:1 dan lolos ambang non-teks WCAG 1.4.11 (3:1).
+                        Bilah yang tidak bisa dilihat bukan pembatas. */}
+                    <span
+                      aria-hidden="true"
+                      className="mb-4 block h-0.5 w-7 bg-marine-500"
+                    />
                     {/* text-white eksplisit — globals.css §BASE menimpa semua
                         h1-h6 ke ink-700 by default; tanpa ini judul nyaris
                         tak terlihat di atas background gradient gelap. */}

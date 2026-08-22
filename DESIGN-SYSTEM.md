@@ -194,6 +194,104 @@ latar `-50`-nya melewati WCAG AA tanpa perlu diperiksa kasus per kasus.
 
 ---
 
+## 2.6 AMANDEMEN (2026-08-22) — kedalaman permukaan, dengan batas angka
+
+Ditetapkan CP2 ronde 4. **Ini pelonggaran terkendali, bukan pembatalan.**
+
+### Apa yang dilonggarkan, dan apa yang TIDAK
+
+Penilaian yang memicunya: hero beranda terlalu gelap; hero halaman lain
+terlalu polos; kartu sektor terlalu polos; latar Alur Kerja terlalu polos
+dan terlalu gelap — "kenapa tidak biru atau gradien".
+
+Penilaian itu sah. Tapi ia bertabrakan dengan tiga ketetapan yang sudah
+disahkan: §9 anti-pattern #9 (gradien dilarang sebagai latar section),
+§2.5 (primary tidak pernah jadi bidang besar), dan CP2 ronde 2 yang justru
+MENYERAGAMKAN enam gradien kartu sektor menjadi satu permukaan steel-900.
+
+Yang dilakukan bukan memilih salah satu, melainkan memisahkan dua hal yang
+selama ini tercampur: **gradien sebagai PENANDA** (dua warna berbeda yang
+menarik perhatian ke bidangnya sendiri — tetap dilarang) dan **gradien
+sebagai KEDALAMAN** (dua langkah bersebelahan dari satu ramp, yang dibaca
+mata sebagai bidang bervolume, bukan sebagai warna).
+
+### Empat perangkat yang disahkan, masing-masing dengan langit-langit
+
+| # | Perangkat | BATAS ANGKA — mengikat |
+|---|---|---|
+| 1 | Gradien satu keluarga | **ΔL\* ≤ 6,0** antar stop, dan stop harus **bersebelahan** di ramp yang sama. Maksimal **2 stop**. Arah **vertikal saja** |
+| 2 | Kisi / garis rambut | opasitas **≤ 0,06**, tebal **1px**, jarak **≥ 48px**, garis **lurus** saja |
+| 3 | Garis tepi aksen (marine) | tebal **≤ 4px** (§2.5), dan warnanya wajib **≥ 3:1** terhadap permukaan di baliknya |
+| 4 | Tekstur / noise | opasitas **≤ 0,035** |
+
+**Angka-angka ini menolak sesuatu, bukan merestui apa pun.** Contoh:
+
+- `steel-900 → steel-950` = **ΔL\* 5,1** → **lolos**.
+- `steel-800 → steel-900` = **ΔL\* 7,8** → **ditolak**.
+- `marine-600` di atas `steel-900` = **2,39:1** → **ditolak** sebagai garis tepi.
+- `marine-500` di atas `steel-900` = **3,20:1** → **lolos**.
+
+Nilai yang dipakai hidup di `@theme` (`--color-hairline-grid` 0,04 ·
+`--color-hairline-edge` 0,08), bukan ditulis literal di dalam string
+`linear-gradient(...)` — celah persis itu yang menyembunyikan tiga warna
+hijau lama selama sembilan bulan (§9 anti-pattern #16).
+
+### Sifat aman yang membuat amandemen ini tidak bisa merusak kontras
+
+Stop bawah gradien **lebih gelap** daripada permukaan lama. Kontras
+seluruh peran teks di atas `steel-950` lebih TINGGI daripada di atas
+`steel-900`:
+
+| Peran | di atas steel-900 | di atas steel-950 |
+|---|---|---|
+| Judul putih | 17,51 | 19,34 |
+| Teks isi `steel-200` | 13,72 | 15,15 |
+| Teks sekunder `steel-300` | 10,74 | 11,86 |
+| Aksen `marine-200` | 10,24 | 11,31 |
+
+Artinya gradien ini **secara matematis tidak bisa** menurunkan kontras di
+bawah angka yang sudah tercatat di §4.9. Angka terburuknya tetap angka
+steel-900 yang lama, dan itulah yang dipakai sebagai dasar seluruh
+pengukuran ulang.
+
+### "Kenapa tidak biru" — dijawab, tanpa mengecat apa pun
+
+Marine masuk sebagai **garis**, tidak pernah sebagai bidang:
+garis tepi bawah hero (2px), dan bilah aksen 2px × 28px pada kartu sektor.
+§2.5 sudah mengizinkan primary pada bilah maksimal 4px, jadi ini tidak
+menuntut pelonggaran tambahan sama sekali.
+
+### Lantai overlay foto — 0,58
+
+Lapisan gelap di atas foto hero tidak boleh turun di bawah **0,58**.
+
+Angkanya bukan selera. Ia diukur pada **piksel foto yang sebenarnya**
+lewat canvas: titik paling terang di belakang area teks pada hero beranda
+adalah **putih murni** (dinding gedung), bukan langit. Kurva terukur untuk
+teks putih di atas putih murni + overlay `steel-950`:
+
+| alpha | 0,54 | 0,56 | **0,58** | 0,60 | 0,68 |
+|---|---|---|---|---|---|
+| kontras | 4,13 | 4,42 | **4,74** | 5,08 | 6,80 |
+
+0,58 adalah batas matematis AA (4,5:1). Nilai yang dipakai sekarang
+**0,60**, supaya ada margin. Perkiraan pertama saya memakai warna langit
+dan menyimpulkan 0,55 aman — itu **salah**, dan hanya ketahuan karena
+fotonya benar-benar di-sampel. **Alpha overlay tidak boleh ditetapkan dari
+perkiraan warna foto; ia wajib diukur pada fotonya sendiri.**
+
+### Apa yang TETAP dilarang
+
+- Gradien dua warna berbeda sebagai latar section.
+- Marine (atau warna aksen apa pun) sebagai bidang besar.
+- Gradien radial / mesh, blob, morphing — apa pun yang bukan bidang bersisi lurus.
+- Animasi baru. **Kedalaman datang dari permukaan, bukan dari gerak.**
+- `rounded-full` pada container. Ditemukan saat kritik desain CP2: di
+  seluruh section yang baru diberi kedalaman, sinyal "consumer app" yang
+  paling keras ternyata bukan gradien atau kisinya, melainkan **badge
+  lingkaran terisi 40px** pada langkah aktif Alur Kerja. Ia sudah melanggar
+  §4 sejak dulu dan baru sekarang ditutup (`rounded-sm`).
+
 ## 3. Tipografi
 
 ### 3.1 Satu keluarga
@@ -726,6 +824,21 @@ sehingga ketiganya lolos. **Itulah "gradien hijau" yang masih terlihat:
 bukan warna dasarnya, melainkan lapisan di atasnya.**
 
 **Pelajaran yang masuk §9 sebagai anti-pattern #16.**
+
+### AMANDEMEN (2026-08-22) — `.surface-depth` mendampingi `.surface-dark`
+
+`.surface-dark` (solid steel-900) **tetap berlaku dan tetap benar** untuk
+permukaan gelap yang berada DI ATAS FOTO — hero beranda. Di sana
+kedalamannya datang dari fotonya sendiri; menambahkan gradien dan kisi di
+atas foto hanya menumpuk dua bahasa yang saling menutupi.
+
+`.surface-depth` dipakai untuk permukaan gelap yang **tidak punya foto**:
+hero seluruh halaman dalam, panel hasil kalkulator, halaman terima kasih,
+dan section Alur Kerja. Batas angkanya di §2.6.
+
+Tabel kontras di atas **tidak berubah**, dan itu bukan kebetulan: stop
+bawah `.surface-depth` lebih gelap daripada steel-900, jadi steel-900
+tetap kasus terburuknya.
 
 ### Lapisan keterbacaan di atas foto — bukan pelanggaran §9
 

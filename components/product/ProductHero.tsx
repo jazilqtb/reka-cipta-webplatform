@@ -35,7 +35,7 @@ export function ProductHero({ product }: ProductHeroProps) {
 
   return (
     <>
-    <section className="relative overflow-hidden surface-dark px-4 pb-14 pt-8 md:pb-20 md:pt-10">
+    <section className="relative overflow-hidden surface-depth edge-marine-bottom px-4 pb-14 pt-8 md:pb-20 md:pt-10">
 
       <div className="relative mx-auto max-w-6xl">
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">

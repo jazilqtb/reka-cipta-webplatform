@@ -55,6 +55,20 @@
      tanpa pernah terbaca sebagai warna tersendiri. Undertone-nya harus
      mengikuti primary — netral ber-undertone teal di sebelah primary biru
      akan terbaca sebagai dua suhu warna yang berselisih. */
+  /* ─── Lapisan kedalaman (CP2 ronde 4) ────────────────────────────
+     Nilai yang dipakai .surface-depth. Ditaruh di sini, bukan ditulis
+     literal di kelasnya, supaya batas angkanya bisa diaudit di satu
+     tempat — dan supaya anti-pattern #16 tidak dilanggar diam-diam lewat
+     string di dalam `linear-gradient(...)`.
+
+     BATAS YANG MENGIKAT (DESIGN-SYSTEM.md §2.6):
+       garis kisi   opasitas <= 0.06
+       garis kartu  opasitas <= 0.10
+     Angka di bawah ini berada di dalam batas itu. Menaikkannya menuntut
+     amandemen tertulis, bukan penyetelan diam-diam. */
+  --color-hairline-grid: rgba(255, 255, 255, 0.04);
+  --color-hairline-edge: rgba(255, 255, 255, 0.08);
+
   --color-steel-50:  #F7F8FA;
   --color-steel-100: #EEF0F4;
   --color-steel-200: #E0E4EA;
@@ -957,6 +971,112 @@
      terbaca sebagai elemen). Putih transparan menyatu dengan bidangnya. */
   .surface-dark hr,
   .surface-dark .rule { border-color: rgba(255,255,255,0.12); }
+}
+
+/* ─── .surface-depth — kedalaman TANPA warna baru (CP2 ronde 4) ───────
+   Ditetapkan 2026-08-22. Menjawab "hero halaman lain terlalu polos" dan
+   "latar Alur Kerja terlalu polos & terlalu gelap" TANPA membatalkan tiga
+   ketetapan yang sudah disahkan: §9 anti-pattern #9 (gradien dilarang
+   sebagai latar section), §2.5 (primary tidak pernah jadi bidang besar),
+   dan CP2 ronde 2 yang justru MENYERAGAMKAN enam gradien kartu sektor.
+
+   KENAPA INI BUKAN PEMBATALAN #9. Larangan itu menyasar gradien sebagai
+   PENANDA — dua warna berbeda yang menarik perhatian ke bidangnya sendiri.
+   Yang dipakai di sini adalah dua langkah BERSEBELAHAN dari SATU ramp:
+
+       steel-900 (L* 9,0)  ->  steel-950 (L* 3,9)     ΔL* = 5,1
+
+   Pada selisih sekecil itu mata tidak membaca "gradien", ia membaca
+   "bidang yang punya kedalaman". Sebagai perbandingan, steel-800 ->
+   steel-900 sudah ΔL* 7,8 — dan itu di ATAS batas yang disahkan (6,0),
+   jadi batasnya memang menolak sesuatu, bukan sekadar merestui apa pun.
+
+   SIFAT AMAN YANG PENTING: stop bawahnya LEBIH GELAP daripada permukaan
+   lama. Kontras seluruh teks di atas steel-950 lebih TINGGI daripada di
+   atas steel-900 (putih 19,34 vs 17,51; steel-200 15,15 vs 13,72;
+   marine-200 11,31 vs 10,24). Artinya gradien ini secara matematis TIDAK
+   BISA menurunkan kontras di bawah angka yang sudah tercatat di §4.9 —
+   angka terburuknya tetap angka steel-900 yang lama. */
+@layer components {
+  .surface-depth {
+    position: relative;
+    background-color: var(--color-steel-900);
+    background-image: linear-gradient(
+      180deg,
+      var(--color-steel-900) 0%,
+      var(--color-steel-950) 100%
+    );
+    color: var(--color-steel-200);
+  }
+
+  /* Kisi garis rambut. Bahasa yang SUDAH disahkan §4.2 — garis lurus,
+     bukan bentuk. Ia memberi bidang gelap sesuatu untuk dibaca mata
+     tanpa menambahkan satu pun warna.
+
+     `pointer-events: none` wajib: lapisan ini menutupi seluruh section,
+     dan tanpa itu ia akan menelan klik pada tombol di bawahnya. */
+  .surface-depth::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        var(--color-hairline-grid) 0 1px,
+        transparent 1px 64px
+      ),
+      repeating-linear-gradient(
+        180deg,
+        var(--color-hairline-grid) 0 1px,
+        transparent 1px 64px
+      );
+    /* Kisi memudar ke bawah supaya tepi bawah section tetap bidang rata —
+       syarat yang sama yang membuat SectionDivider bersambung mulus
+       (lihat catatan "seam" di PageHero.tsx). */
+    mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+  }
+
+  /* Isi section HARUS berada di atas kisi. Tanpa ini, anak yang tidak
+     punya z-index sendiri bisa tertutup lapisan ::before. */
+  .surface-depth > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Teks di atas permukaan gelap — aturannya identik dengan .surface-dark,
+     karena permukaannya memang keluarga yang sama. */
+  .surface-depth h1,
+  .surface-depth h2,
+  .surface-depth h3 { color: #FFFFFF; }
+  .surface-depth hr,
+  .surface-depth .rule { border-color: rgba(255, 255, 255, 0.12); }
+
+  /* Aksen marine sebagai GARIS, bukan bidang. §2.5 mengizinkan primary
+     pada "bilah 4px"; ini 2px.
+
+     marine-500, BUKAN marine-600 — dan itu diukur, bukan selera:
+       marine-600 vs steel-900 = 2,39:1   (di bawah 3:1)
+       marine-500 vs steel-900 = 3,20:1   (lolos)
+     WCAG 1.4.11 menuntut 3:1 untuk komponen non-teks yang membawa makna.
+     Garis yang tidak bisa dilihat bukan pembatas, ia cuma niat baik. */
+  .edge-marine-bottom {
+    border-bottom: 2px solid var(--color-marine-500);
+  }
+
+  /* Kartu gelap bertingkat — dipakai kartu sektor. Yang membedakannya
+     dari permukaan datar sebelumnya bukan warna, melainkan TEPI: garis
+     rambut yang memisahkan kartu dari kartu di sebelahnya, dan dari latar
+     putih di belakangnya. */
+  .card-depth {
+    background-color: var(--color-steel-900);
+    background-image: linear-gradient(
+      180deg,
+      var(--color-steel-900) 0%,
+      var(--color-steel-950) 100%
+    );
+    border: 1px solid var(--color-hairline-edge);
+  }
 }
 
 /* ─── .carousel-row — SATU pola untuk semua deret geser horizontal ─────

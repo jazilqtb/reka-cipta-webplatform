@@ -97,7 +97,7 @@ export default function HowItWorks() {
 
   return (
     <section
-      className="bg-ink-900 px-4 py-14 md:py-20"
+      className="surface-depth relative overflow-hidden px-4 py-14 md:py-20"
       aria-labelledby="howitworks-heading"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -148,10 +148,19 @@ export default function HowItWorks() {
                         sekali (lebih organik, bukan "tempelan" generik). */}
                     <span
                       className={cn(
-                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300',
+                        /* CP2 ronde 4 — `rounded-full` DICABUT dari badge ini.
+                           §4 mengizinkan lingkaran penuh HANYA untuk avatar,
+                           titik status, dan spinner; badge 40px berisi ikon
+                           adalah container, dan container tidak membulat
+                           (§1.3 "bahan industri tidak membulat"). Ditemukan
+                           saat kritik desain CP2: di seluruh section yang baru
+                           diberi kedalaman, justru lingkaran biru terisi inilah
+                           sinyal "consumer app" yang paling keras — bukan
+                           gradien atau kisinya. */
+                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors duration-300',
                         isActive
                           ? ' bg-brand-teal-500 text-white'
-                          : 'text-white/45 group-hover:text-white/70'
+                          : 'text-white/55 group-hover:text-white/80'
                       )}
                     >
                       <Icon size={20} weight="duotone" aria-hidden="true" />
@@ -160,7 +169,7 @@ export default function HowItWorks() {
                       <p
                         className={cn(
                           'font-ui text-xs font-bold uppercase tracking-wide transition-colors duration-300',
-                          isActive ? 'text-brand-teal-300' : 'text-white/35'
+                          isActive ? 'text-marine-200' : 'text-white/55'
                         )}
                       >
                         Langkah {step.num}
@@ -213,7 +222,7 @@ export default function HowItWorks() {
                 className="relative z-10"
               >
                 <ActiveIcon size={40} weight="duotone" className="mb-6 text-marine-200" aria-hidden="true" />
-                <p className="mono-tech text-xs text-white/40">
+                <p className="mono-tech text-xs text-white/55">
                   Langkah {String(active.num).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
                 </p>
                 <h3 className="mt-2 font-ui text-lg font-semibold text-white md:text-xl">

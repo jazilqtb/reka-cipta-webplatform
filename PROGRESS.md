@@ -6,7 +6,7 @@ Ditulis ulang setiap checkpoint.
 |---|---|---|
 | CP0 | Pengiriman RFQ tidak merespons + jalur kegagalan + catatan API (poin 4) | **SELESAI** |
 | CP1 | Admin leads: sembunyikan/hapus + akses layar sempit (poin 2 & 3) | **SELESAI** |
-| CP2 | Kedalaman visual: hero & permukaan (poin 1) | belum |
+| CP2 | Kedalaman visual: hero & permukaan (poin 1) | **SELESAI** |
 
 ---
 
@@ -363,3 +363,178 @@ jawaban. Diukur: permintaan yang dicatat melonjak ke **182–604 ms** (n=3).
 Sesudah dijadikan fire-and-forget: **3–8 ms** (n=6, pembacaan pertama
 24 ms dibuang sebagai pemanasan). Pengamat tidak boleh memperlambat yang
 diamati.
+
+
+---
+
+## CP2 — SELESAI (poin 1)
+
+### Cara keluar dari tabrakan aturan
+
+Penilaian Jazil sah, tapi bertabrakan dengan tiga ketetapan yang sudah
+disahkan (§9 #9 gradien dilarang sebagai latar section, §2.5 primary bukan
+bidang besar, dan CP2 ronde 2 yang justru menyeragamkan enam gradien kartu
+sektor).
+
+Jalan keluarnya bukan memilih salah satu, melainkan **memisahkan dua hal
+yang selama ini tercampur**:
+
+- **Gradien sebagai PENANDA** — dua warna berbeda yang menarik perhatian
+  ke bidangnya sendiri. **Tetap dilarang.**
+- **Gradien sebagai KEDALAMAN** — dua langkah BERSEBELAHAN dari SATU ramp.
+  Mata membacanya sebagai bidang bervolume, bukan sebagai warna.
+
+### Batas angka — supaya tidak melebar sendiri di ronde berikutnya
+
+| Perangkat | Langit-langit |
+|---|---|
+| Gradien satu keluarga | **ΔL\* ≤ 6,0**, stop bersebelahan, maks 2 stop, vertikal |
+| Kisi garis rambut | opasitas **≤ 0,06**, 1px, jarak ≥ 48px |
+| Garis tepi aksen | **≤ 4px**, dan wajib **≥ 3:1** terhadap permukaannya |
+| Tekstur/noise | opasitas **≤ 0,035** |
+| Lantai overlay foto | **0,58** |
+
+**Angkanya menolak sesuatu, bukan merestui apa pun:**
+
+| Kandidat | Hasil |
+|---|---|
+| steel-900 → steel-950 = ΔL\* **5,1** | **lolos** |
+| steel-800 → steel-900 = ΔL\* **7,8** | **DITOLAK** |
+| marine-600 di atas steel-900 = **2,39:1** | **DITOLAK** sebagai garis tepi |
+| marine-500 di atas steel-900 = **3,20:1** | **lolos** |
+
+### Sifat aman yang membuat ini tidak bisa merusak kontras
+
+Stop bawah gradien LEBIH GELAP daripada permukaan lama, jadi kontras hanya
+bisa NAIK: putih 17,51 → 19,34 · steel-200 13,72 → 15,15 · marine-200
+10,24 → 11,31. Angka terburuknya tetap angka steel-900 yang lama — dan
+itulah yang dipakai sebagai dasar seluruh pengukuran ulang.
+
+### A. Hero beranda terlalu gelap — 68% → 60%
+
+**ALAT UKUR SAYA MENIPU DUA KALI DI CHECKPOINT INI. Keduanya ketahuan
+karena angkanya diperiksa, bukan dipercaya.**
+
+**Tipuan 1 — perkiraan warna foto.** Saya menghitung alpha aman memakai
+warna langit (#C8D4DE) dan menyimpulkan 55% lolos dengan margin (5,73:1).
+Saat foto itu benar-benar di-sampel lewat canvas, titik paling terang di
+belakang area teks ternyata **PUTIH MURNI** (dinding gedung) — dan pada
+55% kontrasnya cuma **4,28:1, GAGAL AA**.
+
+Kurva terukur pada putih murni:
+
+| alpha | 0,54 | 0,56 | **0,58** | 0,60 | 0,68 (lama) |
+|---|---|---|---|---|---|
+| kontras | 4,13 | 4,42 | **4,74** | **5,08** | 6,80 |
+
+Dipakai **0,60**. Lantai 0,58 ditetapkan di §2.6.
+
+**Tipuan 2 — komposit ganda.** Penyapu kontras pertama saya mengisi kanvas
+dengan HITAM lebih dulu lalu membaca warnanya, sehingga warna beropacity
+sudah terkomposit di atas hitam — lalu saya mengkompositnya LAGI di atas
+steel-900. Hasilnya melaporkan **3 kegagalan palsu** di /produk
+(`text-white/50` dibaca 4,43 padahal sebenarnya 5,25). Saya nyaris
+mengubah 20 berkas untuk memperbaiki masalah yang tidak ada. Diperbaiki
+dengan `clearRect` (transparan) + `getImageData` yang memang
+un-premultiplied.
+
+### B. Hero halaman lain — satu perlakuan, bukan enam variasi
+
+`.surface-depth` (baru) dipasang di **tujuh** permukaan: hero
+/produk, /produk/[slug], /tentang-kami, /kontak, PageHero generik
+(/kalkulator, /jadi-supplier, /artikel, /minta-penawaran), panel hasil
+kalkulator, dan halaman terima kasih.
+
+**`.surface-dark` TIDAK dihapus, dan itu keputusan.** Hero beranda tetap
+memakainya: di sana kedalaman datang dari FOTO. Menumpuk gradien + kisi di
+atas foto hanya menumpuk dua bahasa yang saling menutupi.
+
+### C. Kartu sektor & Alur Kerja — apa yang berbeda dari ronde 2
+
+Ronde 2 membuang enam gradien kartu sektor. Ini **bukan berputar balik**,
+dan bedanya bisa disebut persis:
+
+| | Ronde 2 (dibuang) | Ronde 4 (sekarang) |
+|---|---|---|
+| Jumlah warna | 6 gradien BERBEDA per kartu | 1 perlakuan, sama untuk keenamnya |
+| Keluarga warna | dua warna berlainan per gradien | satu keluarga, dua langkah bersebelahan |
+| ΔL\* | besar (mencolok) | **5,1** |
+| Fungsi | membedakan kartu satu dari lainnya | memberi VOLUME; kartu tetap setara |
+| Melanggar | §9 #9 dan §2.5 | tidak melanggar keduanya |
+
+Yang dibuang ronde 2 adalah gradien sebagai **pembeda identitas**; yang
+ditambahkan sekarang adalah gradien sebagai **bahan permukaan**. Keenam
+kartu tetap identik satu sama lain — itu justru syaratnya.
+
+Ditambah: garis rambut tepi (0,08) yang memisahkan kartu dari latar putih
+dan dari tetangganya, dan bilah aksen marine-500 2px × 28px sebagai jangkar
+— jawaban atas "kenapa tidak biru" tanpa mengecat satu bidang pun.
+
+Section Alur Kerja: `bg-ink-900` → `.surface-depth`. Sekaligus menutup
+pemakaian alias `ink-900` di permukaan yang seharusnya `steel-900` (§4.9).
+
+### Kritik desain sesudah CP2 — dan satu hal ditarik kembali
+
+Pertanyaannya: apakah kedalaman baru ini mengembalikan kesan consumer app?
+
+**Temuan: tidak — tapi ada satu elemen yang memang consumer, dan ia sudah
+ada di sana sebelum saya menyentuhnya.** Di seluruh section Alur Kerja yang
+baru diberi kedalaman, sinyal "consumer app" paling keras bukan gradien
+atau kisinya, melainkan **badge lingkaran terisi 40px** pada langkah aktif.
+
+Itu sudah melanggar §4 sejak dulu (`rounded-full` hanya untuk avatar,
+titik status, spinner — bukan container) dan §1.3 ("bahan industri tidak
+membulat"). Diganti `rounded-sm`. Diverifikasi terprogram pada halaman
+ter-render: **nol container ber-radius penuh** tersisa di seluruh
+`.surface-depth` dan `.card-depth`.
+
+### Verifikasi — diukur pada halaman ter-render
+
+Kontras diukur terhadap **stop TERANG** (steel-900) sebagai kasus terburuk:
+
+| Halaman | Elemen diperiksa | Gagal | Kontras minimum |
+|---|---|---|---|
+| `/` (hero + 6 kartu + Alur Kerja) | 45 | **0** | 6,03 |
+| `/produk` | 10 | **0** | 5,25 |
+| `/produk/garam-halus-yodium` | 9 | **0** | 5,25 |
+| `/tentang-kami` | 9 | **0** | 5,25 |
+| `/kontak` | 8 | **0** | 5,25 |
+| `/minta-penawaran` | 8 | **0** | 5,25 |
+| `/minta-penawaran/terima-kasih` | 4 | **0** | 8,99 |
+
+Dua kegagalan NYATA ditemukan dan diperbaiki di sepanjang jalan (keduanya
+sudah ada sebelum ronde ini, di section yang saya sentuh):
+`text-white/35` pada eyebrow langkah = **3,21:1**, dan `text-white/40` pada
+penghitung langkah = **3,81:1**. Keduanya dinaikkan ke `/55` (dan eyebrow
+aktif ke `marine-200`, token yang disahkan §4.9).
+
+Pemeriksaan lain: **nol** overflow horizontal di seluruh halaman di atas ·
+**nol** hex/rgba literal di komponen (satu-satunya kecocokan adalah warna
+yang disebut di dalam KOMENTAR yang mendokumentasikan pengukuran) · **nol**
+animasi terlarang baru · **nol** dependensi sirkular (madge, 239 berkas).
+
+### Berkas yang berubah di CP2
+
+| Berkas | Perubahan |
+|---|---|
+| `app/globals.css` | `--color-hairline-grid/edge` di `@theme`; `.surface-depth`, `.card-depth`, `.edge-marine-bottom` di `@layer components` |
+| `components/sections/HeroCarousel.tsx` | Overlay 68% → 60% (diukur) |
+| `components/sections/HowItWorks.tsx` | `.surface-depth`; 3 perbaikan kontras; badge tidak lagi bulat |
+| `components/sections/IndustriesGrid.tsx` | `.card-depth` + bilah aksen marine |
+| `PageHero · AboutHero · ContactHero · ProductHero · ProductCatalogHero · ThankYouPanel · CalculatorResult` | `.surface-depth` + garis tepi marine |
+
+### YANG TIDAK DIVERIFIKASI — terus terang
+
+Pengujian pada viewport **414 / 720 / 1024 / 1440 tidak dijalankan.**
+Permukaan peramban otomatis di lingkungan ini terkunci pada 960 px CSS —
+`resize_window` melapor berhasil tapi `innerWidth` tidak bergerak — dan
+jalur alternatifnya (memuat halaman di dalam iframe berukuran tetap,
+tempat media query dievaluasi terhadap viewport iframe) diblokir oleh
+`X-Frame-Options: DENY`. Saya **tidak** melemahkan header keamanan itu
+demi sebuah pengujian.
+
+Yang BISA saya jalankan sebagai gantinya: audit statis atas seluruh berkas
+yang diubah untuk lebar/`min-width` literal yang bisa meluber di 414 px.
+Satu-satunya `min-w-[720px]` berada di dalam `overflow-x-auto` (pola §4.11
+yang memang disahkan); sisanya pra-ada dan bukan dari ronde ini.
+**Pemeriksaan viewport ini perlu dilakukan manual** — masuk ACTION REQUIRED.

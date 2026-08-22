@@ -176,10 +176,25 @@ export function HeroCarousel({ slides, hero, stats: heroStats, autoPlayMs = 5500
             foto secara global lagi. */}
         {/* Lapisan keterbacaan di ATAS FOTO — bukan latar section, jadi tidak
             termasuk larangan §9. Dibalik dari putih ke gelap di CP0 ronde 3.
-            Nilainya dinaikkan dari 55% ke 68% karena teks putih di atas foto
+            CP2 RONDE 4 — DITURUNKAN dari 68% ke 60%. Keluhan: hero beranda
+            terlalu gelap, fotonya nyaris tidak terbaca sebagai foto.
+
+            ANGKANYA DIUKUR PADA PIKSEL FOTO YANG SEBENARNYA, bukan
+            diperkirakan. Perkiraan pertama saya memakai warna langit
+            (#C8D4DE) dan menyimpulkan 55% aman. Saat foto ini benar-benar
+            di-sampel lewat canvas, piksel paling terang di belakang area
+            teks ternyata PUTIH MURNI (dinding gedung), bukan langit — dan
+            pada 55% kontrasnya cuma 4,28:1, yaitu GAGAL AA.
+
+            Kurva terukur untuk teks putih di atas putih murni + overlay:
+              0,54 -> 4,13   0,56 -> 4,42   0,58 -> 4,74   0,60 -> 5,08
+            Jadi 0,58 adalah batas matematis AA, dan 0,60 dipilih supaya
+            ada margin. Lantai 0,58 ditetapkan di DESIGN-SYSTEM §2.6 dan
+            tidak boleh ditembus.
+            Catatan lama (kenapa dulu dinaikkan ke 68%): teks putih di atas foto
             terang (langit, tumpukan garam putih) butuh lebih banyak
             perlindungan daripada teks gelap di atas foto yang sama. */}
-        <div className="absolute inset-0 bg-steel-950/68 lg:bg-gradient-to-r lg:from-steel-950 lg:from-30% lg:via-steel-950/78 lg:via-58% lg:to-steel-950/35" />
+        <div className="absolute inset-0 bg-steel-950/60 lg:bg-gradient-to-r lg:from-steel-950/92 lg:from-28% lg:via-steel-950/68 lg:via-56% lg:to-steel-950/25" />
         {/* Fade bawah — batas Hero jangan garis lurus, foto meluruh halus
             ke warna dasar section (salt-50) di 3 baris terakhir. */}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-steel-900 to-transparent md:h-36" />
