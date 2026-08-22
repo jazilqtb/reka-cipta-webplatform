@@ -33,9 +33,22 @@ export const rfqSubmitSchema = z.object({
       })
     )
     .min(1, 'Isi volume untuk setiap jenis garam yang dipilih'),
-  /* Tetap dikirim selama fase transisi (backend masih menulis rfq_leads).
-     Nilainya DIHITUNG dari items dalam ton, bukan diketik pengguna. */
-  volume_per_month: z.number().positive(),
+  /* `volume_per_month` SENGAJA TIDAK ADA DI SKEMA INI — dan ketiadaannya
+     adalah perbaikan, bukan kelalaian.
+
+     CP0 ronde 4: field itu dulu ikut divalidasi di sini sebagai
+     `z.number().positive()`, padahal sejak CP2 ronde 3 ia sudah bukan lagi
+     isian pengguna — ia DIHITUNG dari `items` di dalam onSubmit. Akibatnya
+     nilainya masih 0 (dari defaultValues) pada saat validasi berjalan,
+     validasi selalu gagal, `onSubmit` tidak pernah dipanggil, dan karena
+     tidak ada satu pun input `volume_per_month` di layar, pesan errornya
+     tidak punya tempat untuk muncul. Tombol ditekan → layar diam.
+
+     ATURAN YANG DIAMBIL DARI SINI: skema form hanya memvalidasi apa yang
+     BISA DIISI DAN DIPERBAIKI PENGGUNA. Nilai turunan divalidasi oleh
+     tipe payload (types/api.ts) dan oleh backend, bukan oleh resolver
+     form — resolver form yang menolak field tak terlihat adalah jalan
+     buntu tanpa jalan keluar. */
   delivery_frequency: z.enum(['weekly', 'biweekly', 'monthly']),
   delivery_city: z.string().min(1, 'Wajib diisi').max(100),
   email: z.string().email('Format email tidak valid'),

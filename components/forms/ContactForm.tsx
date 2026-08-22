@@ -15,13 +15,18 @@
 // gagal build (RSC mencoba import useForm/useSyncExternalStore yg cuma
 // valid di Client Component). Sudah dikembalikan sbg baris literal
 // pertama file, sesuai syarat Next.js (harus statement pertama).
-import { useEffect, useRef, useSyncExternalStore } from 'react'
-import { useForm } from 'react-hook-form'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useForm, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { PackageIcon, PaperPlaneTiltIcon, CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { apiFetch, ApiFetchError } from '@/lib/api'
+import {
+  SubmitFeedback,
+  failureFromStatus,
+  type SubmitFailure,
+} from '@/components/forms/SubmitFeedback'
 import type { ContactRequest, ContactResponse } from '@/types/api'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -98,6 +103,20 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
 
   const messageLength = watch('message')?.length ?? 0
 
+  /* CP0 ronde 4 — jalur kegagalan yang terlihat, pola sama dengan RFQForm.
+     Form ini juga dulu hanya memunculkan toast di pojok, yang hilang sendiri
+     sebelum pengguna sempat menggulir ke isian yang bermasalah. */
+  const [failure, setFailure] = useState<SubmitFailure | null>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const revealFailure = useCallback((next: SubmitFailure) => {
+    setFailure(next)
+    requestAnimationFrame(() => {
+      feedbackRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }, [])
+
   const urlSearch = useSyncExternalStore(subscribeToUrl, getUrlSearch, getServerUrlSearch)
   const params = new URLSearchParams(urlSearch)
   const produkSlug = params.get('produk')
@@ -133,15 +152,37 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
         method: 'POST',
         body: JSON.stringify(payload),
       })
+      setFailure(null)
       toast.success('Pesan Anda berhasil terkirim. Kami akan merespons dalam 1 × 24 jam kerja.')
+      /* reset() hanya di jalur BERHASIL. Di jalur gagal isian dipertahankan —
+         lihat catatan yang sama di RFQForm. */
       reset()
     } catch (err) {
-      if (err instanceof ApiFetchError && err.status === 429) {
-        toast.warning('Terlalu banyak permintaan. Silakan tunggu beberapa saat.')
-      } else {
-        toast.error('Gagal mengirim pesan. Silakan coba lagi atau hubungi via WhatsApp.')
-      }
+      const next =
+        err instanceof ApiFetchError
+          ? failureFromStatus(err.status, err.status === 0 ? undefined : err.message)
+          : ({ kind: 'server' } as SubmitFailure)
+      revealFailure(next)
+      toast.error(
+        next.kind === 'rate_limit'
+          ? 'Terlalu banyak permintaan. Silakan tunggu beberapa saat.'
+          : 'Gagal mengirim pesan. Lihat penjelasan di atas formulir.'
+      )
     }
+  }
+
+  function onInvalid(errs: FieldErrors<ContactFormValues>) {
+    const LABELS: Record<string, string> = {
+      name: 'Nama Lengkap',
+      email: 'Email',
+      phone: 'Nomor Telepon',
+      message: 'Pesan',
+    }
+    const keys = Object.keys(errs)
+    revealFailure({ kind: 'invalid', fields: keys.map((k) => LABELS[k] ?? k) })
+    toast.error('Ada isian yang belum benar. Lihat penjelasan di atas formulir.')
+    const first = keys.find((k) => document.querySelector(`[name="${k}"]`))
+    if (first) document.querySelector<HTMLElement>(`[name="${first}"]`)?.focus({ preventScroll: true })
   }
 
   return (
@@ -156,11 +197,16 @@ export function ContactForm({ availableProducts = [] }: ContactFormProps) {
       )}
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        ref={formRef}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         noValidate
         aria-busy={isSubmitting}
         className="mt-6 space-y-5"
       >
+        <div ref={feedbackRef}>
+          <SubmitFeedback failure={failure} onRetry={() => formRef.current?.requestSubmit()} />
+        </div>
+
         <div className="space-y-1.5">
           <Label htmlFor="name">
             Nama Lengkap <span className="text-danger-600">*</span>

@@ -6,13 +6,18 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useCallback, useRef, useState } from 'react'
+import { useForm, Controller, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { registerSupplier, ApiFetchError } from '@/lib/api'
+import {
+  SubmitFeedback,
+  failureFromStatus,
+  type SubmitFailure,
+} from '@/components/forms/SubmitFeedback'
 import {
   supplierRegisterSchema,
   type SupplierRegisterFormData,
@@ -27,6 +32,21 @@ import { InfoBlock } from '@/components/rfq/InfoBlock'
 import { SupplierSaltTypesCheckboxGroup } from './SupplierSaltTypesCheckboxGroup'
 
 const NOTES_MAX = 500
+
+/* CP0 ronde 4 — sama alasannya dengan RFQForm: ringkasan kegagalan
+   validasi menyebut nama field dalam bahasa pengguna, termasuk field yang
+   sudah punya pesan sendiri di bawah kolomnya. */
+const FIELD_LABELS: Record<string, string> = {
+  business_name: 'Nama / Nama Usaha',
+  location_city: 'Kota / Kabupaten',
+  location_province: 'Provinsi',
+  salt_types_available: 'Jenis Garam yang Tersedia',
+  capacity_per_month: 'Kapasitas per Bulan',
+  capacity_unit: 'Satuan Kapasitas',
+  whatsapp: 'WhatsApp',
+  email: 'Email',
+  additional_notes: 'Keterangan Tambahan',
+}
 
 const selectClassName =
   'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
@@ -59,6 +79,26 @@ export function SupplierRegistrationForm() {
 
   const notesLength = watch('additional_notes')?.length ?? 0
 
+  /* CP0 ronde 4 — jalur kegagalan yang terlihat, pola sama dengan RFQForm.
+     Form ini tidak punya bug diam seperti RFQ (semua fieldnya punya kontrol
+     di layar), tapi cabang kegagalannya sama-sama hanya toast yang lewat. */
+  const [failure, setFailure] = useState<SubmitFailure | null>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const revealFailure = useCallback((next: SubmitFailure) => {
+    setFailure(next)
+    requestAnimationFrame(() => {
+      feedbackRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }, [])
+
+  /* Indikator "sedang mengirim" harus hidup sampai halaman tujuan BENAR-BENAR
+     tampil. `isSubmitting` mati begitu onSubmit selesai, sementara
+     router.push() belum merender apa pun — jeda diam yang persis sama dengan
+     yang diperbaiki di RFQForm pada CP2 ronde 3, dan terlewat di sini. */
+  const [isLeaving, setIsLeaving] = useState(false)
+
   function startRateLimitCountdown() {
     setRateLimitCountdown(60)
     const interval = setInterval(() => {
@@ -81,25 +121,51 @@ export function SupplierRegistrationForm() {
         additional_notes: values.additional_notes || null,
       }
       await registerSupplier(payload)
+      setFailure(null)
+      setIsLeaving(true)
       router.push('/jadi-supplier/terima-kasih')
     } catch (err) {
-      if (err instanceof ApiFetchError && err.status === 429) {
-        toast.error('Terlalu banyak permintaan. Coba lagi dalam 1 jam.')
-        startRateLimitCountdown()
-      } else {
-        toast.error('Gagal mengirim pendaftaran. Silakan coba lagi.')
-      }
+      /* Tidak ada reset() di sini — kegagalan tidak menghapus isian. */
+      const next =
+        err instanceof ApiFetchError
+          ? failureFromStatus(err.status, err.status === 0 ? undefined : err.message)
+          : ({ kind: 'server' } as SubmitFailure)
+      if (next.kind === 'rate_limit') startRateLimitCountdown()
+      revealFailure(next)
+      toast.error(
+        next.kind === 'rate_limit'
+          ? 'Terlalu banyak permintaan. Coba lagi dalam 1 jam.'
+          : 'Gagal mengirim pendaftaran. Lihat penjelasan di atas formulir.'
+      )
     }
   }
 
-  const submitDisabled = isSubmitting || rateLimitCountdown > 0
+  function onInvalid(errs: FieldErrors<SupplierRegisterFormData>) {
+    const keys = Object.keys(errs)
+    revealFailure({ kind: 'invalid', fields: keys.map((k) => FIELD_LABELS[k] ?? k) })
+    toast.error('Ada isian yang belum benar. Lihat penjelasan di atas formulir.')
+    const first = keys.find((k) => document.querySelector(`[name="${k}"]`))
+    if (first) document.querySelector<HTMLElement>(`[name="${first}"]`)?.focus({ preventScroll: true })
+  }
+
+  const submitDisabled = isSubmitting || isLeaving || rateLimitCountdown > 0
 
   return (
     // RONDE Tahap 11: `form-brand` — styling seluruh field (radius,
     // tinggi, focus glow teal) datang dari SATU kelas induk di
     // globals.css, bukan className per-<Input>. Logika form di file ini
     // sengaja tidak disentuh sama sekali.
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={isSubmitting} className="form-brand space-y-6">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      noValidate
+      aria-busy={submitDisabled}
+      className="form-brand space-y-6"
+    >
+      <div ref={feedbackRef}>
+        <SubmitFeedback failure={failure} onRetry={() => formRef.current?.requestSubmit()} />
+      </div>
+
       <FormSection title="Informasi Usaha">
         <div className="space-y-1.5">
           <Label htmlFor="business_name">
@@ -280,10 +346,10 @@ export function SupplierRegistrationForm() {
         disabled={submitDisabled}
         className="font-ui flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-teal-600 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-teal-500 active:translate-y-0 active:bg-brand-teal-700 focus-visible:outline-none focus-visible:shadow-focus disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? (
+        {isSubmitting || isLeaving ? (
           <>
             <CircleNotchIcon size={16} weight="bold" className="animate-spin" aria-hidden="true" />
-            Mengirim...
+            {isLeaving ? 'Membuka halaman konfirmasi…' : 'Mengirim…'}
           </>
         ) : rateLimitCountdown > 0 ? (
           `Coba lagi dalam ${rateLimitCountdown} detik`

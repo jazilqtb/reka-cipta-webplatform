@@ -25,6 +25,7 @@ import {
   GearIcon,             // Pengaturan
   SparkleIcon,          // Pengaturan Proposal
   EnvelopeSimpleIcon,   // Template Pesan
+  PulseIcon,            // Catatan API
 } from '@phosphor-icons/react/ssr'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 
@@ -62,6 +63,10 @@ export const ADMIN_NAV_SETTINGS: AdminNavItem[] = [
   { label: 'Pengaturan',          href: '/admin/settings',           icon: GearIcon,           matchExact: true  },
   { label: 'Pengaturan Proposal', href: '/admin/proposal-settings',  icon: SparkleIcon,        matchExact: true  },
   { label: 'Template Pesan',      href: '/admin/email-templates',    icon: EnvelopeSimpleIcon, matchExact: true  },
+  /* CP0 ronde 4 — ditaruh di kelompok Pengaturan, bukan Menu Utama:
+     ini bukan pekerjaan harian, ini tempat yang dibuka justru ketika ada
+     yang tidak beres. */
+  { label: 'Catatan API',         href: '/admin/log',                icon: PulseIcon,          matchExact: true  },
 ] as const
 
 export const PAGE_TITLES: Record<string, string> = {
@@ -76,6 +81,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/settings':           'Pengaturan',
   '/admin/proposal-settings':  'Pengaturan Proposal',
   '/admin/email-templates':    'Template Pesan',
+  '/admin/log':                'Catatan API',
   '/admin/hero':               'Hero Beranda',
   '/admin/tentang-kami':       'Tentang Kami',
   '/admin/mitra':              'Mitra Distribusi',

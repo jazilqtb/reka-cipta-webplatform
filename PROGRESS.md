@@ -1,389 +1,178 @@
-# PROGRESS — Ronde 3 (14 poin revisi)
+# PROGRESS — Ronde 4 (4 poin revisi)
 
-Branch: `feature/R3-dark-hero-crm`. Ditulis ulang setiap checkpoint.
+Ditulis ulang setiap checkpoint.
 
 | CP | Isi | Status |
 |---|---|---|
-| CP0 | Tema gelap + pembersihan hijau + sembunyikan pilar (4, 6, 5) | **SELESAI** |
-| CP1 | Model data Company/Contact (12) | belum |
-| CP2 | RFQ volume per produk + satuan + bug navigasi (1) | belum |
-| CP3 | Dashboard operasi & distribusi (2, 14) | belum |
-| CP4 | Tugas & follow-up (13) | belum |
-| CP5 | Admin: foto tim, kompresi, mitra, email, jadwal artikel (7,3,8,9,11) | **SELESAI** |
-| CP6 | Performa admin (10) | **SELESAI** |
+| CP0 | Pengiriman RFQ tidak merespons + jalur kegagalan + catatan API (poin 4) | **SELESAI** |
+| CP1 | Admin leads: sembunyikan/hapus + akses layar sempit (poin 2 & 3) | belum |
+| CP2 | Kedalaman visual: hero & permukaan (poin 1) | belum |
+
+---
 
 ## CP0 — SELESAI
 
-**B. "Gradien hijau" — PENYEBAB DITEMUKAN.** Bukan warna dasarnya. Tiap
-permukaan gelap punya dua *mesh gradient* radial dengan **rgba hijau lama
-yang ditulis LITERAL**: `rgba(15,158,139)`, `rgba(27,191,170)`,
-`rgba(4,43,38)`. Karena literal, retune token ronde lalu tidak
-menyentuhnya, dan sapuan verifikasi saya waktu itu hanya mencari hex +
-`rgba(11,125,110)` sehingga ketiganya lolos. 18 nilai di 10 berkas.
-Seluruh mesh dicabut; permukaan jadi solid `.surface-dark`.
-Bundle CSS: nol sisa dari 8 pola hijau lama yang diperiksa.
+### A. Hipotesis utama DIUJI, dan TIDAK TERBUKTI
 
-**A. Hero beranda gelap.** `.surface-dark` (steel-900). Overlay foto
-dibalik putih→gelap, 55%→68%. Panel kaca putih khusus ponsel dicabut
-(tugasnya menjamin kontras teks gelap; tidak relevan lagi).
-Navbar TIDAK diubah: ia bar putih opak di atas hero, bukan menumpang
-transparan — diverifikasi visual.
+Hipotesis yang diberikan: frontend baru mengirim payload bentuk baru ke
+backend bentuk lama (Railway belum di-deploy, uvicorn lokal tanpa
+`--reload`), ditolak 422/400/500, dan layar diam karena tidak ada
+penanganan error.
 
-**KONTRAS — alat ukur saya sendiri sempat rusak.** Versi pertama mem-parse
-`getComputedStyle().color` dengan regex angka; Tailwind v4 mengeluarkan
-`oklab(...)` untuk warna beropacity, jadi regex mengambil L/a/b sebagai RGB
-dan melaporkan 1,11:1 pada teks yang baik-baik saja. Diperbaiki memakai
-canvas. Hasil sesudah perbaikan alat: **1 kegagalan nyata** — kata aksen
-hero `marine-600` = 2,39:1 (butuh 3:1). Dipindah ke `marine-200` (10,2:1).
-Pratinjau hero di admin ikut dijadikan gelap, karena ia mengklaim
-"seperti yang dilihat pengunjung".
-Sesudah: **0 kegagalan** di 6 halaman × 414/1440.
+**Diuji lebih dulu, sebelum satu baris pun diubah. Hasilnya: bukan itu.**
 
-**C. Pilar kepercayaan disembunyikan** lewat `constants/homepage-sections.ts`
-(satu titik kendali).
-**TEMUAN PENTING:** `CredibilitySection.tsx` memuat DUA hal — pilar
-kepercayaan DAN marquee mitra. Mematikan seluruh komponen akan ikut
-mematikan marquee yang justru diminta dikembalikan ronde lalu. Hanya blok
-pilar yang digerbangi; marquee terverifikasi masih tampil.
-**KEHILANGAN KLAIM (terukur):** beranda kini TIDAK LAGI memuat "SNI
-3556:2016" maupun "Akta Notaris, NIB, NPWP" di mana pun.
+Bukti yang menjatuhkannya — formulir diisi lengkap dan benar di peramban
+sungguhan, lalu tombol ditekan:
 
-DESIGN-SYSTEM: §4.9 permukaan gelap, anti-pattern #16 (literal rgba).
-
-## CP1 — SELESAI (model data Company -> Contact -> RFQ)
-
-**EXPAND** (`20260821110000`): 6 tabel + 3 fungsi normalisasi. ADDITIVE murni.
-`companies` · `contacts` · `rfqs` · `rfq_items` · `company_merge_candidates`
-· `company_merges`. RLS: TIDAK ada akses publik — ini daftar pelanggan.
-
-**MIGRATE** (`20260821110100`): idempoten lewat `rfqs.legacy_lead_id` UNIQUE.
-4 rfq_leads -> 4 rfqs / 4 companies / 4 contacts / 12 rfq_items.
-**NOL baris hilang. rfq_leads TETAP UTUH.**
-Statistik hero: deal lama=0 baru=0, kota unik lama=0 baru=0 — TIDAK bergeser.
-
-**KEPUTUSAN TERPENTING DI MIGRASI:** rfq_items hasil migrasi TIDAK punya
-kuantitas. Baris lama menyimpan SATU volume untuk SEMUA jenis yang dicentang.
-Menyalin 90 ton ke 4 jenis = 360 ton (mengarang); membagi rata = mengarang
-angka yang tak pernah dikatakan siapa pun. Totalnya disimpan apa adanya di
-`rfqs.legacy_total_qty_kg`; itemnya hanya mencatat JENIS.
-
-**CONTRACT**: `supabase/pending-approval/CONTRACT_20260821_drop_rfq_leads.sql`
-— TIDAK dijalankan, di luar folder migrations. Blast radius + sabuk pengaman
-tertulis di dalamnya. **ROLLBACK** juga disediakan.
-
-**DEDUPLIKASI — ambang disetel dari PENGUKURAN, bukan tebakan.**
-Ambang awal 0,72 melewatkan justru kasus yang diminta: `maju jaya` vs
-`maju jya` = 0,583. Diukur 7 pasangan; jurang antara salah-ketik (0,58–0,86)
-dan benar-benar-beda (<=0,28) lebar, jadi ambang turun ke 0,50.
-Empat sinyal berbobot: domain email kerja 0,95 > nama identik 0,85 >
-telepon sama + nama berkerabat 0,80 > kemiripan nama >=0,50.
-Penyedia email gratis DISARING — 2 lead ber-@gmail.com terbukti TIDAK
-tergabung.
-**Penggabungan otomatis TIDAK ADA di jalur kode mana pun.** Fungsi hanya
-mengusulkan; `merge_companies()` menuntut is_admin() dan mencatat snapshot
-supaya bisa dibatalkan lewat `undo_company_merge()`.
-
-**BUKTI END-TO-END:** RFQ dikirim lewat endpoint sungguhan dengan nama
-"PT. Mitracomm Ekasarana" (titik berbeda dari yang sudah ada) -> ditempatkan
-di perusahaan yang SUDAH ADA (rfq=2), bukan membuat perusahaan kelima.
-Satuan terkonversi: 40 ton -> 40.000 kg; 200 sak_50 -> 10.000 kg.
-
-**Halaman baru** `/admin/perusahaan`: daftar perusahaan + jumlah RFQ,
-tinjauan duplikat, riwayat penggabungan + tombol batalkan.
-
-DESIGN-SYSTEM: §4.10 satuan & kuantitas, §4.3 diperluas.
-
-## CP2 — SELESAI (RFQ per produk + satuan + bug jeda)
-
-**1A/1B volume per jenis + satuan.** Terverifikasi di 414px: centang 2 jenis
--> 2 baris volume muncul, opsi satuan `kg | ton | sak (25 kg) | sak (50 kg)`,
-field volume tunggal lama sudah tidak ada.
-Kontainer SENGAJA tidak ditawarkan (bobot berubah menurut jenis & cara muat).
-Setiap kuantitas disimpan DUA KALI: bentuk asli + kanonik kg.
-
-**1C BUG JEDA 2-3 DETIK — DIUKUR, bukan ditebak. Dua sebab, bukan satu.**
-
-Sebab A (backend): endpoint submit melakukan TUJUH round-trip Supabase
-berurutan. Satu round-trip dari mesin ini terukur 374-1045 ms.
-  SEBELUM: 1,87 / 2,06 / 3,18 s (n=3, end-to-end)
-  SESUDAH: hanya 1 round-trip tersisa — 261 / 289 / 691 ms (n=6)
-Semua pekerjaan non-esensial (penempatan CRM, nama produk, email admin,
-kirim email) dipindah ke BackgroundTasks.
-
-Sebab B (frontend): `isSubmitting` react-hook-form menjadi false BEGITU
-onSubmit selesai, sementara router.push() belum merender halaman tujuan.
-Indikator mati lebih dulu, layar berganti kemudian. Ditutup dengan
-`isLeaving` yang tidak pernah direset (komponen ikut hilang saat navigasi)
-+ `router.prefetch` halaman tujuan.
-
-BUG YANG SAYA PERKENALKAN SENDIRI LALU PERBAIKI: tugas latar mula-mula
-ditulis `async def` sambil memanggil klien supabase yang SINKRON — itu
-membekukan event loop dan membuat satu permintaan melonjak ke 6,1 detik.
-Dipindah ke `asyncio.to_thread`.
-
-DUA KALI alat ukur saya menipu: `.test` ditolak pydantic (mengukur 422),
-lalu rate limit 5/jam (mengukur 429). Keduanya ketahuan karena angkanya
-mustahil (3,6 ms untuk sebuah insert).
-
-## CP3 — SELESAI (distribusi: janji vs realisasi)
-
-**DIAGNOSIS DITERIMA, dan benar:** sistem tidak menyimpan realisasi
-distribusi sama sekali. Yang kurang ENTITASNYA, bukan grafiknya.
-
-**Dua tabel baru** (`20260821120000`, ADDITIVE, diterapkan):
-`supply_commitments` (janji berulang per periode) + `shipments` (realisasi
-bertanggal, dengan supplier). Kapasitas supplier TIDAK dibuat tabel baru —
-sudah ada di `supplier_registrations.capacity_per_month`.
-
-**YANG SENGAJA TIDAK DIBANGUN:** stok/inventaris/gudang (Jazil distributor,
-bukan pabrik; angka yang tidak pernah dihitung akan salah dalam sebulan lalu
-dipercaya setahun), purchase order, invoice, harga.
-
-**BUG SERIUS YANG DITEMUKAN DI SEPANJANG JALAN:** `getHeroStats` membaca
-`rfqs`/`shipments` dengan anon key, sementara RLS-nya admin-only. PostgREST
-mengembalikan NOL BARIS, bukan error — jadi statistik dinamis beranda
-SELALU 0 tanpa tanda apa pun. Verifikasi CP1 saya lolos karena memakai
-service key yang melewati RLS. Pelajarannya: memverifikasi jalur publik
-dengan kunci istimewa = tidak memverifikasi jalur publik.
-Ditutup dengan `get_public_hero_stats()` SECURITY DEFINER yang hanya
-mengembalikan ANGKA agregat.
-
-**"Ton Distribusi" AKHIRNYA punya sumber.** Terbukti: 353 baseline + 70 ton
-dari 2 pengiriman = 423 di halaman ter-render. (Data demo lalu dihapus.)
-
-**Sempat terlihat seperti bug, ternyata bukan:** build melaporkan 0
-pengiriman padahal DB punya 2. Sebabnya Next.js men-cache `fetch` global
-dan supabase-js memakainya — respons ter-cache dari sebelum data ada.
-Terbukti setelah .next/cache/fetch-cache dibersihkan.
-
-**Ekspor** CSV (BOM UTF-8 utk Excel) + JSON, keduanya menghormati satuan
-kanonik kg dan menyertakan periode. Terverifikasi lewat sesi admin nyata.
-
-DESIGN-SYSTEM: §4.11 tabel padat & grafik, §4.3 diperluas.
-
-## CP4 — SELESAI (tugas & follow-up)
-
-**Tabel `tasks`** (`20260821140000`, ADDITIVE, diterapkan). Tugas melekat
-pada TEPAT SATU entitas lewat lima kolom FK nullable + CHECK — BUKAN pola
-polimorfik (entity_type, entity_id), yang tidak bisa dijaga foreign key dan
-akan meninggalkan baris yatim saat induknya dihapus.
-Constraint kedua menjaga `completed_at` dan `status` tidak berselisih.
-
-**Terverifikasi di UI nyata:** 4 kelompok tampil benar — Terlewat (merah,
-"terlewat 3 hari"), Jatuh tempo hari ini (amber), Akan datang ("5 hari
-lagi"), Tanpa tenggat. Induk tiap tugas ikut tertulis.
-Dashboard menampilkan "TUGAS TERLEWAT & HARI INI · 3" di ATAS RFQ terbaru.
-
-**Pengingat tanpa penjadwal:** berbasis tampilan di dua tempat yang pasti
-dibuka admin. Batasnya dinyatakan terus terang di dokumen dan di kode:
-kalau panel tidak dibuka, tidak ada yang mengingatkan. Rancangan pengingat
-email masuk ACTION REQUIRED — tidak dipasang diam-diam.
-
-**Composer dipasang di panel detail lead**, tepat saat operator melihat
-leadnya — tugas yang dibuat dari halaman terpisah kehilangan konteks.
-
-DESIGN-SYSTEM: §4.12 tugas & pengingat.
-
-## CP5 — SELESAI (5 perbaikan admin: 7, 3, 8, 9, 11)
-
-**Poin 7 — upload foto tim gagal (bug nyata, direproduksi).** Bukan dugaan:
-diulang sebagai admin ter-autentikasi dengan PNG 85 byte dan mendapat
-`new row violates row-level security policy` (403). Sebabnya bucket
-`team-photos` dibuat lewat Storage API di ronde sebelumnya tanpa satu pun
-kebijakan `storage.objects`. Migrasi `20260822090000` menambahkannya
-memakai `public.is_admin()` — BUKAN sekadar peran `authenticated`, karena
-pendaftaran publik Supabase masih terbuka dan `authenticated` saat ini
-berarti "siapa pun yang mau mendaftar". Terverifikasi utuh:
-upload → baca (200) → hapus.
-
-**Poin 3 — kompresi gambar.** `lib/image-compress.ts` dipasang di keempat
-jalur upload. Dua penjaga yang disengaja: SVG dan GIF dilewatkan apa adanya
-(mengompresnya merusak vektor dan membuang animasi), dan hasil kompresi
-DIBUANG kalau ternyata lebih besar dari aslinya — yang terjadi pada PNG
-kecil dengan sedikit warna.
-
-**Poin 8 — mitra jadi CRUD, marquee membaca DB.** Menemukan cacat nyata
-saat diuji pada 2 mitra: trek gandanya hanya 946px sedangkan viewport
-1440px, jadi ada celah kosong yang berputar. Diperbaiki dengan
-`min-w-[100vw]` per salinan. Diuji pada 2 dan 15 mitra.
-
-**Poin 9 — penyunting email & WhatsApp.** Kolom "Body (HTML)" dihapus;
-admin sekarang menulis teks biasa dan `textToHtml()` yang menyusun HTML-nya
-— sekaligus menutup jalur injeksi, karena `&`, `<`, `>` di-escape sebelum
-dibungkus paragraf. Lebar wadah `max-w-4xl` (896px, terpusat) diganti
-`w-full max-w-[1600px]`.
-
-Ukur dulu, baru simpulkan: setelah dilebarkan, penyunting WhatsApp yang
-satu kolom menghasilkan `<textarea>` **1550px** di layar 1920 — sekitar 200
-karakter per baris, yang justru dilarang §3.4. Jadi langkah 2 dan 3
-dijadikan dua kolom berdampingan. Hasil terukur pada halaman ter-render:
-
-| Viewport | Wadah | Kolom penyunting |
-|---|---|---|
-| 1280 | 976px | 451px |
-| 1440 | 1136px | 531px |
-| 1920 | 1600px (batas aktif) | 763px |
-
-Angkanya identik antara penyunting Email dan WhatsApp — disengaja.
-
-**Poin 11 — penjadwalan terbit, tanpa penjadwal eksternal.** Ditegakkan di
-**RLS** (`20260822110000`), bukan di query. Ada TUJUH tempat di kode yang
-menyaring `is_published` untuk pembaca publik; menambal ketujuhnya berarti
-menyisakan yang kedelapan untuk dilupakan — dan kebocoran seperti itu tidak
-memunculkan error, artikel yang belum waktunya cuma diam-diam masuk sitemap.
-
-Diverifikasi dengan **kunci anon** (bukan service key — kesalahan yang
-sempat menutupi cacat di CP1). Artikel dijadwalkan ke 2027:
-
-| Jalur baca | Baris bocor |
+| Yang diperiksa | Hasil |
 |---|---|
-| daftar artikel | 0 |
-| akses langsung ke slug | 0 |
-| sitemap | 0 |
-| artikel terkait | 0 |
-| terpopuler | 0 |
-| `select=*` tanpa filter apa pun | 0 |
+| Permintaan ke `/rfq/submit` | **NOL.** Tidak ada permintaan sama sekali |
+| Pesan konsol | kosong |
+| Perubahan tampilan | tidak ada |
 
-Lalu jadwalnya dimundurkan ke masa lalu → artikel langsung terlihat, tanpa
-cron dan tanpa campur tangan siapa pun.
+Payload **tidak pernah meninggalkan peramban**, jadi bentuk backend tidak
+mungkin menjadi sebabnya. Dua butir ACTION REQUIRED ronde 3 itu memang
+nyata dan tetap perlu dikerjakan, tapi keduanya **bukan** penyebab poin 4.
 
-Diuji juga **end-to-end lewat API sungguhan** (instance uvicorn terpisah,
-JWT admin nyata): `08:00+07:00` tersimpan sebagai `01:00Z` — konversi zona
-waktu benar. Ini bukan detail kosmetik: kalau offset tidak ikut terkirim,
-server (UTC) dan admin (WIB) berselisih 7 jam dan artikel terbit di hari
-yang salah.
+Diperiksa juga: uvicorn lokal :8001 ternyata **sudah** berjalan dengan
+`--reload` dan skema barunya sudah termuat — `openapi.json` menampilkan
+`items` di `RFQSubmitRequest`. Butir #2 ronde 3 sudah tidak berlaku.
 
-Dua cacat cache ditemukan dan ditutup di jalan yang sama:
-`app/sitemap.ts` sama sekali TIDAK punya `revalidate`, jadi ia beku sejak
-build — artikel terjadwal tidak akan pernah masuk sitemap sampai deploy
-berikutnya. Dan `/artikel/[slug]` memakai 3600 sementara `/artikel` memakai
-300, yang berarti artikel muncul di daftar sampai 55 menit sebelum halaman
-detailnya berhenti 404. Keduanya kini seragam 300 (sitemap 3600).
+### B. Sebab sebenarnya — REGRESI CP2 RONDE 3, murni sisi kode
 
-Status terbit jadi TIGA keadaan (`lib/publish-schedule.ts`) — artikel
-terjadwal punya `is_published = true`, jadi membaca kolom itu apa adanya
-akan menampilkan "Terbit" hijau untuk artikel yang belum bisa dibuka
-siapa pun.
+`volume_per_month` berhenti menjadi isian pengguna di CP2 ronde 3 (diganti
+volume per jenis garam), dan sejak itu nilainya DIHITUNG di dalam
+`onSubmit`. Tapi ia **tetap tertinggal di skema Zod** sebagai
+`z.number().positive()`, sementara `defaultValues` mengisinya `0`.
 
-**Satu penyimpangan sistem desain yang saya buat sendiri lalu perbaiki:**
-teks bantuan sempat memakai `text-[11px]`, di bawah dasar skala (12px) dan
-melanggar aturan nol nilai literal. Diganti `text-xs`.
+Urutannya yang mematikan: `handleSubmit` memvalidasi **sebelum** memanggil
+`onSubmit`. Jadi perhitungan yang mengisi field itu tidak pernah tercapai.
+Validasi selalu gagal pada `volume_per_month = 0`, `onSubmit` tidak pernah
+dijalankan — dan karena tidak ada satu pun input `volume_per_month` di
+layar, pesan errornya tidak punya tempat untuk muncul.
 
-DESIGN-SYSTEM: amandemen §4.7 (aturan 7 lebar wadah + aturan 8 "melebarkan
-wadah mewajibkan kolom kedua", dengan angka terukur), dan §4.13 baru
-(tiga keadaan status terbit).
+Dibuktikan dua kali, terpisah:
 
-Mutu: `tsc` 0 error, build sukses, lint 7 masalah — sama dengan garis dasar
-sebelum CP5 (2 error sisanya ada di `AnimatedCounter.tsx` dan `Navbar.tsx`,
-keduanya bawaan lama, bukan dari checkpoint ini).
+1. **Isolasi skema** — skema Zod dijalankan terhadap isi form yang persis
+   seperti saat pengguna mengisi semuanya dengan benar:
+   `too_small` pada `path: ["volume_per_month"]`, satu-satunya kegagalan.
+2. **DOM halaman ter-render** — `input[name="volume_per_month"]` tidak ada
+   di seluruh formulir. Nol.
 
-**Perlu tindakan Jazil:** backend lokal di port 8001 berjalan TANPA
-`--reload`, jadi ia masih memuat kode lama; dan Railway perlu deploy ulang
-agar `published_at` diterima di produksi. Sampai itu dilakukan, penjadwalan
-bekerja di database tapi form admin produksi belum bisa mengirimkannya.
+**Berapa bagian kode vs deploy: 100% kode, 0% deploy.** Perbaikannya
+tersedia begitu kode ini di-deploy; tidak ada langkah infrastruktur yang
+diperlukan untuk membetulkan poin 4 itu sendiri.
 
-## CP6 — SELESAI (performa admin, poin 10)
+**Sejak kapan:** sejak commit CP2 ronde 3 (`d3d5f9b`, 2026-08-21) — kecuali
+untuk pengunjung yang datang dari /kalkulator lewat `?volume=`, yang
+kebetulan mengisi field itu dengan angka > 0 sehingga jalur mereka lolos.
+Itu menjelaskan kenapa cacatnya tidak tertangkap ronde lalu: verifikasi CP2
+memeriksa tampilan baris volume (dan itu memang benar), sementara verifikasi
+end-to-end CP1 memanggil **endpoint** langsung, bukan formulirnya.
 
-### Premisnya diuji lebih dulu, dan premisnya salah
+### C. Cacat kelasnya ikut ditutup, bukan hanya kasusnya
 
-Poin 10 berangkat dari "database sudah mulai besar". Dihitung, bukan
-ditebak — **seluruh** basis data situs ini:
+Bug ini mahal bukan karena bugnya, melainkan karena tidak ada jalur
+kegagalan yang terlihat. Bug yang sama dengan pesan di layar akan
+dilaporkan dalam sehari.
 
-| Tabel | Baris | | Tabel | Baris |
-|---|---|---|---|---|
-| rfqs | 4 | | company_settings | 11 |
-| rfq_items | 12 | | lead_status_history | 7 |
-| companies | 4 | | wa_templates | 6 |
-| contacts | 4 | | about_mission | 5 |
-| articles | 3 | | about_team | 4 |
-| products | 5 | | about_timeline | 3 |
-| partners | 5 | | rfq_leads | 4 |
-| tasks / shipments | 0 | | sisanya | ≤2 |
+`components/forms/SubmitFeedback.tsx` (baru) — keadaan kegagalan yang
+MENETAP di atas formulir, dengan lima nada yang dibedakan mengikuti
+kosakata AdminState §4.8: `invalid` · `server` · `blocked` (tidak pernah
+sampai ke server) · `rate_limit` · `timeout`.
 
-**Total ≈ 84 baris.** Tidak ada satu pun query di panel ini yang lambat
-karena banyaknya data. Kalau saya menambahkan index atau pagination di
-sini, saya akan "memperbaiki" masalah yang tidak ada.
+Dipasang di **ketiga** formulir publik: RFQ, Jadi Supplier, dan Kontak.
+Ketiganya sebelumnya hanya memunculkan toast di pojok kanan bawah, yang
+hilang sendiri dan jauh dari tombol yang baru ditekan.
 
-### Yang sebenarnya terjadi: jumlah perjalanan, bukan besar data
+Yang dijamin sekarang:
 
-Diukur pada koneksi keep-alive hangat ke Supabase, median 10 percobaan:
+- `handleSubmit(onSubmit, **onInvalid**)` — cabang kedua ini yang selama
+  ini tidak ada. Field apa pun yang ditolak **disebut namanya**, termasuk
+  field yang tidak punya kontrol di layar. Kelasnya tertutup, bukan
+  kasusnya.
+- Kegagalan **tidak pernah** menghapus isian. `reset()` hanya ada di jalur
+  berhasil.
+- `blocked` menyebut **kedua** kemungkinan (jaringan / server tak
+  terhubung) alih-alih menebak "periksa koneksi" — browser sengaja tidak
+  membedakan server mati, jaringan putus, dan CORS ditolak.
+- "Coba lagi" tidak ditawarkan pada `rate_limit` — menyuruh orang
+  mengulang hal yang pasti gagal.
 
-| Langkah | Waktu |
+**Bug jeda 2–3 detik CP2 diperiksa: tidak terdampak, dan tidak berpindah.**
+Mekanisme `isLeaving` + `router.prefetch` utuh. Yang ditemukan justru
+sebaliknya: form supplier **tidak pernah** mendapat perbaikan itu di ronde
+lalu — indikatornya mati sebelum halaman tujuan tampil. Sekarang disamakan.
+
+### D. Catatan API yang bisa dipantau — `/admin/log`
+
+Tabel `api_request_log` (migrasi `20260822130000`, **ADDITIVE**, sudah
+diterapkan) + middleware FastAPI + halaman admin.
+
+| Aspek | Ketetapan |
 |---|---|
-| `auth.getUser()` | 112 ms |
-| `SELECT` dari `admin_users` (gerbang admin) | 162 ms |
-| query data halaman | 157 ms |
-| **rantai berurutan** | **432 ms** |
+| Yang dicatat | Waktu, metode, path, status, durasi, sebab saat gagal, konteks non-pribadi |
+| Yang dicatat saja | Semua permintaan yang MENGUBAH data + semua jawaban >= 400 |
+| GET yang berhasil | **Tidak dicatat** — CP6 mengukur bahwa biaya panel adalah jumlah round-trip; mencatat tiap pembacaan berarti memperlambat hal yang diamati |
+| Tidak pernah dicatat | Token, header `Authorization`, isi konfigurasi, body mentah, nama/email/telepon pengirim |
+| IP | Dipotong ke blok `/24` |
+| Retensi | 30 hari **atau** 5.000 baris terbaru, mana pun lebih ketat |
+| Akses | RLS `is_admin()`. Tidak ada policy INSERT/UPDATE/DELETE untuk peran mana pun — catatan yang bisa disunting pembacanya bukan catatan |
+| Infrastruktur baru | **Nol.** Tanpa agregator log, tanpa cron — pemangkasan menumpang pada penulisan (`random() < 0.02`) |
 
-432 ms itu cocok dengan TTFB terukur (~400 ms). Jadi biayanya latensi
-jaringan dikali jumlah putaran — dan **dua dari tiga putaran itu adalah
-otorisasi, bukan data.**
+Larangan pencatatan ditegakkan lewat **bentuk, bukan kedisiplinan**:
+`log_request()` tidak menerima objek `Request` sama sekali, jadi tidak ada
+jalan bagi pemanggil menyerahkan sesuatu yang bocor.
 
-### Dua perbaikan, keduanya diukur ulang
+**Batas dinyatakan jujur, dan tertulis di halamannya sendiri:** kegagalan
+yang terjadi SEBELUM permintaan meninggalkan peramban tidak akan pernah
+muncul di sini — dan justru kelas itulah yang menjadi poin 4. Penutupnya
+adalah keadaan kegagalan di formulir (C), bukan halaman ini. Keduanya
+diperlukan; tidak ada satu pun yang cukup sendirian.
 
-1. **Gerbang admin ditahan 60 detik per instance** (`lib/admin-gate.ts`).
-   Aman karena gerbang ini lapisan RENDER; lapisan DATA dijaga RLS
-   (`public.is_admin()`), jadi admin yang dicabut kehilangan datanya
-   seketika meski menunya masih terlihat sebentar.
-2. **Dashboard menyatukan dua putaran jadi satu** — `getOpenTasks()` dulu
-   di-await SETELAH `Promise.all`, padahal tidak ada query yang butuh
-   hasil query lain.
+### E. Verifikasi end-to-end — dijalankan, bukan diasumsikan
 
-**A/B jujur:** harness sama, 11 sampel, kondisi sama, build ulang di antara
-keduanya (bukan membandingkan angka dari sesi berbeda):
+RFQ sungguhan dikirim lewat formulir di peramban:
 
-| Halaman | Sebelum | Sesudah | Δ |
-|---|---|---|---|
-| dashboard | 403 ms | 301 ms | **−25%** |
-| leads | 401 ms | 255 ms | **−36%** |
-| artikel | 406 ms | 251 ms | **−38%** |
-| produk | 418 ms | 273 ms | **−35%** |
-
-Penghematannya (~145 ms) hampir persis sama dengan biaya query
-`admin_users` yang terukur (162 ms) — yang memang seharusnya.
-
-> Catatan kejujuran: pembacaan pertama saya menunjukkan dashboard 746 ms.
-> Itu server yang baru dinyalakan, bukan garis dasar yang sah. Kalau saya
-> pakai angka itu, "perbaikan"-nya akan terlihat −60% alih-alih −25%.
-> Ragam antar-pengukuran ±80 ms; sekali `tugas` terbaca 502 ms dan tampak
-> seperti regresi — dengan 9 sampel ia kembali ke 313 ms. Tidak ada
-> regresi; angka tunggal tidak dilaporkan sebagai temuan.
-
-### Hipotesis lain — diuji satu per satu, sebagian TIDAK terbukti
-
-| Dugaan | Hasil |
+| Langkah | Hasil |
 |---|---|
-| Database membesar | **Tidak terbukti** — 84 baris total |
-| Revalidasi terlalu luas | **Tidak terbukti** — semua `revalidatePath` sudah menyasar path spesifik, tidak ada yang menyapu `'/'` + `'layout'` |
-| Gambar tidak terkompresi | **Tidak terbukti** — total transfer per halaman admin 33–65 KB |
-| Query N+1 | **Tidak terbukti** — relasi diambil lewat embed PostgREST (`companies(name)`), satu permintaan |
-| Permintaan ganda saat muat | **Tidak terbukti** — pasangan yang terlihat adalah preflight CORS `OPTIONS` + `GET`, dan sudah di-cache benar (`access-control-max-age: 600`); kunjungan kedua hanya `GET` |
-| Round-trip per pindah tab | **TERBUKTI** — tiap pindah tab memanggil API lagi (~348 ms) |
-| Rantai Vercel→Railway→Supabase | **TERBUKTI, struktural** — tidak bisa diperbaiki dari kode |
-| Cold start Railway | **TERBUKTI, di luar kode** |
+| Formulir kosong ditekan kirim | Ringkasan menetap: "Ada isian yang belum benar — Nama Lengkap, Nama Perusahaan, Jenis Garam Dibutuhkan, Volume per jenis garam, Kota Tujuan, Email, WhatsApp", fokus ke field pertama |
+| Formulir lengkap ditekan kirim | `POST /rfq/submit` → **201**, 1.232 ms |
+| Halaman terima kasih | Tampil |
+| `companies` | `PT Uji Kirim Sejahtera` dibuat |
+| `contacts` | `Budi Santoso` dibuat, terikat ke company |
+| `rfqs` | dibuat, `company_id` + `contact_id` terisi |
+| `rfq_items` | `garam-halus-yodium`, quantity 40, unit `ton`, **`quantity_kg` = 40000** — satuan kanonik benar |
+| `/admin/leads` | Lead muncul di urutan teratas: "40 ton/bulan · Surabaya" |
+| `/admin/log` | Dua baris: 201 (dengan konteks `items: 1 · company: PT Uji Kirim Sejahtera`) dan 422 dari uji jalur gagal |
 
-### Yang sengaja TIDAK saya perbaiki, berikut alasannya
+Jalur gagal diuji sengaja: payload tidak valid ke endpoint → **422**,
+tercatat sebagai "isi permintaan ditolak validasi".
 
-**Refetch saat pindah tab template.** Perbaikan gampangnya adalah menahan
-kedua penyunting tetap ter-mount. Tapi itu memaksa KEDUA endpoint dipanggil
-saat halaman dibuka, demi mempercepat perpindahan tab yang jarang terjadi —
-membuat kasus yang sering dipakai lebih lambat untuk kasus yang jarang.
-Untuk 1–2 admin, menahan 348 ms sesekali lebih baik daripada menambah satu
-panggilan API di setiap kali halaman dibuka.
+> **Catatan kejujuran — alat ukur saya sendiri sempat menipu.** Pembacaan
+> pertama saya melaporkan `rfq_items` KOSONG untuk RFQ baru, dan saya
+> hampir mencatatnya sebagai bug kedua. Sebabnya query saya sendiri:
+> `order=id.desc` pada kolom yang tipenya **UUID**, bukan urutan waktu.
+> Diurutkan ulang dengan `created_at` — barisnya ada, dan nilainya benar.
+> Percobaan insert manual untuk memastikan justru ditolak `23505 duplicate
+> key`, yang membuktikan barisnya memang sudah ada.
 
-**Cache gerbang admin di FastAPI.** Penghematannya sama besar (162 ms per
-panggilan API), tapi pertukarannya berbeda jenis: backend memakai
-service-role key yang mem-bypass RLS, jadi di sana `require_admin` adalah
-gerbang DATA satu-satunya. Menyimpannya berarti admin yang dicabut masih
-bisa MENGUBAH data selama TTL. Ini keputusan keamanan, bukan keputusan
-performa — jadi tidak saya ambil diam-diam.
+### Berkas yang berubah di CP0
 
-**Mengganti `getUser()` dengan verifikasi klaim lokal** (menghemat 112 ms).
-Verifikasi JWT di FastAPI memang sudah lokal, tapi di frontend `getUser()`
-adalah langkah validasi ke server Auth. Menggantinya mengubah model
-kepercayaan, dan itu bukan perubahan yang pantas dilakukan diam-diam di
-checkpoint performa.
+| Berkas | Perubahan |
+|---|---|
+| `lib/validation/rfq-schema.ts` | `volume_per_month` dicabut dari skema form — **inti perbaikannya** |
+| `components/rfq/RFQForm.tsx` | `onInvalid`, keadaan kegagalan, prefill `?volume=` masuk ke baris item |
+| `components/forms/SubmitFeedback.tsx` | **BARU** — lima nada kegagalan |
+| `components/supplier/SupplierRegistrationForm.tsx` | Keadaan kegagalan + `isLeaving` |
+| `components/forms/ContactForm.tsx` | Keadaan kegagalan |
+| `backend/core/request_log.py` | **BARU** — penulis catatan |
+| `backend/main.py` | Middleware pencatat |
+| `backend/routers/rfq.py` | Konteks non-pribadi ke catatan |
+| `lib/data/api-log.ts` | **BARU** |
+| `components/admin/log/ApiLogTable.tsx` | **BARU** — tabel padat §4.11 |
+| `app/admin/log/page.tsx` | **BARU** |
+| `constants/adminNavigation.ts` | Menu "Catatan API" |
+| `supabase/migrations/20260822130000_api_request_log.sql` | **BARU**, additive, diterapkan |
 
-ARCHITECTURE.md §7.4 ditulis ulang — cuplikan lamanya hanya menampilkan
-`getUser()` dan sama sekali tidak menyebut gerbang allowlist yang sudah ada
-sejak Checkpoint 1, yaitu menggambarkan kontrol keamanan seolah tidak ada.
+Mutu: `tsc --noEmit` 0 error · `next build` EXIT=0.

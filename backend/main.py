@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from core.config import settings
+from core.request_log import log_request
 from routers.auth import router as auth_router
 from routers.settings import router as settings_router
 from routers.contact import router as contact_router
@@ -117,6 +119,90 @@ app.include_router(articles_router, prefix="/api/v1")
 @app.middleware("http")
 async def rate_limit_login(request: Request, call_next):
     return await call_next(request)
+
+
+# ── Catatan permintaan API (CP0 ronde 4) ──────────────────────
+# Menjawab satu pertanyaan: "apa yang terjadi tadi?". Sebelum ini,
+# kegagalan submit RFQ tidak meninggalkan jejak apa pun yang bisa dibuka
+# Jazil — jadi kegagalan yang tidak muncul di layar juga tidak muncul di
+# mana pun. Baca hasilnya di /admin/log.
+#
+# Apa yang TIDAK dicatat, dan kenapa bentuknya menjamin itu: lihat
+# core/request_log.py. Middleware ini sengaja hanya menyerahkan lima nilai
+# skalar — ia tidak pernah menyerahkan objek Request maupun body.
+@app.middleware("http")
+async def record_api_request(request: Request, call_next):
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        # Exception yang lolos sampai sini = 500 yang belum tercatat di mana
+        # pun kecuali stack trace. Justru inilah kejadian yang paling perlu
+        # terlihat, jadi ia dicatat SEBELUM dilempar ulang.
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        await log_request(
+            method=request.method,
+            path=request.url.path,
+            status=500,
+            duration_ms=duration_ms,
+            # Nama kelasnya saja. Pesan exception bisa memuat potongan data
+            # yang sedang diproses; nama kelas tidak pernah bisa.
+            failure_reason=f"unhandled:{type(exc).__name__}",
+            client_ip=_client_ip_of(request),
+        )
+        raise
+
+    duration_ms = int((time.perf_counter() - started) * 1000)
+    failure_reason = None
+    if response.status_code >= 400:
+        # Sebab dalam kalimat pendek, diturunkan dari STATUS — bukan dari
+        # body jawaban, yang bisa memuat data pengirim.
+        failure_reason = _reason_for_status(response.status_code)
+
+    await log_request(
+        method=request.method,
+        path=request.url.path,
+        status=response.status_code,
+        duration_ms=duration_ms,
+        failure_reason=failure_reason,
+        # Konteks OPT-IN: endpoint yang punya sesuatu yang layak dikenali
+        # menaruhnya sendiri lewat `set_log_context(request, ...)`. Defaultnya
+        # kosong — tidak ada mekanisme yang bisa "kebetulan" menyalin body ke
+        # sini, karena middleware ini tidak pernah membaca body sama sekali.
+        context=getattr(request.state, "log_context", None),
+        client_ip=_client_ip_of(request),
+    )
+    return response
+
+
+def _client_ip_of(request: Request) -> str | None:
+    """IP asli di belakang proxy Railway. Dipotong ke /24 di request_log."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
+_STATUS_REASONS = {
+    400: "permintaan tidak dapat diproses",
+    401: "belum masuk / sesi kedaluwarsa",
+    403: "tidak berwenang",
+    404: "alamat tidak ditemukan",
+    405: "metode tidak diizinkan",
+    408: "waktu habis",
+    409: "bentrok dengan data yang sudah ada",
+    413: "kiriman terlalu besar",
+    422: "isi permintaan ditolak validasi",
+    429: "melewati batas laju",
+    500: "kesalahan di server",
+    502: "gerbang salah",
+    503: "layanan sedang tidak tersedia",
+    504: "gerbang kehabisan waktu",
+}
+
+
+def _reason_for_status(status: int) -> str:
+    return _STATUS_REASONS.get(status, f"HTTP {status}")
 
 # ── Health check ─────────────────────────────────────────────
 @app.get("/health")

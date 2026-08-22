@@ -4,13 +4,18 @@
 
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useForm, Controller, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { CircleNotchIcon } from '@phosphor-icons/react/ssr'
 import { submitRFQ, ApiFetchError } from '@/lib/api'
+import {
+  SubmitFeedback,
+  failureFromStatus,
+  type SubmitFailure,
+} from '@/components/forms/SubmitFeedback'
 import { rfqSubmitSchema, type RFQSubmitFormData, INDUSTRY_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/validation/rfq-schema'
 import { SaltVolumeRows, type SaltVolumeItem } from '@/components/rfq/SaltVolumeRows'
 import { toKg, type RFQUnit } from '@/lib/rfq-units'
@@ -23,6 +28,24 @@ import { InfoBlock } from './InfoBlock'
 import { SaltTypeCheckboxGroup } from './SaltTypeCheckboxGroup'
 
 const NOTES_MAX = 500
+
+/* Label field dalam bahasa pengguna, untuk ringkasan kegagalan validasi.
+   Kuncinya SENGAJA menutup seluruh field skema, termasuk yang punya pesan
+   error sendiri di bawah kolomnya: ringkasan di atas menjawab "apa yang
+   salah" tanpa pengguna harus menggulir dulu untuk menemukannya. */
+const FIELD_LABELS: Record<string, string> = {
+  full_name: 'Nama Lengkap',
+  company_name: 'Nama Perusahaan',
+  position: 'Jabatan',
+  industry_type: 'Jenis Industri',
+  salt_types: 'Jenis Garam Dibutuhkan',
+  items: 'Volume per jenis garam',
+  delivery_frequency: 'Frekuensi Pengiriman',
+  delivery_city: 'Kota Tujuan',
+  email: 'Email',
+  whatsapp: 'WhatsApp',
+  notes: 'Keterangan',
+}
 
 const selectClassName =
   'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
@@ -64,8 +87,8 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
   const prefilledSaltTypes =
     prefilledSlug && availableProducts.some((p) => p.slug === prefilledSlug) ? [prefilledSlug] : []
   // Epic 6 Slice 2 (E6-S2-FE-06) — prefill volume dari Kalkulator Garam
-  // (?volume=). Aditif murni: kalau param tidak ada/tidak valid, behavior
-  // lama (volume_per_month default 0) tidak berubah sama sekali.
+  // (?volume=), dalam satuan TON. Aditif murni: kalau param tidak ada atau
+  // tidak valid, form terbuka dengan baris volume kosong seperti biasa.
   const prefilledVolumeRaw = params.get('volume')
   const prefilledVolume =
     prefilledVolumeRaw && Number(prefilledVolumeRaw) > 0 ? Number(prefilledVolumeRaw) : null
@@ -87,7 +110,6 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
       industry_type: 'makanan-minuman',
       salt_types: [],
       items: [],
-      volume_per_month: 0,
       delivery_frequency: 'monthly',
       delivery_city: '',
       email: '',
@@ -104,14 +126,24 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
     const key = `${prefilledSaltTypes.join(',')}|${prefilledVolume ?? ''}`
     if (appliedPrefillFor.current === key) return
     appliedPrefillFor.current = key
+    /* `?volume=` datang dari /kalkulator dalam satuan TON
+       (CalculatorResult.estimateMaxTon). Sebelum CP0 ronde 4 angka itu
+       diisikan ke `volume_per_month` — field yang sejak CP2 sudah tidak
+       punya input di layar, jadi hasil kalkulator masuk ke tempat yang
+       tidak bisa dilihat maupun dikoreksi pengguna. Sekarang ia mengisi
+       baris volume produk yang bersangkutan, yaitu tempat angka itu
+       memang seharusnya muncul dan bisa diubah. */
+    const prefilledItems =
+      prefilledVolume !== null && prefilledSaltTypes.length > 0
+        ? [{ product_slug: prefilledSaltTypes[0], quantity: prefilledVolume, unit: 'ton' as RFQUnit }]
+        : []
     reset({
       full_name: '',
       company_name: '',
       position: null,
       industry_type: 'makanan-minuman',
       salt_types: prefilledSaltTypes,
-      items: [],
-      volume_per_month: prefilledVolume ?? 0,
+      items: prefilledItems,
       delivery_frequency: 'monthly',
       delivery_city: '',
       email: '',
@@ -131,6 +163,24 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
      benar-benar tampil. */
   const [isLeaving, setIsLeaving] = useState(false)
   const busy = isSubmitting || isLeaving
+
+  /* CP0 ronde 4 — keadaan kegagalan yang MENETAP.
+     `failure === null` berarti belum ada percobaan yang gagal. Setiap
+     cabang di onSubmit/onInvalid WAJIB mengisi state ini atau membersihkannya;
+     tidak ada jalan keluar yang meninggalkannya apa adanya tanpa disengaja. */
+  const [failure, setFailure] = useState<SubmitFailure | null>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  /* Kegagalan yang muncul di luar layar sama tidak terlihatnya dengan
+     kegagalan yang tidak muncul sama sekali. Form ini panjang; tombol
+     kirim ada di paling bawah, ringkasannya di paling atas. */
+  const revealFailure = useCallback((next: SubmitFailure) => {
+    setFailure(next)
+    requestAnimationFrame(() => {
+      feedbackRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }, [])
 
   /* Prefetch halaman tujuan begitu form tampil. Halaman terima kasih adalah
      satu-satunya tujuan dari sini, jadi memuatnya lebih awal tidak pernah
@@ -164,14 +214,52 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
         notes: values.notes || null,
       }
       await submitRFQ(payload)
+      setFailure(null)
       setIsLeaving(true)
       router.push('/minta-penawaran/terima-kasih')
     } catch (err) {
-      if (err instanceof ApiFetchError && err.status === 429) {
-        toast.error('Terlalu banyak permintaan. Coba lagi dalam 1 jam.')
-      } else {
-        toast.error('Gagal mengirim. Silakan coba lagi.')
-      }
+      /* PENTING: TIDAK ada reset() di sini. Kegagalan tidak boleh menghapus
+         apa yang sudah diketik — form ini panjang, dan mengetik ulang
+         sepuluh field karena servernya sempat batuk adalah cara tercepat
+         kehilangan lead yang sudah mau mengirim. */
+      const next =
+        err instanceof ApiFetchError
+          ? failureFromStatus(err.status, err.status === 0 ? undefined : err.message)
+          : /* Bukan ApiFetchError sama sekali: kesalahan tak terduga di sisi
+               klien. Ia tetap harus punya keadaan yang terlihat — inilah
+               cabang yang dulu berakhir diam. */
+            ({ kind: 'server' } as SubmitFailure)
+      revealFailure(next)
+      toast.error(
+        next.kind === 'rate_limit'
+          ? 'Terlalu banyak permintaan. Coba lagi dalam 1 jam.'
+          : 'Gagal mengirim. Lihat penjelasan di atas formulir.'
+      )
+    }
+  }
+
+  /* Cabang kedua handleSubmit — yang selama ini TIDAK ADA, dan itulah sebab
+     poin 4. Tanpa handler ini, validasi yang gagal pada field yang tidak
+     punya input di layar (`volume_per_month`) berakhir tanpa jejak apa pun:
+     tidak ada request, tidak ada pesan, tidak ada perubahan tampilan.
+
+     Handler ini menutup KELASNYA, bukan hanya kasusnya: field apa pun yang
+     ditolak akan disebutkan namanya di sini, termasuk field yang belum
+     punya tempat menampilkan errornya sendiri. */
+  function onInvalid(errs: FieldErrors<RFQSubmitFormData>) {
+    const keys = Object.keys(errs)
+    const labels = keys.map((k) => FIELD_LABELS[k] ?? k)
+    revealFailure({ kind: 'invalid', fields: labels })
+    toast.error('Ada isian yang belum benar. Lihat penjelasan di atas formulir.')
+
+    /* Fokus ke field bermasalah yang pertama, kalau ia memang punya kontrol
+       di layar. Kalau tidak punya (kasus yang mustahil setelah perbaikan
+       ini, tapi bisa lahir lagi), ringkasan di atas tetap menyebut namanya —
+       jadi jalan keluarnya tidak pernah bergantung pada adanya kontrol. */
+    const firstWithControl = keys.find((k) => document.querySelector(`[name="${k}"]`))
+    if (firstWithControl) {
+      const el = document.querySelector<HTMLElement>(`[name="${firstWithControl}"]`)
+      el?.focus({ preventScroll: true })
     }
   }
 
@@ -179,7 +267,20 @@ export function RFQForm({ availableProducts }: RFQFormProps) {
     // RONDE Tahap 11: `form-brand` — radius, tinggi, & focus-glow teal
     // seluruh field diatur terpusat di globals.css. Logika RFQ (Zod,
     // prefill dari /kalkulator, submit ke FastAPI) tidak disentuh.
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={busy} className="form-brand space-y-6">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      noValidate
+      aria-busy={busy}
+      className="form-brand space-y-6"
+    >
+      {/* Keadaan kegagalan berada DI ATAS formulir, bukan hanya sebagai
+          toast di pojok: ia harus masih ada saat pengguna menggulir untuk
+          memperbaiki isiannya. */}
+      <div ref={feedbackRef}>
+        <SubmitFeedback failure={failure} onRetry={() => formRef.current?.requestSubmit()} />
+      </div>
+
       <FormSection title="Informasi Perusahaan">
         <div className="space-y-1.5">
           <Label htmlFor="full_name">

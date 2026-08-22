@@ -586,6 +586,109 @@ berbeda di antara keduanya akan terbaca sebagai cacat.
 
 **Berlaku pada:** penyunting Email dan penyunting WhatsApp.
 
+## 4.14 Jalur kegagalan formulir publik (`SubmitFeedback`)
+
+Ditetapkan 2026-08-22 (CP0 ronde 4), setelah formulir RFQ ditemukan
+**diam total** saat tombol kirim ditekan — satu-satunya jalur konversi
+situs, rusak satu ronde penuh tanpa meninggalkan jejak di mana pun.
+
+### Aturan pertama: tidak ada cabang yang berakhir diam
+
+Setiap kemungkinan hasil pengiriman formulir wajib punya keadaan yang
+**terlihat**: sedang mengirim, berhasil, atau gagal-dengan-sebab.
+
+Ini bukan aturan kosmetik. Akar poin 4 adalah bug validasi sepele —
+sebuah field turunan yang tertinggal di skema. Yang membuatnya bertahan
+sebulan adalah ketiadaan jalur kegagalan: bug yang sama dengan pesan di
+layar akan dilaporkan dalam sehari.
+
+**Turunan yang mengikat:** `handleSubmit()` selalu dipanggil dengan
+**dua** argumen. `handleSubmit(onSubmit)` tanpa `onInvalid` dilarang —
+ia mengubah setiap kegagalan validasi pada field tak terlihat menjadi
+layar diam.
+
+### Skema form hanya memvalidasi apa yang bisa DIISI pengguna
+
+Nilai turunan (dihitung dari field lain saat submit) **tidak boleh** masuk
+resolver form. Ia divalidasi oleh tipe payload dan oleh backend.
+
+Alasannya struktural, bukan selera: resolver berjalan **sebelum** handler
+yang menghitung nilai itu, jadi ia selalu menilai nilai awal — dan
+errornya tidak punya kontrol untuk ditempeli. Hasilnya jalan buntu tanpa
+jalan keluar.
+
+### Lima nada, bukan satu "gagal"
+
+Melanjutkan kosakata AdminState §4.8 ke portal publik.
+
+| Nada | Artinya | Tombol "Coba lagi" |
+|---|---|---|
+| `invalid` | Validasi klien menolak. Data belum terkirim | **Tidak** — yang perlu diperbaiki isiannya |
+| `server` | Server MENJAWAB dengan galat | Ya |
+| `blocked` | Permintaan **tidak pernah sampai** | Ya (sekunder) |
+| `rate_limit` | Melewati batas laju | **Tidak** — mengulang pasti gagal |
+| `timeout` | Terkirim, jawabannya tidak datang | **Tidak** — mengirim ulang berisiko ganda |
+
+Nada `invalid` dan `rate_limit` memakai `warning` (keadaan "perbaiki /
+tunggu"); sisanya `danger`. Tidak ada warna baru.
+
+`blocked` **menyebut kedua kemungkinan** — jaringan putus ATAU server tak
+terhubung — dan tidak pernah menebak "periksa koneksi". Browser sengaja
+tidak membedakan server mati, jaringan putus, dan preflight CORS ditolak;
+menebak satu di antaranya membuat orang mencari masalah di tempat yang
+salah.
+
+### Tiga aturan sisa
+
+1. **Keadaan kegagalan MENETAP dan berada di atas formulir**, bukan hanya
+   toast. Toast di pojok hilang sendiri dan jauh dari tombol yang baru
+   ditekan; untuk kegagalan yang menuntut tindakan, keadaannya harus masih
+   ada saat pengguna menggulir untuk memperbaiki isian. Toast tetap
+   dipakai sebagai **pelengkap**, tidak pernah sebagai satu-satunya.
+2. **Kegagalan tidak pernah menghapus isian.** `reset()` hanya di jalur
+   berhasil. Mengetik ulang sepuluh field karena server sempat batuk
+   adalah cara tercepat kehilangan lead yang sudah mau mengirim.
+3. **Indikator hidup sampai halaman tujuan benar-benar tampil.**
+   `isSubmitting` mati begitu handler selesai, sementara `router.push()`
+   belum merender apa pun. Pakai penanda `isLeaving` yang tidak pernah
+   direset.
+
+**Berlaku pada:** `/minta-penawaran`, `/jadi-supplier`, dan formulir kontak
+di `/kontak`.
+
+## 4.15 Catatan API (`/admin/log`)
+
+Ditetapkan 2026-08-22 (CP0 ronde 4).
+
+Tabel padat mengikuti §4.11. Yang perlu ditetapkan di sini adalah **apa
+yang boleh masuk catatan**, karena itulah yang akan melebar sendiri kalau
+tidak dibatasi tertulis.
+
+**Boleh:** waktu, metode, path, status, durasi, sebab kegagalan dalam
+kalimat, konteks non-pribadi (nama perusahaan, jumlah item), IP terpotong
+`/24`.
+
+**Dilarang, daftar tertutup:** header apa pun (termasuk `Authorization`),
+body permintaan maupun jawaban dalam bentuk apa pun, nilai konfigurasi,
+serta nama orang, email, dan nomor telepon pengirim.
+
+Larangan itu ditegakkan lewat **bentuk fungsi**, bukan lewat kedisiplinan
+pemanggil: penulis catatan tidak menerima objek permintaan sama sekali.
+
+**Yang dicatat hanya** permintaan yang mengubah data + semua jawaban
+>= 400. Pembacaan yang berhasil tidak dicatat — §CP6 mengukur bahwa biaya
+panel ini adalah jumlah round-trip, dan mencatat setiap pembacaan berarti
+memperlambat justru hal yang sedang diamati.
+
+**Retensi wajib berbatas ganda:** umur DAN jumlah (30 hari atau 5.000
+baris). Batas umur saja gagal saat ada ledakan lalu lintas; batas jumlah
+saja menyimpan catatan dua tahun lalu di situs sesepi ini.
+
+**Batas yang wajib dinyatakan di halamannya sendiri:** kegagalan yang
+terjadi sebelum permintaan meninggalkan peramban tidak akan pernah muncul
+di catatan server. Pembaca yang tidak tahu itu akan menyimpulkan "tidak
+ada catatan berarti tidak terjadi apa-apa".
+
 ## 4.9 Permukaan gelap (`.surface-dark`)
 
 Ditetapkan 2026-08-21 (ronde 3). Satu kelas untuk **seluruh** bidang gelap:

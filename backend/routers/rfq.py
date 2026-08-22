@@ -29,6 +29,7 @@ from fastapi.responses import Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from core.request_log import set_log_context
 from core.supabase import get_supabase
 from dependencies.auth import get_current_user, require_admin
 from schemas.proposal_settings import GenerateProposalRequest
@@ -115,6 +116,15 @@ async def submit_rfq(
     # supaya jedanya "terasa wajar". Itu menyembunyikan gejala dan
     # meninggalkan sebabnya utuh.
     logger.info("rfq_submitted: lead_id=%s company=%r", lead_id, payload.company_name)
+    # Konteks untuk /admin/log. Nama perusahaan + jumlah jenis garam sudah
+    # cukup untuk mengenali kembali satu kiriman keesokan harinya; nama
+    # orang, email, dan nomor telepon SENGAJA tidak ikut (lihat aturan di
+    # core/request_log.set_log_context).
+    set_log_context(
+        request,
+        company=payload.company_name,
+        items=len(payload.items or []),
+    )
     background_tasks.add_task(
         _process_rfq_aftermath,
         lead=lead,
