@@ -14,6 +14,7 @@ import { mapProductRow } from '@/lib/product-mapper'
 import { SITE_URL } from '@/lib/site-url'
 import type { CompanySettingsMap, Product, ProductRow } from '@/types/api'
 import{ HeroSection } from '@/components/sections/HeroSection'
+import { CompanyIdentitySection } from '@/components/sections/CompanyIdentitySection'
 import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
 import { StagedCTASection } from '@/components/sections/StagedCTASection'
 import { ProductsPreview } from '@/components/sections/ProductsPreview'
@@ -157,6 +158,7 @@ export default async function BerandaPage() {
     <>
       <StructuredData settings={settings} products={products} />
       <HeroSection hero={hero} stats={heroStats} />
+      <CompanyIdentitySection />
       <ProductsPreview products={products} />
       <CredibilitySection partners={partners} />
       <IndustriesGrid />

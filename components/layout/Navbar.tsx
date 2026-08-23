@@ -113,14 +113,12 @@ export function Navbar({ whatsapp1, email, logoSrc }: NavbarProps) {
           role="navigation"
           aria-label="Navigasi utama"
         >
-          {/* Logo + tagline — tagline hanya muncul di desktop, penguat
-              brand recall bagi pengunjung yang datang langsung ke beranda */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Logo variant="light" height={34} src={logoSrc} />
-            <div className="hidden xl:block h-8 w-px bg-ink-900/10" aria-hidden="true" />
-            <p className="hidden xl:block font-display text-sm leading-tight text-ink-700/60">
-              Garam Lokal,<br />Standar Industri
-            </p>
+            <div className="hidden h-6 w-px bg-ink-900/10 sm:block lg:hidden xl:block" aria-hidden="true" />
+            <span className="hidden whitespace-nowrap font-ui text-sm font-semibold text-ink-700 sm:block md:text-base lg:hidden xl:block">
+              Reka Cipta Indonesia
+            </span>
           </div>
 
           {/* Nav links — desktop. font-ui (Space Grotesk): suara struktural
