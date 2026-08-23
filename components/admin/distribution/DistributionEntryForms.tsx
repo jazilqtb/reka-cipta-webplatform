@@ -149,10 +149,10 @@ function EntryForm({
           <div className="flex gap-2">
             <input type="number" min="0" step="0.01" value={form.quantity} disabled={pending}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-              className={`${inputCls} flex-1`} />
+              className={`${inputCls} mono-tech min-w-0 flex-1`} />
             <select value={form.unit} disabled={pending}
               onChange={(e) => setForm({ ...form, unit: e.target.value })}
-              aria-label="Satuan" className={`${selectCls} w-32 shrink-0`}>
+              aria-label="Satuan" className={`${unitSelectCls} w-32 shrink-0`}>
               {RFQ_UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
             </select>
           </div>
@@ -240,6 +240,7 @@ function DeleteButton({ table, id }: { table: 'shipments' | 'supply_commitments'
 
 const inputCls = 'h-9 w-full rounded-md border border-ink-900/15 px-2.5 text-sm text-ink-700 focus-visible:shadow-focus focus-visible:outline-none'
 const selectCls = 'font-ui h-9 w-full rounded-md border border-ink-900/15 bg-white px-2 text-sm text-ink-700 focus-visible:shadow-focus focus-visible:outline-none'
+const unitSelectCls = 'font-ui h-9 rounded-md border border-ink-900/15 bg-white px-2 text-sm text-ink-700 focus-visible:shadow-focus focus-visible:outline-none'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

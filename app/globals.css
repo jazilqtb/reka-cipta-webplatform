@@ -67,6 +67,7 @@
      Angka di bawah ini berada di dalam batas itu. Menaikkannya menuntut
      amandemen tertulis, bukan penyetelan diam-diam. */
   --color-hairline-grid: rgba(255, 255, 255, 0.04);
+  --color-hairline-grid-bright: rgba(255, 255, 255, 0.08);
   --color-hairline-edge: rgba(255, 255, 255, 0.08);
 
   --color-steel-50:  #F7F8FA;
@@ -1076,6 +1077,29 @@
       var(--color-steel-950) 100%
     );
     border: 1px solid var(--color-hairline-edge);
+  }
+
+  .surface-depth.line-motif-deep {
+    background-image: linear-gradient(
+      180deg,
+      var(--color-marine-700) 0%,
+      var(--color-steel-950) 62%
+    );
+  }
+
+  .surface-depth.line-motif-deep::before {
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        var(--color-hairline-grid-bright) 0 1px,
+        transparent 1px 64px
+      ),
+      repeating-linear-gradient(
+        180deg,
+        var(--color-hairline-grid-bright) 0 1px,
+        transparent 1px 64px
+      );
+    mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 65%);
   }
 }
 
