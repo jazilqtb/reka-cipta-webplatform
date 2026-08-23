@@ -2,9 +2,8 @@
 // Epic 6 Slice 1 (E6-S1-FE-08) — detail artikel, SEO + JSON-LD.
 //
 // dynamicParams TIDAK di-set false (default true, AR-02) — beda sengaja
-// dari pola /produk/[slug]: artikel akan terus bertambah pasca-launch via
-// Admin Panel epic mendatang tanpa redeploy, jadi slug baru harus tetap
-// accessible via on-demand ISR fallback.
+// dari pola /produk/[slug]: penjadwalan terbit (article_scheduling)
+// bergantung pada on-demand ISR tetap hidup untuk slug baru/belum-lewat.
 //
 // RONDE Tahap 11 (2026-08) — Design System Rollout (T3):
 // - Breadcrumb dipindah ke DALAM Hero gelap (pola semua halaman lain),
@@ -35,11 +34,8 @@ import { ArticleViewTracker } from '@/components/article/ArticleViewTracker'
 import { RelatedArticles } from '@/components/article/RelatedArticles'
 import type { Article } from '@/types/api'
 import { getArticleExcerpt } from '@/lib/article-excerpt'
-
-/** Basis URL absolut. Sebelumnya ditulis literal di generateMetadata dan
- *  sekarang dibutuhkan juga oleh dua blok JSON-LD; satu konstanta supaya
- *  ketiganya tidak bisa berselisih. */
-const SITE_URL = 'https://rekaciptaindonesia.com'
+import { SITE_URL } from '@/lib/site-url'
+import { getLogoUrls } from '@/lib/data/logo'
 
 /* POIN 11 — 3600 -> 300, disamakan dengan /artikel.
  *
@@ -77,7 +73,7 @@ export async function generateMetadata({
   const article = await getArticle(slug)
 
   if (!article) {
-    return { title: 'Artikel tidak ditemukan' }
+    return { title: 'Artikel tidak ditemukan', robots: { index: false, follow: false } }
   }
 
   /* Cadangan dari isi artikel sendiri kalau meta_description kosong.
@@ -155,6 +151,7 @@ export default async function ArticleDetailPage({
     : null
 
   const canonical = article.canonical_url ?? `${SITE_URL}/artikel/${article.slug}`
+  const logo = await getLogoUrls()
 
   /* JSON-LD Article — dilengkapi di CP5.
    *
@@ -186,9 +183,7 @@ export default async function ArticleDetailPage({
       name: 'CV Reka Cipta Indonesia',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo/logo-light.png`,
-        width: 2816,
-        height: 1536,
+        url: logo.light,
       },
     },
   }

@@ -122,6 +122,10 @@ export interface Product {
   sort_order: number
   photo_url: string | null
   lab_doc_url: string | null
+  meta_title: string | null
+  meta_description: string | null
+  og_image_url: string | null
+  canonical_url: string | null
   created_at: string // ISO 8601
   updated_at: string
 }
@@ -140,9 +144,10 @@ export interface ProductDetailResponse {
 // simpan photo_path/lab_doc_path (path relatif di storage bucket), bukan
 // URL absolut. Map ke `Product` via lib/product-mapper.ts sebelum dipakai
 // komponen. Ref: ARCHITECTURE.md §12.4 — project ref tidak boleh hardcoded.
-export interface ProductRow extends Omit<Product, 'photo_url' | 'lab_doc_url'> {
+export interface ProductRow extends Omit<Product, 'photo_url' | 'lab_doc_url' | 'og_image_url'> {
   photo_path: string | null
   lab_doc_path: string | null
+  og_image_path: string | null
 }
 
 // === Epic 3B Slice 1: Admin edit (E3B-S1-CT-01) ===

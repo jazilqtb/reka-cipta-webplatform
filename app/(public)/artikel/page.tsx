@@ -18,6 +18,7 @@ import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { getPublishedArticles } from '@/lib/data/articles'
 import type { ArticleCategory } from '@/types/api'
+import { SITE_URL } from '@/lib/site-url'
 
 export const revalidate = 300
 
@@ -57,20 +58,18 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
 }
 
-const SITE_URL = 'https://rekaciptaindonesia.com'
-
 const BASE_METADATA: Metadata = {
   title: 'Artikel & Berita',
   description:
     'Wawasan industri garam, standar SNI, dan kabar terbaru dari CV Reka Cipta Indonesia.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com/artikel',
+    canonical: `${SITE_URL}/artikel`,
   },
   openGraph: {
     title: 'Artikel & Berita — CV Reka Cipta Indonesia',
     description:
       'Wawasan industri garam, standar SNI, dan kabar terbaru dari CV Reka Cipta Indonesia.',
-    url: 'https://rekaciptaindonesia.com/artikel',
+    url: `${SITE_URL}/artikel`,
     type: 'website',
   },
 }

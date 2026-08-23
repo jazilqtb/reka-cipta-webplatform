@@ -14,6 +14,13 @@ export const productUpdateSchema = z.object({
   is_sni: z.boolean(),
   is_active: z.boolean(),
   sort_order: z.number().int().nonnegative(),
+  meta_title: z.string().max(200).nullable(),
+  meta_description: z.string().max(300).nullable(),
+  canonical_url: z
+    .string()
+    .max(500)
+    .refine((v) => !v || /^https?:\/\//.test(v), 'Harus URL lengkap diawali http:// atau https://')
+    .nullable(),
 })
 
 export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>

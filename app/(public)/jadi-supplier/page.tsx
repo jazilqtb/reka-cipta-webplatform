@@ -11,6 +11,7 @@ import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { RevealWrapper } from '@/components/animations/RevealWrapper'
 import { BenefitsSection } from '@/components/supplier/BenefitsSection'
 import { SupplierRegistrationForm } from '@/components/supplier/SupplierRegistrationForm'
+import { SITE_URL } from '@/lib/site-url'
 
 export const dynamic = 'force-static'
 
@@ -19,12 +20,12 @@ export const metadata: Metadata = {
   description:
     'Bermitra dengan CV Reka Cipta sebagai supplier garam. Daftarkan usaha Anda dan bergabung dengan jaringan supplier terpercaya di Indonesia.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com/jadi-supplier',
+    canonical: `${SITE_URL}/jadi-supplier`,
   },
   openGraph: {
     title: 'Jadi Supplier — CV Reka Cipta Indonesia',
     description: 'Bermitra dengan distributor garam industri terpercaya di Indonesia.',
-    url: 'https://rekaciptaindonesia.com/jadi-supplier',
+    url: `${SITE_URL}/jadi-supplier`,
     type: 'website',
   },
 }

@@ -11,6 +11,7 @@
 import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import { mapProductRow } from '@/lib/product-mapper'
+import { SITE_URL } from '@/lib/site-url'
 import type { CompanySettingsMap, Product, ProductRow } from '@/types/api'
 import{ HeroSection } from '@/components/sections/HeroSection'
 import { IndustriesGrid } from '@/components/sections/IndustriesGrid'
@@ -39,15 +40,14 @@ export const metadata: Metadata = {
   description:
     'Distributor garam industri bersertifikasi SNI di Surabaya. Melayani sektor makanan, pengasinan, water treatment, dan pakan ternak. Minta penawaran sekarang.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com',
+    canonical: SITE_URL,
   },
   openGraph: {
     title: 'CV Reka Cipta Indonesia — Distributor Garam SNI untuk Industri',
     description:
       'Distributor garam industri bersertifikasi SNI di Surabaya. Dokumentasi lab dan legalitas terbuka. Penawaran harga kurang dari 2 menit.',
-    url: 'https://rekaciptaindonesia.com',
+    url: SITE_URL,
     siteName: 'CV Reka Cipta Indonesia',
-    images: [{ url: '/og-image.svg', width: 1200, height: 630 }], // TODO: ganti /og-image.jpg sebelum production launch (catatan UX-05)
     locale: 'id_ID',
     type: 'website',
   },

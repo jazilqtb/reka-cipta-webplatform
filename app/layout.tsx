@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { SITE_URL } from '@/lib/site-url'
 
 export const metadata: Metadata = {
   title: {
@@ -9,9 +10,7 @@ export const metadata: Metadata = {
   },
   description:
     'Distributor garam lokal bersertifikat SNI untuk kebutuhan industri Indonesia. Menghubungkan petani garam dengan mitra industri.',
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rekaciptaindonesia.com'
-  ),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     siteName: 'CV Reka Cipta Indonesia',
     locale: 'id_ID',

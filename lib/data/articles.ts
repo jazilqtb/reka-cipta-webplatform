@@ -141,17 +141,17 @@ export async function getRelatedArticles(
 }
 
 export async function getAllPublishedSlugsForSitemap(): Promise<
-  Array<{ slug: string; published_at: string | null }>
+  Array<{ slug: string; published_at: string | null; updated_at: string | null }>
 > {
   try {
     const supabase = createPublic()
     const { data, error } = await supabase
       .from('articles')
-      .select('slug, published_at')
+      .select('slug, published_at, updated_at')
       .eq('is_published', true)
 
     if (error || !data) return []
-    return data as Array<{ slug: string; published_at: string | null }>
+    return data as Array<{ slug: string; published_at: string | null; updated_at: string | null }>
   } catch (err) {
     console.error('[Articles] Exception saat fetch slugs untuk sitemap:', err)
     return []

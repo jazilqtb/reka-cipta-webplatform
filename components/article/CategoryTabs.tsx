@@ -21,7 +21,8 @@
 
 'use client'
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ARTICLE_CATEGORY_LABEL } from '@/constants/articleCategories'
 import type { ArticleCategory } from '@/types/api'
@@ -33,20 +34,19 @@ const TABS: Array<{ value: ArticleCategory | 'all'; label: string }> = [
 ]
 
 export function CategoryTabs() {
-  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activeCategory = searchParams.get('category') ?? 'all'
 
-  function handleTabClick(value: string) {
+  function hrefFor(value: string) {
     const params = new URLSearchParams(searchParams)
     if (value === 'all') {
       params.delete('category')
     } else {
       params.set('category', value)
     }
-    params.delete('page') // reset ke halaman 1 saat ganti kategori
-    router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ''}`)
+    params.delete('page')
+    return `${pathname}${params.toString() ? `?${params.toString()}` : ''}`
   }
 
   return (
@@ -55,12 +55,12 @@ export function CategoryTabs() {
         {TABS.map((tab) => {
           const isActive = activeCategory === tab.value
           return (
-            <button
+            <Link
               key={tab.value}
-              type="button"
-              onClick={() => handleTabClick(tab.value)}
+              href={hrefFor(tab.value)}
+              scroll={false}
               aria-pressed={isActive}
-              className={`relative shrink-0 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus ${
+              className={`relative flex shrink-0 items-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:shadow-focus ${
                 isActive ? 'text-white' : 'text-ink-700/60 hover:text-ink-700'
               }`}
             >
@@ -72,7 +72,7 @@ export function CategoryTabs() {
                 />
               )}
               <span className="relative z-10">{tab.label}</span>
-            </button>
+            </Link>
           )
         })}
       </div>

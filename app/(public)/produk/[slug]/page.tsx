@@ -9,6 +9,7 @@ import { LabDocDownload } from '@/components/product/LabDocDownload'
 import { ProductCTA } from '@/components/product/ProductCTA'
 import { mapProductRow } from '@/lib/product-mapper'
 import type { Product, ProductRow } from '@/types/api'
+import { SITE_URL } from '@/lib/site-url'
 
 export const revalidate = 3600
 
@@ -51,19 +52,31 @@ export async function generateMetadata({
   const product = await getProduct(slug)
 
   if (!product) {
-    return { title: 'Produk tidak ditemukan' }
+    return { title: 'Produk tidak ditemukan', robots: { index: false, follow: false } }
   }
 
-  const description = product.tagline ?? product.description?.slice(0, 160) ?? ''
+  const title = product.meta_title ?? `${product.name} — ${product.code}`
+  const description =
+    product.meta_description ?? product.tagline ?? product.description?.slice(0, 160) ?? ''
+  const canonical = product.canonical_url ?? `${SITE_URL}/produk/${product.slug}`
+  const ogImage = product.og_image_url ?? product.photo_url
 
   return {
-    title: `${product.name} — ${product.code}`,
+    title,
     description,
+    alternates: { canonical },
     openGraph: {
-      title: product.name,
+      title,
       description,
       type: 'website',
-      images: product.photo_url ? [{ url: product.photo_url }] : undefined,
+      url: canonical,
+      images: ogImage ? [{ url: ogImage, width: 1200, height: 630 }] : undefined,
+    },
+    twitter: {
+      card: ogImage ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: ogImage ? [ogImage] : undefined,
     },
   }
 }

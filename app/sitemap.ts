@@ -12,6 +12,7 @@
 import type { MetadataRoute } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import { getAllPublishedSlugsForSitemap } from '@/lib/data/articles'
+import { SITE_URL as BASE_URL } from '@/lib/site-url'
 
 /* POIN 11 — sitemap TIDAK punya revalidate sebelum ini, jadi ia dibekukan
    pada saat build. Untuk artikel biasa itu tidak terlihat karena setiap
@@ -21,8 +22,6 @@ import { getAllPublishedSlugsForSitemap } from '@/lib/data/articles'
    Sejam sudah cukup: perayap tidak butuh kesegaran per-menit, dan
    penemuan artikel tidak bergantung pada sitemap saja. */
 export const revalidate = 3600
-
-const BASE_URL = 'https://rekaciptaindonesia.com'
 
 async function getProductDetailUrls(): Promise<MetadataRoute.Sitemap> {
   const supabase = createPublic()
@@ -50,7 +49,7 @@ async function getArticleDetailUrls(): Promise<MetadataRoute.Sitemap> {
 
   return rows.map((article) => ({
     url: `${BASE_URL}/artikel/${article.slug}`,
-    lastModified: article.published_at ? new Date(article.published_at) : new Date(),
+    lastModified: new Date(article.updated_at ?? article.published_at ?? Date.now()),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }))

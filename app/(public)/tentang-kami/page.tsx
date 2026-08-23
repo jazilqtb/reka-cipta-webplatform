@@ -5,6 +5,7 @@ import { VisiMisi } from '@/components/sections/VisiMisi'
 import { OrgStructure } from '@/components/sections/OrgStructure'
 import { AboutCTA } from '@/components/sections/AboutCTA'
 import { getAboutTimeline, getAboutMission, getAboutTeam, getAboutVision } from '@/lib/data/about'
+import { SITE_URL } from '@/lib/site-url'
 
 export const revalidate = 86400 // 24 jam
 
@@ -12,10 +13,13 @@ export const metadata: Metadata = {
   title: 'Tentang Kami — Sejarah & Legalitas',
   description:
     'CV Reka Cipta Indonesia, distributor garam SNI sejak 2020. Legalitas penuh: Akta Notaris, NIB, NPWP, Kemenkumham. Temui tim kami di Surabaya.',
+  alternates: {
+    canonical: `${SITE_URL}/tentang-kami`,
+  },
   openGraph: {
     title: 'Tentang Kami — CV Reka Cipta Indonesia',
     description: 'Distributor garam SNI sejak 2020. Profil perusahaan dan dokumen legalitas.',
-    images: [{ url: '/og-image.jpg' }],
+    url: `${SITE_URL}/tentang-kami`,
   },
 }
 

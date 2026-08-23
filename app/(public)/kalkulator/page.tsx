@@ -10,19 +10,20 @@ import { PageHero } from '@/components/sections/PageHero'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { CalculatorIntro } from '@/components/calculator/CalculatorIntro'
 import { CalculatorForm } from '@/components/calculator/CalculatorForm'
+import { SITE_URL } from '@/lib/site-url'
 
 export const metadata: Metadata = {
   title: 'Kalkulator Kebutuhan Garam',
   description:
     'Estimasikan kebutuhan garam industri Anda dan dapatkan rekomendasi produk yang sesuai dalam hitungan detik.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com/kalkulator',
+    canonical: `${SITE_URL}/kalkulator`,
   },
   openGraph: {
     title: 'Kalkulator Kebutuhan Garam — CV Reka Cipta Indonesia',
     description:
       'Estimasikan kebutuhan garam industri Anda dan dapatkan rekomendasi produk yang sesuai dalam hitungan detik.',
-    url: 'https://rekaciptaindonesia.com/kalkulator',
+    url: `${SITE_URL}/kalkulator`,
     type: 'website',
   },
 }
