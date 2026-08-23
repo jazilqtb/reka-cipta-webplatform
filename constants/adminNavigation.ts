@@ -26,6 +26,7 @@ import {
   SparkleIcon,          // Pengaturan Proposal
   EnvelopeSimpleIcon,   // Template Pesan
   PulseIcon,            // Catatan API
+  ImageIcon,            // Logo Situs
 } from '@phosphor-icons/react/ssr'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 
@@ -53,6 +54,7 @@ export const ADMIN_NAV_MAIN: AdminNavItem[] = [
    diubah sesekali dan dampaknya langsung terlihat pengunjung. */
 export const ADMIN_NAV_CONTENT: AdminNavItem[] = [
   { label: 'Hero Beranda', href: '/admin/hero',         icon: LayoutIcon, matchExact: true },
+  { label: 'Logo Situs',   href: '/admin/logo',         icon: ImageIcon, matchExact: true },
   { label: 'Tentang Kami', href: '/admin/tentang-kami', icon: BuildingsIcon, matchExact: true },
   { label: 'Mitra',        href: '/admin/mitra',        icon: HandshakeIcon,  matchExact: true },
 ] as const
@@ -83,6 +85,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/email-templates':    'Template Pesan',
   '/admin/log':                'Catatan API',
   '/admin/hero':               'Hero Beranda',
+  '/admin/logo':               'Logo Situs',
   '/admin/tentang-kami':       'Tentang Kami',
   '/admin/mitra':              'Mitra Distribusi',
 }

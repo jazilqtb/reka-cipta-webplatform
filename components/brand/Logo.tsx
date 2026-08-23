@@ -12,6 +12,10 @@ interface LogoProps {
   /** Tinggi logo dalam px. Default 40. Lebar otomatis menyesuaikan. */
   height?: number
   className?: string
+  /** Override URL logo (dari lib/data/logo.ts, diambil di Server
+   *  Component pemanggil). Kalau tidak diisi, jatuh ke berkas statis
+   *  /logo/logo-{variant}.png. */
+  src?: string
 }
 
 export function Logo({
@@ -19,10 +23,11 @@ export function Logo({
   asLink = true,
   height = 40,
   className,
+  src: srcProp,
 }: LogoProps) {
   const [imgError, setImgError] = useState(false)
 
-  const src = variant === 'dark' ? '/logo/logo-dark.png' : '/logo/logo-light.png'
+  const src = srcProp || (variant === 'dark' ? '/logo/logo-dark.png' : '/logo/logo-light.png')
 
   const fallbackTextClass = variant === 'dark'
     ? 'text-white'
@@ -47,14 +52,7 @@ export function Logo({
       height={height}
       width={height * 4}
       onError={() => setImgError(true)}
-      /* MONOKROM SENGAJA (2026-08-21). Berkas logo yang terpasang adalah
-         PLACEHOLDER — identitas visual final belum ada. Warnanya (biru tua
-         + hijau) tidak pernah dipilih untuk menemani palet mana pun, dan
-         setelah primary berganti ke marine ia justru berselisih: dua biru
-         berbeda bersebelahan terbaca sebagai kesalahan cetak, bukan merek.
-         Grayscale menetralkannya sampai logo asli tersedia. Saat itu tiba,
-         cukup hapus dua kelas di bawah — lihat ACTION REQUIRED. */
-      className={cn('h-auto w-auto object-contain grayscale contrast-125', className)}
+      className={cn('h-auto w-auto object-contain', className)}
       style={{ height, maxHeight: height }}
       priority
     />
