@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { createPublic } from '@/lib/supabase/public'
+import { getLogoUrls } from '@/lib/data/logo'
 import type { CompanySettingsMap } from '@/types/api'
 
 // Epic 2 Slice 3 — Navbar & Footer sebelumnya baca data kontak hardcode
@@ -41,11 +42,11 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode
 }) {
-  const settings = await getLayoutSettings()
+  const [settings, logo] = await Promise.all([getLayoutSettings(), getLogoUrls()])
 
   return (
     <>
-      <Navbar whatsapp1={settings.whatsapp_1} email={settings.email} />
+      <Navbar whatsapp1={settings.whatsapp_1} email={settings.email} logoSrc={logo.light} />
       <main id="main-content" className="flex-1">
         {children}
       </main>
@@ -54,6 +55,7 @@ export default async function PublicLayout({
         whatsapp1={settings.whatsapp_1}
         whatsapp2={settings.whatsapp_2}
         email={settings.email}
+        logoSrc={logo.dark}
       />
     </>
   )

@@ -31,6 +31,7 @@ import { generateWALink } from '@/lib/wa-link'
 interface NavbarProps {
   whatsapp1: string
   email: string
+  logoSrc?: string
 }
 
 function isNavActive(href: string, pathname: string, exact: boolean): boolean {
@@ -48,7 +49,7 @@ const drawerItem = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: EASE } },
 }
 
-export function Navbar({ whatsapp1, email }: NavbarProps) {
+export function Navbar({ whatsapp1, email, logoSrc }: NavbarProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -115,7 +116,7 @@ export function Navbar({ whatsapp1, email }: NavbarProps) {
           {/* Logo + tagline — tagline hanya muncul di desktop, penguat
               brand recall bagi pengunjung yang datang langsung ke beranda */}
           <div className="flex items-center gap-3">
-            <Logo variant="light" height={34} />
+            <Logo variant="light" height={34} src={logoSrc} />
             <div className="hidden xl:block h-8 w-px bg-ink-900/10" aria-hidden="true" />
             <p className="hidden xl:block font-display text-sm leading-tight text-ink-700/60">
               Garam Lokal,<br />Standar Industri

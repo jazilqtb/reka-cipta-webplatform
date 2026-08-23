@@ -34,7 +34,7 @@ export default async function TentangKamiPage() {
           antarmuka publik". Komponen pendukungnya (LegalDocsGrid.tsx,
           LegalDocCard.tsx, LegalDocModal.tsx) juga sudah dihapus dari
           repo, bukan cuma disembunyikan dari sini. */}
-      <AboutHero />
+      <AboutHero teamCount={team.length} />
       <CompanyTimeline timeline={timeline} />
       <VisiMisi vision={vision} mission={mission} />
       <OrgStructure team={team} />

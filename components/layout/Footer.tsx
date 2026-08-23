@@ -25,6 +25,7 @@ interface FooterProps {
   whatsapp1: string
   whatsapp2?: string
   email: string
+  logoSrc?: string
 }
 
 // Produk Kami — mirror 5 slug/nama di ProductsPreview.tsx (FALLBACK_PRODUCTS).
@@ -37,7 +38,7 @@ const PRODUCT_LINKS = [
   { slug: 'garam-ghpt', name: 'Garam Halus Pakan Ternak' },
 ]
 
-export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
+export function Footer({ address, whatsapp1, whatsapp2, email, logoSrc }: FooterProps) {
   return (
     // RONDE 7: .bg-salt-texture (motif garis silang) dihapus — dinilai
     // tidak profesional. Watermark kristal SVG di bawah (sudah sangat
@@ -60,7 +61,7 @@ export function Footer({ address, whatsapp1, whatsapp2, email }: FooterProps) {
 
           {/* ── Blok Brand ── */}
           <div className="space-y-5 lg:col-span-4">
-            <Logo variant="dark" height={44} asLink={false} />
+            <Logo variant="dark" height={44} asLink={false} src={logoSrc} />
 
             {/* font-display TERBATAS di sini + Navbar — bukan heading,
                 melainkan tagline mikro yang menyertai logo (bagian dari

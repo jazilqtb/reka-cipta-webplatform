@@ -56,7 +56,7 @@ export async function saveAboutRows(
   // tidak deterministik — dan itu bug yang hanya muncul sesekali.
   const payload: Array<Record<string, unknown>> = rows.map((r, i) => ({
     ...pick(table, r),
-    ...(r.id ? { id: r.id } : {}),
+    id: r.id || crypto.randomUUID(),
     sort_order: i + 1,
     updated_at: new Date().toISOString(),
   }))

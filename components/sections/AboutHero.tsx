@@ -13,12 +13,11 @@
 import Link from 'next/link'
 import { CaretRightIcon, BuildingsIcon, UsersThreeIcon } from '@phosphor-icons/react/ssr'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
-import { TEAM_MEMBERS } from '@/constants/company-profile'
 
-export function AboutHero() {
+export function AboutHero({ teamCount }: { teamCount: number }) {
   return (
     <>
-    <section className="relative overflow-hidden surface-depth edge-marine-bottom px-4 pb-14 pt-14 md:pb-20 md:pt-20">
+    <section className="relative overflow-hidden surface-depth line-motif-deep edge-marine-bottom px-4 pb-14 pt-14 md:pb-20 md:pt-20">
 
       <div className="relative mx-auto max-w-5xl">
         <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 font-ui text-sm text-brand-teal-300/70">
@@ -52,7 +51,7 @@ export function AboutHero() {
           </div>
           <div className="flex items-center gap-1.5">
             <UsersThreeIcon size={16} weight="duotone" className="text-brand-teal-300" aria-hidden="true" />
-            <span className="mono-tech text-base font-bold text-brand-teal-300">{TEAM_MEMBERS.length}</span>
+            <span className="mono-tech text-base font-bold text-brand-teal-300">{teamCount}</span>
             <span className="font-ui text-xs font-medium text-white/50">Anggota Tim Inti</span>
           </div>
         </div>

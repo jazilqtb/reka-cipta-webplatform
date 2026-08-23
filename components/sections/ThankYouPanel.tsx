@@ -52,7 +52,7 @@ export function ThankYouPanel({
 
   return (
     <>
-      <section className="relative overflow-hidden surface-depth edge-marine-bottom px-4 pb-16 pt-16 md:pb-24 md:pt-24">
+      <section className="relative overflow-hidden surface-depth line-motif-deep edge-marine-bottom px-4 pb-16 pt-16 md:pb-24 md:pt-24">
 
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Checkmark beranimasi — lingkaran menggambar dulu, lalu centang */}

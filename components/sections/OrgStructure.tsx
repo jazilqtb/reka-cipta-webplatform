@@ -22,9 +22,14 @@ export function OrgStructure({ team }: { team: TeamEntry[] }) {
         {/* grid-cols-4 di desktop tetap, tapi kini tumbuh ke baris kedua
             saat anggota bertambah — sebelumnya jumlah kolomnya kebetulan
             sama dengan jumlah anggota. */}
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+        <div className="flex flex-wrap justify-center gap-6">
           {team.map((member, index) => (
-            <RevealWrapper key={member.id} variant="reveal-up" delay={index * 60}>
+            <RevealWrapper
+              key={member.id}
+              variant="reveal-up"
+              delay={index * 60}
+              className="w-[calc(50%-0.75rem)] md:w-[calc(25%-1.125rem)]"
+            >
               <TeamMember member={member} />
             </RevealWrapper>
           ))}
