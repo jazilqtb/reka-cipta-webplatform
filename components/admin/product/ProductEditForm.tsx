@@ -43,6 +43,7 @@ export function ProductEditForm({ product, availableIndustries }: ProductEditFor
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<ProductUpdateFormData>({
     resolver: zodResolver(productUpdateSchema),
@@ -55,8 +56,26 @@ export function ProductEditForm({ product, availableIndustries }: ProductEditFor
       is_sni: product.is_sni,
       is_active: product.is_active,
       sort_order: product.sort_order,
+      meta_title: product.meta_title,
+      meta_description: product.meta_description,
+      canonical_url: product.canonical_url,
     },
   })
+
+  const metaTitleLength = watch('meta_title')?.length ?? 0
+  const metaDescriptionLength = watch('meta_description')?.length ?? 0
+
+  function nullifyBlanks(values: ProductUpdateFormData): ProductUpdateFormData {
+    const optional = ['meta_title', 'meta_description', 'canonical_url'] as const
+    const out = { ...values }
+    for (const key of optional) {
+      const v = out[key]
+      if (typeof v === 'string' && v.trim() === '') {
+        ;(out as Record<string, unknown>)[key] = null
+      }
+    }
+    return out
+  }
 
   // Warn sebelum navigate away kalau ada perubahan belum disimpan.
   useEffect(() => {
@@ -67,7 +86,8 @@ export function ProductEditForm({ product, availableIndustries }: ProductEditFor
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty])
 
-  async function onSubmit(data: ProductUpdateFormData) {
+  async function onSubmit(rawData: ProductUpdateFormData) {
+    const data = nullifyBlanks(rawData)
     try {
       await updateProduct(product.id, data)
 
@@ -194,6 +214,64 @@ export function ProductEditForm({ product, availableIndustries }: ProductEditFor
             {errors.industries.message}
           </p>
         )}
+      </div>
+
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 space-y-5">
+        <h2 className="text-lg font-semibold text-ink-700">SEO</h2>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="meta_title">Judul SEO (kosongkan untuk pakai "{product.name} — {product.code}")</Label>
+          <Input
+            {...register('meta_title')}
+            id="meta_title"
+            maxLength={200}
+            disabled={isSubmitting}
+            aria-invalid={!!errors.meta_title}
+            aria-describedby={errors.meta_title ? 'meta_title-error' : undefined}
+          />
+          <p className="text-xs text-neutral-500">{metaTitleLength}/200 — disarankan di bawah 60 karakter</p>
+          {errors.meta_title && (
+            <p id="meta_title-error" role="alert" className="text-sm text-danger-600">
+              {errors.meta_title.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="meta_description">Deskripsi SEO (kosongkan untuk pakai tagline/deskripsi)</Label>
+          <Textarea
+            {...register('meta_description')}
+            id="meta_description"
+            rows={3}
+            maxLength={300}
+            disabled={isSubmitting}
+            aria-invalid={!!errors.meta_description}
+            aria-describedby={errors.meta_description ? 'meta_description-error' : undefined}
+          />
+          <p className="text-xs text-neutral-500">{metaDescriptionLength}/300 — disarankan di bawah 160 karakter</p>
+          {errors.meta_description && (
+            <p id="meta_description-error" role="alert" className="text-sm text-danger-600">
+              {errors.meta_description.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="canonical_url">URL Kanonik (kosongkan untuk pakai URL produk ini)</Label>
+          <Input
+            {...register('canonical_url')}
+            id="canonical_url"
+            placeholder="https://..."
+            disabled={isSubmitting}
+            aria-invalid={!!errors.canonical_url}
+            aria-describedby={errors.canonical_url ? 'canonical_url-error' : undefined}
+          />
+          {errors.canonical_url && (
+            <p id="canonical_url-error" role="alert" className="text-sm text-danger-600">
+              {errors.canonical_url.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 space-y-4">

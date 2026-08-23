@@ -28,8 +28,7 @@
 //   skema harga yang tidak ada.
 import { COMPANY_INFO } from '@/constants/navigation'
 import type { CompanySettingsMap, Product } from '@/types/api'
-
-const SITE_URL = 'https://rekaciptaindonesia.com'
+import { SITE_URL } from '@/lib/site-url'
 
 interface StructuredDataProps {
   settings: CompanySettingsMap

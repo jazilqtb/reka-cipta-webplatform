@@ -36,6 +36,9 @@ class Product(BaseModel):
     sort_order: int
     photo_url: Optional[str] = None
     lab_doc_url: Optional[str] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    canonical_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -73,6 +76,9 @@ class ProductUpdateRequest(BaseModel):
     is_sni: bool
     is_active: bool
     sort_order: int = Field(ge=0)
+    meta_title: Optional[str] = Field(default=None, max_length=200)
+    meta_description: Optional[str] = Field(default=None, max_length=300)
+    canonical_url: Optional[str] = Field(default=None, max_length=500)
 
 
 class ProductAdminListResponse(BaseModel):

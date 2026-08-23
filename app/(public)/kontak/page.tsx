@@ -11,6 +11,7 @@
 import type { Metadata } from 'next'
 import { createPublic } from '@/lib/supabase/public'
 import type { CompanySettingsMap } from '@/types/api'
+import { SITE_URL } from '@/lib/site-url'
 import { ContactHero } from '@/components/sections/ContactHero'
 import { ContactInfo } from '@/components/sections/ContactInfo'
 import { WhatsAppButtons } from '@/components/sections/WhatsAppButtons'
@@ -25,14 +26,13 @@ export const metadata: Metadata = {
   description:
     'Hubungi CV Reka Cipta Indonesia untuk kebutuhan distribusi garam industri Anda. Kantor Surabaya, respons kurang dari 24 jam. Chat WA langsung.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com/kontak',
+    canonical: `${SITE_URL}/kontak`,
   },
   openGraph: {
     title: 'Hubungi CV Reka Cipta Indonesia',
     description:
       'Hubungi CV Reka Cipta Indonesia untuk kebutuhan distribusi garam industri Anda. Kantor Surabaya, respons kurang dari 24 jam. Chat WA langsung.',
-    url: 'https://rekaciptaindonesia.com/kontak',
-    images: [{ url: '/og-image.svg' }],
+    url: `${SITE_URL}/kontak`,
     type: 'website',
   },
 }

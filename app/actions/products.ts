@@ -22,7 +22,7 @@ export async function revalidateProductRoutes(slug: string) {
 
   revalidatePath('/')
   revalidatePath('/produk')
-  revalidatePath(`/produk/${slug}`)
+  revalidatePath(`/produk/${slug}`, 'page')
   revalidatePath('/sitemap.xml')
   // Catatan: AR-03 awalnya skip revalidate('/') dgn asumsi Beranda tidak
   // reference produk spesifik. Asumsi itu salah — ProductsPreview di

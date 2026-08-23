@@ -13,6 +13,7 @@ import { createPublic } from '@/lib/supabase/public'
 import { PageHero } from '@/components/sections/PageHero'
 import { SectionDivider } from '@/components/decorative/SectionDivider'
 import { RFQForm } from '@/components/rfq/RFQForm'
+import { SITE_URL } from '@/lib/site-url'
 
 export const revalidate = 3600
 
@@ -21,12 +22,12 @@ export const metadata: Metadata = {
   description:
     'Dapatkan proposal penawaran khusus untuk kebutuhan garam industri Anda. Isi form, tim kami hubungi dalam 1×24 jam.',
   alternates: {
-    canonical: 'https://rekaciptaindonesia.com/minta-penawaran',
+    canonical: `${SITE_URL}/minta-penawaran`,
   },
   openGraph: {
     title: 'Minta Penawaran — CV Reka Cipta Indonesia',
     description: 'Dapatkan proposal penawaran khusus untuk kebutuhan garam industri Anda.',
-    url: 'https://rekaciptaindonesia.com/minta-penawaran',
+    url: `${SITE_URL}/minta-penawaran`,
     type: 'website',
   },
 }

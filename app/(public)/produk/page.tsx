@@ -6,6 +6,7 @@ import { CategoryFilterTabs } from '@/components/product/CategoryFilterTabs'
 import { CardSkeleton } from '@/components/ui/skeletons'
 import { mapProductRow } from '@/lib/product-mapper'
 import type { ProductRow } from '@/types/api'
+import { SITE_URL } from '@/lib/site-url'
 
 // ISR: revalidate setiap 1 jam
 export const revalidate = 3600
@@ -14,9 +15,13 @@ export const metadata: Metadata = {
   title: 'Katalog Produk',
   description:
     'Portofolio produk garam industri CV Reka Cipta Indonesia. 5 varian garam untuk industri makanan, farmasi, kimia, peternakan, dan lainnya. Bersertifikat SNI.',
+  alternates: {
+    canonical: `${SITE_URL}/produk`,
+  },
   openGraph: {
     title: 'Katalog Produk Garam Industri',
     description: '5 varian garam berkualitas dari CV Reka Cipta Indonesia',
+    url: `${SITE_URL}/produk`,
     type: 'website',
   },
 }
